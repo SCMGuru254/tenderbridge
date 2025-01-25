@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Building2, MapPin, BriefcaseIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface JobCardProps {
   title: string;
@@ -12,6 +13,8 @@ interface JobCardProps {
 }
 
 export const JobCard = ({ title, company, location, type, category }: JobCardProps) => {
+  const navigate = useNavigate();
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -36,7 +39,10 @@ export const JobCard = ({ title, company, location, type, category }: JobCardPro
           <div className="flex space-x-2">
             <Badge variant="secondary">{category}</Badge>
           </div>
-          <Button className="w-full bg-primary hover:bg-primary/90">
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90"
+            onClick={() => navigate(`/jobs/apply`)}
+          >
             Apply Now
           </Button>
         </div>

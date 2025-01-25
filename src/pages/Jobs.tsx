@@ -2,38 +2,39 @@ import { useState } from "react";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Mock data - replace with real API data later
-const MOCK_JOBS = [
-  {
-    id: 1,
-    title: "Supply Chain Manager",
-    company: "East African Breweries",
-    location: "Nairobi",
-    type: "Full-time",
-    category: "Supply Chain",
-  },
-  {
-    id: 2,
-    title: "Logistics Coordinator",
-    company: "DHL Kenya",
-    location: "Mombasa",
-    type: "Full-time",
-    category: "Logistics",
-  },
-  {
-    id: 3,
-    title: "Procurement Officer",
-    company: "Safaricom",
-    location: "Nairobi",
-    type: "Contract",
-    category: "Procurement",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
+
+  const { data: jobs, isLoading } = useQuery({
+    queryKey: ['jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          companies (
+            name,
+            location
+          )
+        `)
+        .eq('is_active', true);
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const filteredJobs = jobs?.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !category || job.job_type === category;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -50,21 +51,40 @@ const Jobs = () => {
         </div>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger>
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder="Job Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="supply-chain">Supply Chain</SelectItem>
-            <SelectItem value="logistics">Logistics</SelectItem>
-            <SelectItem value="procurement">Procurement</SelectItem>
+            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="full_time">Full Time</SelectItem>
+            <SelectItem value="part_time">Part Time</SelectItem>
+            <SelectItem value="contract">Contract</SelectItem>
+            <SelectItem value="internship">Internship</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_JOBS.map((job) => (
-          <JobCard key={job.id} {...job} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      ) : filteredJobs?.length === 0 ? (
+        <div className="text-center text-gray-500 py-12">
+          No jobs found matching your criteria
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredJobs?.map((job) => (
+            <JobCard
+              key={job.id}
+              title={job.title}
+              company={job.companies?.name || "Company Name"}
+              location={job.location}
+              type={job.job_type}
+              category="Supply Chain"
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
