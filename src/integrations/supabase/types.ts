@@ -17,10 +17,6 @@ export type Database = {
           id: string
           title: string
           updated_at: string
-          author: {
-            full_name: string | null
-            avatar_url: string | null
-          } | null
         }
         Insert: {
           author_id: string
@@ -38,15 +34,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "blog_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       companies: {
         Row: {
@@ -98,10 +86,6 @@ export type Database = {
           id: string
           title: string
           updated_at: string
-          author: {
-            full_name: string | null
-            avatar_url: string | null
-          } | null
         }
         Insert: {
           author_id: string
@@ -119,15 +103,7 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "discussions_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       job_reports: {
         Row: {

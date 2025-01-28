@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
 
   const { data: jobs, isLoading } = useQuery({
     queryKey: ['jobs'],
@@ -49,12 +49,12 @@ const Jobs = () => {
             className="w-full"
           />
         </div>
-        <Select value={category} onValueChange={setCategory}>
+        <Select value={category ?? undefined} onValueChange={setCategory}>
           <SelectTrigger>
             <SelectValue placeholder="Job Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
+            <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="full_time">Full Time</SelectItem>
             <SelectItem value="part_time">Part Time</SelectItem>
             <SelectItem value="contract">Contract</SelectItem>
