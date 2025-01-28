@@ -14,13 +14,7 @@ const Blog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*, author:profiles(full_name, avatar_url)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -62,7 +56,7 @@ const Blog = () => {
                   <Calendar className="w-4 h-4 mr-2" />
                   <span>{format(new Date(post.created_at), 'MMMM d, yyyy')}</span>
                   <span className="mx-2">•</span>
-                  <span>By {post.profiles?.full_name || 'Anonymous'}</span>
+                  <span>By {post.author?.full_name || 'Anonymous'}</span>
                 </div>
               </CardHeader>
               <CardContent>

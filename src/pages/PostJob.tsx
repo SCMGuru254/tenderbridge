@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 
+type JobType = "full_time" | "part_time" | "contract" | "internship";
+
 const PostJob = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -18,7 +20,7 @@ const PostJob = () => {
     description: "",
     location: "",
     salary_range: "",
-    job_type: "",
+    job_type: "" as JobType,
     requirements: "",
     responsibilities: "",
   });
@@ -56,6 +58,15 @@ const PostJob = () => {
         variant: "destructive",
       });
       navigate("/auth");
+      return;
+    }
+
+    if (!formData.job_type) {
+      toast({
+        title: "Error",
+        description: "Please select a job type",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -133,7 +144,7 @@ const PostJob = () => {
             <div>
               <Select
                 value={formData.job_type}
-                onValueChange={(value) => setFormData({ ...formData, job_type: value })}
+                onValueChange={(value: JobType) => setFormData({ ...formData, job_type: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Job Type" />

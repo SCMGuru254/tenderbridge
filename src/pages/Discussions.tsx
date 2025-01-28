@@ -14,13 +14,7 @@ const Discussions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('discussions')
-        .select(`
-          *,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*, author:profiles(full_name, avatar_url)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -65,7 +59,7 @@ const Discussions = () => {
                 <CardTitle className="text-xl">{discussion.title}</CardTitle>
                 <div className="flex items-center text-sm text-gray-500">
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  <span>Started by {discussion.profiles?.full_name || 'Anonymous'}</span>
+                  <span>Started by {discussion.author?.full_name || 'Anonymous'}</span>
                 </div>
               </CardHeader>
               <CardContent>
