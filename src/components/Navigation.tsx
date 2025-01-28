@@ -1,7 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Navigation = () => {
+  const navigate = useNavigate();
+
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return session;
+    }
+  });
+
   return (
     <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4">
@@ -16,16 +29,29 @@ export const Navigation = () => {
             <Link to="/discussions" className="text-gray-700 hover:text-primary">
               Discussions
             </Link>
-            <Link to="/news" className="text-gray-700 hover:text-primary">
-              News
-            </Link>
             <Link to="/blog" className="text-gray-700 hover:text-primary">
               Blog
             </Link>
           </div>
-          <Button variant="default" className="bg-primary hover:bg-primary/90">
-            Post a Job
-          </Button>
+          <div className="flex items-center space-x-4">
+            {session ? (
+              <Button 
+                variant="default" 
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => navigate("/post-job")}
+              >
+                Post a Job
+              </Button>
+            ) : (
+              <Button 
+                variant="default" 
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => navigate("/auth")}
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </nav>

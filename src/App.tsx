@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
+import PostJob from "./pages/PostJob";
+import Discussions from "./pages/Discussions";
+import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
@@ -21,6 +24,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/jobs" element={<Jobs />} />
+            <Route path="/post-job" element={<PostJob />} />
+            <Route path="/discussions" element={<Discussions />} />
+            <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
           </Routes>
         </div>
