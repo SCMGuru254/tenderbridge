@@ -17,7 +17,7 @@ type Discussion = {
   content: string;
   created_at: string;
   author_id: string;
-  profiles?: Profile | null;
+  profiles: Profile;
 }
 
 const Discussions = () => {
@@ -30,7 +30,7 @@ const Discussions = () => {
         .from('discussions')
         .select(`
           *,
-          profiles:profiles!discussions_author_id_fkey(full_name, avatar_url)
+          profiles(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 

@@ -75,18 +75,24 @@ const Jobs = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const getCompanyName = (job: PostedJob | ScrapedJob) => {
-    if ('companies' in job) {
-      return job.companies?.name;
+  const getCompanyName = (job: PostedJob | ScrapedJob): string | null => {
+    if ('companies' in job && job.companies) {
+      return job.companies.name;
     }
-    return job.company;
+    if ('company' in job) {
+      return job.company;
+    }
+    return null;
   };
 
-  const getLocation = (job: PostedJob | ScrapedJob) => {
-    if ('companies' in job) {
-      return job.companies?.location;
+  const getLocation = (job: PostedJob | ScrapedJob): string | null => {
+    if ('companies' in job && job.companies) {
+      return job.companies.location;
     }
-    return job.location;
+    if ('location' in job) {
+      return job.location;
+    }
+    return null;
   };
 
   return (
