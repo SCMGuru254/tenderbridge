@@ -7,6 +7,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type PostedJob = {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  job_type: "full_time" | "part_time" | "contract" | "internship";
+  companies?: {
+    name: string | null;
+    location: string | null;
+  } | null;
+}
+
+type ScrapedJob = {
+  id: string;
+  title: string;
+  company: string | null;
+  location: string | null;
+  description: string | null;
+  job_type: string | null;
+}
+
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -27,7 +48,7 @@ const Jobs = () => {
         .eq('is_active', true);
 
       if (error) throw error;
-      return data;
+      return data as PostedJob[];
     }
   });
 
@@ -40,7 +61,7 @@ const Jobs = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as ScrapedJob[];
     }
   });
 

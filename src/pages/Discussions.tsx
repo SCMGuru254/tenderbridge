@@ -6,6 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, MessageSquare } from "lucide-react";
 
+type DiscussionWithAuthor = {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  author_id: string;
+  author: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
 const Discussions = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -14,11 +26,14 @@ const Discussions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('discussions')
-        .select('*, author:profiles(full_name, avatar_url)')
+        .select(`
+          *,
+          author:profiles(full_name, avatar_url)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as DiscussionWithAuthor[];
     }
   });
 
