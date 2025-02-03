@@ -105,6 +105,47 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          applicant_id: string | null
+          cover_letter: string | null
+          created_at: string
+          id: string
+          job_id: string | null
+          resume_url: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          applicant_id?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          resume_url?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          resume_url?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reports: {
         Row: {
           created_at: string
@@ -136,6 +177,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "job_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_skills: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          skill: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          skill: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          skill?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_skills_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
