@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, MessageSquare } from "lucide-react";
 
-type DiscussionWithAuthor = {
+type Profile = {
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+type Discussion = {
   id: string;
   title: string;
   content: string;
   created_at: string;
   author_id: string;
-  author: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  profiles?: Profile | null;
 }
 
 const Discussions = () => {
@@ -28,12 +30,12 @@ const Discussions = () => {
         .from('discussions')
         .select(`
           *,
-          author:profiles(full_name, avatar_url)
+          profiles:profiles!discussions_author_id_fkey(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as DiscussionWithAuthor[];
+      return data as Discussion[];
     }
   });
 
@@ -74,7 +76,7 @@ const Discussions = () => {
                 <CardTitle className="text-xl">{discussion.title}</CardTitle>
                 <div className="flex items-center text-sm text-gray-500">
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  <span>Started by {discussion.author?.full_name || 'Anonymous'}</span>
+                  <span>Started by {discussion.profiles?.full_name || 'Anonymous'}</span>
                 </div>
               </CardHeader>
               <CardContent>

@@ -75,6 +75,20 @@ const Jobs = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const getCompanyName = (job: PostedJob | ScrapedJob) => {
+    if ('companies' in job) {
+      return job.companies?.name;
+    }
+    return job.company;
+  };
+
+  const getLocation = (job: PostedJob | ScrapedJob) => {
+    if ('companies' in job) {
+      return job.companies?.location;
+    }
+    return job.location;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
       <h1 className="text-3xl font-bold mb-8">Supply Chain Jobs in Kenya</h1>
@@ -123,8 +137,8 @@ const Jobs = () => {
             <JobCard
               key={job.id}
               title={job.title}
-              company={activeTab === "posted" ? job.companies?.name : job.company}
-              location={activeTab === "posted" ? job.companies?.location : job.location}
+              company={getCompanyName(job)}
+              location={getLocation(job)}
               type={job.job_type}
               category="Supply Chain"
             />
