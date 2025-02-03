@@ -10,6 +10,7 @@ import PostJob from "./pages/PostJob";
 import Discussions from "./pages/Discussions";
 import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/discussions" element={<Discussions />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
           </Routes>
         </div>
       </BrowserRouter>

@@ -5,13 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("posted");
 
-  const { data: jobs, isLoading } = useQuery({
-    queryKey: ['jobs'],
+  const { data: postedJobs, isLoading: isLoadingPosted } = useQuery({
+    queryKey: ['posted-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('jobs')
@@ -29,17 +31,40 @@ const Jobs = () => {
     }
   });
 
+  const { data: scrapedJobs, isLoading: isLoadingScraped } = useQuery({
+    queryKey: ['scraped-jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('scraped_jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const jobs = activeTab === "posted" ? postedJobs : scrapedJobs;
+  const isLoading = activeTab === "posted" ? isLoadingPosted : isLoadingScraped;
+
   const filteredJobs = jobs?.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     const matchesCategory = !category || job.job_type === category;
     return matchesSearch && matchesCategory;
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 animate-fade-in">
       <h1 className="text-3xl font-bold mb-8">Supply Chain Jobs in Kenya</h1>
       
+      <Tabs defaultValue="posted" className="mb-8" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="posted">Posted Jobs</TabsTrigger>
+          <TabsTrigger value="scraped">External Jobs</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="md:col-span-3">
           <Input
@@ -72,13 +97,13 @@ const Jobs = () => {
           No jobs found matching your criteria
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
           {filteredJobs?.map((job) => (
             <JobCard
               key={job.id}
               title={job.title}
-              company={job.companies?.name || "Company Name"}
-              location={job.location}
+              company={activeTab === "posted" ? job.companies?.name : job.company}
+              location={activeTab === "posted" ? job.companies?.location : job.location}
               type={job.job_type}
               category="Supply Chain"
             />

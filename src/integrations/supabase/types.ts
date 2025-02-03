@@ -238,6 +238,78 @@ export type Database = {
         }
         Relationships: []
       }
+      scraped_jobs: {
+        Row: {
+          company: string | null
+          created_at: string
+          description: string | null
+          id: string
+          job_type: string | null
+          job_url: string | null
+          location: string | null
+          source: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_type?: string | null
+          job_url?: string | null
+          location?: string | null
+          source?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          job_type?: string | null
+          job_url?: string | null
+          location?: string | null
+          source?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supply_chain_news: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          published_date: string | null
+          source_name: string | null
+          source_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          published_date?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          published_date?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
