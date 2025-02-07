@@ -316,39 +316,111 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          notes: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scraped_jobs: {
         Row: {
+          application_deadline: string | null
+          application_url: string | null
+          category: string | null
           company: string | null
           created_at: string
           description: string | null
+          employment_type: string | null
+          experience_level: string | null
           id: string
+          is_scam: boolean | null
           job_type: string | null
           job_url: string | null
           location: string | null
+          salary_range: string | null
+          scam_reports: number | null
+          skills: string[] | null
+          social_shares: Json | null
           source: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          application_deadline?: string | null
+          application_url?: string | null
+          category?: string | null
           company?: string | null
           created_at?: string
           description?: string | null
+          employment_type?: string | null
+          experience_level?: string | null
           id?: string
+          is_scam?: boolean | null
           job_type?: string | null
           job_url?: string | null
           location?: string | null
+          salary_range?: string | null
+          scam_reports?: number | null
+          skills?: string[] | null
+          social_shares?: Json | null
           source?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          application_deadline?: string | null
+          application_url?: string | null
+          category?: string | null
           company?: string | null
           created_at?: string
           description?: string | null
+          employment_type?: string | null
+          experience_level?: string | null
           id?: string
+          is_scam?: boolean | null
           job_type?: string | null
           job_url?: string | null
           location?: string | null
+          salary_range?: string | null
+          scam_reports?: number | null
+          skills?: string[] | null
+          social_shares?: Json | null
           source?: string | null
           title?: string
           updated_at?: string
