@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ type Discussion = {
   content: string;
   created_at: string;
   author_id: string;
+  updated_at: string;
   profiles: Profile;
 }
 
@@ -30,7 +32,7 @@ const Discussions = () => {
         .from('discussions')
         .select(`
           *,
-          profiles(full_name, avatar_url)
+          profiles:author_id(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
