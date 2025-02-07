@@ -32,7 +32,7 @@ const Discussions = () => {
         .from('discussions')
         .select(`
           *,
-          profiles:author_id(full_name, avatar_url)
+          profiles:profiles!discussions_author_id_fkey(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
