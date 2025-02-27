@@ -62,6 +62,18 @@ serve(async (req) => {
           url: '.jobTitle a'
         },
         source: 'Indeed'
+      },
+      {
+        url: 'https://www.myjobmag.co.ke/jobs-by-field/supply-chain-management',
+        selectors: {
+          jobContainer: '.job-item',
+          title: '.job-title a',
+          company: '.company-name',
+          location: '.job-location',
+          type: '.job-type',
+          url: '.job-title a'
+        },
+        source: 'MyJobMag'
       }
     ];
 
