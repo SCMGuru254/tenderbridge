@@ -16,10 +16,14 @@ serve(async (req) => {
   try {
     console.log('Starting job scraping process...')
     
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Required environment variables SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set');
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Array of job sites to scrape with specific selectors for each site
     const jobSites = [
@@ -27,33 +31,59 @@ serve(async (req) => {
         url: 'https://www.brightermonday.co.ke/jobs/supply-chain-logistics',
         selectors: {
           jobContainer: '.search-result',
-          title: '.search-result__job-title',
-          company: '.search-result__job-meta span:first-child',
+          title: 'h3',
+          company: '.search-result__job-meta span.text-grey',
           location: '.search-result__location',
-          type: '.search-result__job-meta span:last-child'
+          type: '.search-result__job-meta span:last-child',
+          url: 'h3 a'
         },
         source: 'BrighterMonday'
       },
       {
         url: 'https://www.fuzu.com/kenya/jobs/supply-chain',
         selectors: {
-          jobContainer: '.job-item',
-          title: '.job-item__title',
-          company: '.job-item__company',
-          location: '.job-item__location',
-          type: '.job-item__type'
+          jobContainer: '.JobItem',
+          title: '.JobItem__title',
+          company: '.JobItem__meta strong',
+          location: '.JobItemFooter__location',
+          type: '.JobItemFooter__type',
+          url: 'a.JobItem'
         },
         source: 'Fuzu'
+      },
+      {
+        url: 'https://ke.indeed.com/jobs?q=supply+chain&l=Nairobi%2C+Nairobi+County',
+        selectors: {
+          jobContainer: '.job_seen_beacon',
+          title: '.jobTitle',
+          company: '.companyName',
+          location: '.companyLocation',
+          type: '.metadataContainer .metadata:first-child',
+          url: '.jobTitle a'
+        },
+        source: 'Indeed'
       }
-      // LinkedIn is more complex, may require additional approaches
-    ]
+    ];
 
     let totalJobsScraped = 0;
+    
+    // Clear existing scraped jobs to avoid duplicates
+    const { error: clearError } = await supabase
+      .from('scraped_jobs')
+      .delete()
+      .not('id', 'is', null); // safety check to not delete everything if id is null
+    
+    if (clearError) {
+      console.error('Error clearing existing jobs:', clearError);
+      // Continue with scraping even if clearing fails
+    } else {
+      console.log('Successfully cleared existing scraped jobs');
+    }
     
     // Scrape each site
     for (const site of jobSites) {
       try {
-        console.log(`Scraping ${site.source} at ${site.url}...`)
+        console.log(`Scraping ${site.source} at ${site.url}...`);
         
         // Fetch the page content
         const response = await fetch(site.url, {
@@ -84,20 +114,34 @@ serve(async (req) => {
         
         // If no selectors match exactly, try a more general approach
         if (jobListings.length === 0) {
-          console.log(`Attempting alternative scraping method for ${site.source}...`);
+          console.log(`No job listings found with primary selectors on ${site.source}, trying alternative approach...`);
           
           // Look for common job listing patterns
           const alternativeJobElements = document.querySelectorAll('div[class*="job"], article, .card, li[class*="listing"]');
+          console.log(`Found ${alternativeJobElements.length} potential job listings with alternative selectors`);
           
+          // Extract general job information from alternative elements
           for (const jobElement of alternativeJobElements) {
-            const titleElement = jobElement.querySelector('h2, h3, [class*="title"]');
+            const titleElement = jobElement.querySelector('h2, h3, h4, [class*="title"]');
             const companyElement = jobElement.querySelector('[class*="company"], [class*="employer"]');
-            const locationElement = jobElement.querySelector('[class*="location"]');
+            const locationElement = jobElement.querySelector('[class*="location"], address');
+            const linkElement = jobElement.querySelector('a[href]');
             
             if (titleElement) {
               const title = titleElement.textContent?.trim() || 'Supply Chain Position';
               const company = companyElement?.textContent?.trim() || null;
               const location = locationElement?.textContent?.trim() || 'Kenya';
+              let jobUrl = null;
+              
+              if (linkElement && linkElement.getAttribute('href')) {
+                let href = linkElement.getAttribute('href');
+                // Add domain if the URL is relative
+                if (href.startsWith('/')) {
+                  const siteUrl = new URL(site.url);
+                  href = `${siteUrl.origin}${href}`;
+                }
+                jobUrl = href;
+              }
               
               // Insert job into database
               const { data, error } = await supabase.from('scraped_jobs').insert({
@@ -106,7 +150,8 @@ serve(async (req) => {
                 location,
                 source: site.source,
                 job_type: 'full_time', // Default
-                description: `Supply chain job opportunity at ${company || 'a company in Kenya'}.`
+                description: `Supply chain job opportunity at ${company || 'a company in Kenya'}.`,
+                job_url: jobUrl
               }).select();
               
               if (error) {
@@ -127,11 +172,24 @@ serve(async (req) => {
           const companyElement = listing.querySelector(site.selectors.company);
           const locationElement = listing.querySelector(site.selectors.location);
           const typeElement = listing.querySelector(site.selectors.type);
+          const urlElement = listing.querySelector(site.selectors.url);
           
           const title = titleElement?.textContent?.trim() || 'Supply Chain Position';
           const company = companyElement?.textContent?.trim() || null;
           const location = locationElement?.textContent?.trim() || 'Kenya';
           const jobType = typeElement?.textContent?.trim()?.toLowerCase() || 'full_time';
+          
+          // Extract job URL
+          let jobUrl = null;
+          if (urlElement && urlElement.getAttribute('href')) {
+            let href = urlElement.getAttribute('href');
+            // Add domain if the URL is relative
+            if (href.startsWith('/')) {
+              const siteUrl = new URL(site.url);
+              href = `${siteUrl.origin}${href}`;
+            }
+            jobUrl = href;
+          }
           
           // Map job type to standard values
           let standardJobType = 'full_time';
@@ -146,7 +204,8 @@ serve(async (req) => {
             location,
             source: site.source,
             job_type: standardJobType,
-            description: `Supply chain job opportunity at ${company || 'a company in Kenya'}.`
+            description: `Supply chain job opportunity at ${company || 'a company in Kenya'}.`,
+            job_url: jobUrl
           }).select();
           
           if (error) {
@@ -172,35 +231,40 @@ serve(async (req) => {
           company: 'Global Logistics Ltd',
           location: 'Nairobi, Kenya',
           job_type: 'full_time',
-          description: 'Leading supply chain operations for a growing logistics company in Kenya.'
+          description: 'Leading supply chain operations for a growing logistics company in Kenya.',
+          job_url: 'https://example.com/job1'
         },
         {
           title: 'Procurement Specialist',
           company: 'Kenya Manufacturing Co',
           location: 'Mombasa, Kenya',
           job_type: 'full_time',
-          description: 'Managing procurement processes for manufacturing operations.'
+          description: 'Managing procurement processes for manufacturing operations.',
+          job_url: 'https://example.com/job2'
         },
         {
           title: 'Logistics Coordinator',
           company: 'East Africa Distributors',
           location: 'Kisumu, Kenya',
           job_type: 'contract',
-          description: 'Coordinating logistics operations across East Africa.'
+          description: 'Coordinating logistics operations across East Africa.',
+          job_url: 'https://example.com/job3'
         },
         {
           title: 'Supply Chain Intern',
           company: 'Tech Solutions Kenya',
           location: 'Nairobi, Kenya',
           job_type: 'internship',
-          description: 'Learning supply chain processes in a fast-paced tech environment.'
+          description: 'Learning supply chain processes in a fast-paced tech environment.',
+          job_url: 'https://example.com/job4'
         },
         {
           title: 'Warehouse Manager',
           company: 'Kenyan Retail Group',
           location: 'Nakuru, Kenya',
           job_type: 'full_time',
-          description: 'Overseeing warehouse operations for a major retail chain.'
+          description: 'Overseeing warehouse operations for a major retail chain.',
+          job_url: 'https://example.com/job5'
         }
       ];
       

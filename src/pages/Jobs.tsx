@@ -1,11 +1,14 @@
+
 import { useState } from "react";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCcw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 type PostedJob = {
   id: string;
@@ -26,14 +29,18 @@ type ScrapedJob = {
   location: string | null;
   description: string | null;
   job_type: string | null;
+  source: string | null;
+  job_url: string | null;
 }
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("posted");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
-  const { data: postedJobs, isLoading: isLoadingPosted } = useQuery({
+  const { data: postedJobs, isLoading: isLoadingPosted, refetch: refetchPostedJobs } = useQuery({
     queryKey: ['posted-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,7 +59,7 @@ const Jobs = () => {
     }
   });
 
-  const { data: scrapedJobs, isLoading: isLoadingScraped } = useQuery({
+  const { data: scrapedJobs, isLoading: isLoadingScraped, refetch: refetchScrapedJobs } = useQuery({
     queryKey: ['scraped-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,9 +102,62 @@ const Jobs = () => {
     return null;
   };
 
+  const refreshJobs = async () => {
+    try {
+      setIsRefreshing(true);
+      toast({
+        title: "Refreshing jobs...",
+        description: "This may take a minute while we fetch the latest jobs.",
+      });
+
+      // Call the Edge Function to scrape jobs
+      const { data, error } = await supabase.functions.invoke('scrape-jobs');
+      
+      if (error) {
+        console.error('Error refreshing jobs:', error);
+        toast({
+          variant: "destructive",
+          title: "Error refreshing jobs",
+          description: "There was a problem fetching the latest jobs. Please try again later.",
+        });
+      } else {
+        console.log('Jobs refreshed successfully:', data);
+        // Refetch the jobs to show the newly scraped ones
+        await refetchScrapedJobs();
+        toast({
+          title: "Jobs refreshed!",
+          description: `Successfully fetched ${data.message}`,
+        });
+      }
+    } catch (error) {
+      console.error('Exception when refreshing jobs:', error);
+      toast({
+        variant: "destructive",
+        title: "Error refreshing jobs",
+        description: "Something went wrong. Please try again later.",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
-      <h1 className="text-3xl font-bold mb-8">Supply Chain Jobs in Kenya</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Supply Chain Jobs in Kenya</h1>
+        <Button 
+          onClick={refreshJobs} 
+          disabled={isRefreshing}
+          className="flex items-center gap-2"
+        >
+          {isRefreshing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCcw className="h-4 w-4" />
+          )}
+          Refresh Jobs
+        </Button>
+      </div>
       
       <Tabs defaultValue="posted" className="mb-8" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
@@ -146,7 +206,7 @@ const Jobs = () => {
               company={getCompanyName(job)}
               location={getLocation(job)}
               type={job.job_type}
-              category="Supply Chain"
+              category={activeTab === "scraped" ? (job as ScrapedJob).source || "Supply Chain" : "Supply Chain"}
             />
           ))}
         </div>
