@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,9 +36,10 @@ type ScrapedJob = {
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("posted");
+  const [activeTab, setActiveTab] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+  const [allJobs, setAllJobs] = useState<(PostedJob | ScrapedJob)[]>([]);
 
   const { data: postedJobs, isLoading: isLoadingPosted, refetch: refetchPostedJobs } = useQuery({
     queryKey: ['posted-jobs'],
@@ -68,18 +69,35 @@ const Jobs = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log("Scraped jobs:", data); // Add this log to debug
+      console.log("Scraped jobs:", data);
       return data as ScrapedJob[];
     }
   });
 
-  const jobs = activeTab === "posted" ? postedJobs : scrapedJobs;
-  const isLoading = activeTab === "posted" ? isLoadingPosted : isLoadingScraped;
+  // Combine and filter jobs based on the active tab
+  useEffect(() => {
+    if (activeTab === "posted" && postedJobs) {
+      setAllJobs(postedJobs);
+    } else if (activeTab === "scraped" && scrapedJobs) {
+      setAllJobs(scrapedJobs);
+    } else if (activeTab === "all") {
+      const combined = [
+        ...(postedJobs || []),
+        ...(scrapedJobs || []),
+      ];
+      setAllJobs(combined);
+    }
+  }, [activeTab, postedJobs, scrapedJobs]);
 
-  const filteredJobs = jobs?.filter(job => {
+  const isLoading = isLoadingPosted || isLoadingScraped;
+
+  const filteredJobs = allJobs?.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
-    const matchesCategory = !category || job.job_type === category;
+    
+    const jobType = 'job_type' in job && job.job_type ? job.job_type : null;
+    const matchesCategory = !category || category === "all" || jobType === category;
+    
     return matchesSearch && matchesCategory;
   });
 
@@ -110,6 +128,13 @@ const Jobs = () => {
     }
     // For posted jobs, no direct URL is available
     return null;
+  };
+
+  const getJobSource = (job: PostedJob | ScrapedJob): string => {
+    if ('source' in job && job.source) {
+      return job.source;
+    }
+    return "Supply Chain Kenya";
   };
 
   const refreshJobs = async () => {
@@ -169,8 +194,9 @@ const Jobs = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="posted" className="mb-8" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">All Jobs</TabsTrigger>
           <TabsTrigger value="posted">Posted Jobs</TabsTrigger>
           <TabsTrigger value="scraped">External Jobs</TabsTrigger>
         </TabsList>
@@ -216,7 +242,7 @@ const Jobs = () => {
               company={getCompanyName(job)}
               location={getLocation(job)}
               type={job.job_type}
-              category={activeTab === "scraped" ? (job as ScrapedJob).source || "Supply Chain" : "Supply Chain"}
+              category={getJobSource(job)}
               jobUrl={getJobUrl(job)}
             />
           ))}
