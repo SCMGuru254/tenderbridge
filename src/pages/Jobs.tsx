@@ -68,6 +68,7 @@ const Jobs = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log("Scraped jobs:", data); // Add this log to debug
       return data as ScrapedJob[];
     }
   });
@@ -99,6 +100,15 @@ const Jobs = () => {
     if ('location' in job) {
       return job.location;
     }
+    return null;
+  };
+
+  const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
+    // For scraped jobs, use the job_url
+    if ('job_url' in job) {
+      return job.job_url;
+    }
+    // For posted jobs, no direct URL is available
     return null;
   };
 
@@ -207,6 +217,7 @@ const Jobs = () => {
               location={getLocation(job)}
               type={job.job_type}
               category={activeTab === "scraped" ? (job as ScrapedJob).source || "Supply Chain" : "Supply Chain"}
+              jobUrl={getJobUrl(job)}
             />
           ))}
         </div>
