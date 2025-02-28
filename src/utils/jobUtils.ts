@@ -37,6 +37,10 @@ export const getJobSource = (job: PostedJob | ScrapedJob): string => {
   return "Supply Chain Kenya";
 };
 
+export const getJobType = (job: PostedJob | ScrapedJob): string => {
+  return job.job_type?.toString() || "full_time";
+};
+
 export const filterJobs = (
   jobs: (PostedJob | ScrapedJob)[] | undefined,
   { searchTerm, category }: JobFilterParams
@@ -44,10 +48,19 @@ export const filterJobs = (
   if (!jobs) return [];
   
   return jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    // Search in title, description, company name, and location
+    const jobCompany = getCompanyName(job) || '';
+    const jobLocation = getLocation(job) || '';
+    const jobDescription = job.description || '';
     
-    const jobType = 'job_type' in job && job.job_type ? job.job_type : null;
+    const matchesSearch = 
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      jobDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      jobCompany.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      jobLocation.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Handle job type filtering, accounting for both enum and string values
+    const jobType = getJobType(job);
     const matchesCategory = !category || category === "all" || jobType === category;
     
     return matchesSearch && matchesCategory;

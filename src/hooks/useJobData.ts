@@ -11,6 +11,7 @@ export const useJobData = () => {
   const { data: postedJobs, isLoading: isLoadingPosted, refetch: refetchPostedJobs } = useQuery({
     queryKey: ['posted-jobs'],
     queryFn: async () => {
+      console.log("Fetching posted jobs...");
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -22,7 +23,11 @@ export const useJobData = () => {
         `)
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching posted jobs:", error);
+        throw error;
+      }
+      console.log("Posted jobs:", data);
       return data as PostedJob[];
     }
   });
@@ -30,12 +35,16 @@ export const useJobData = () => {
   const { data: scrapedJobs, isLoading: isLoadingScraped, refetch: refetchScrapedJobs } = useQuery({
     queryKey: ['scraped-jobs'],
     queryFn: async () => {
+      console.log("Fetching scraped jobs...");
       const { data, error } = await supabase
         .from('scraped_jobs')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching scraped jobs:", error);
+        throw error;
+      }
       console.log("Scraped jobs:", data);
       return data as ScrapedJob[];
     }
@@ -44,14 +53,17 @@ export const useJobData = () => {
   // Combine and filter jobs based on the active tab
   useEffect(() => {
     if (activeTab === "posted" && postedJobs) {
+      console.log("Setting jobs to posted jobs:", postedJobs.length);
       setAllJobs(postedJobs);
     } else if (activeTab === "scraped" && scrapedJobs) {
+      console.log("Setting jobs to scraped jobs:", scrapedJobs.length);
       setAllJobs(scrapedJobs);
     } else if (activeTab === "all") {
       const combined = [
         ...(postedJobs || []),
         ...(scrapedJobs || []),
       ];
+      console.log("Setting jobs to combined:", combined.length);
       setAllJobs(combined);
     }
   }, [activeTab, postedJobs, scrapedJobs]);

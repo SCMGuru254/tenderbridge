@@ -18,7 +18,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
       setIsRefreshing(true);
       toast({
         title: "Refreshing jobs...",
-        description: "This may take a minute while we fetch the latest jobs.",
+        description: "This may take up to a minute while we fetch the latest jobs from multiple sources.",
       });
 
       // Call the Edge Function to scrape jobs
@@ -37,7 +37,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         onRefreshComplete();
         toast({
           title: "Jobs refreshed!",
-          description: `Successfully fetched ${data.message}`,
+          description: `${data.message}. Showing the latest supply chain jobs in Kenya.`,
         });
       }
     } catch (error) {
@@ -56,14 +56,19 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
     <Button 
       onClick={refreshJobs} 
       disabled={isRefreshing}
-      className="flex items-center gap-2"
+      className="flex items-center gap-2 bg-primary hover:bg-primary/90"
     >
       {isRefreshing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Scraping Jobs...
+        </>
       ) : (
-        <RefreshCcw className="h-4 w-4" />
+        <>
+          <RefreshCcw className="h-4 w-4" />
+          Refresh Jobs
+        </>
       )}
-      Refresh Jobs
     </Button>
   );
 };
