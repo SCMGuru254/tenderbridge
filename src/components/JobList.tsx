@@ -2,7 +2,7 @@
 import { Loader2 } from "lucide-react";
 import { JobCard } from "@/components/JobCard";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
-import { getCompanyName, getLocation, getJobUrl, getJobSource } from "@/utils/jobUtils";
+import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline } from "@/utils/jobUtils";
 
 interface JobListProps {
   jobs: (PostedJob | ScrapedJob)[] | undefined;
@@ -37,6 +37,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
           type={job.job_type}
           category={getJobSource(job)}
           jobUrl={getJobUrl(job)}
+          deadline={getDeadline(job)}
         />
       ))}
     </div>

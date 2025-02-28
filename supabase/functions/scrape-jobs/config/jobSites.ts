@@ -74,6 +74,18 @@ export function getJobSites(): JobSite[] {
         url: 'a.job-link'
       },
       source: 'BestJobs'
+    },
+    {
+      url: 'https://jobwebkenya.com/job-category/procurement-supply-chain/',
+      selectors: {
+        jobContainer: '.raven-post',
+        title: '.raven-post-title',
+        company: '.raven-post-meta-item:first-child',
+        location: '.raven-post-meta-item:nth-child(2)',
+        type: '.raven-post-meta-item:nth-child(3)',
+        url: '.raven-post-title a'
+      },
+      source: 'JobWebKenya'
     }
   ];
 }

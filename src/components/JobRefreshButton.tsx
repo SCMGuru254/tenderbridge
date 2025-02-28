@@ -11,18 +11,23 @@ interface JobRefreshButtonProps {
 
 export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
   const { toast } = useToast();
 
   const refreshJobs = async () => {
     try {
       setIsRefreshing(true);
+      setRefreshStatus("Initializing job scrapers...");
+      
       toast({
         title: "Refreshing jobs...",
         description: "This may take up to a minute while we fetch the latest jobs from multiple sources.",
       });
 
       // Call the Edge Function to scrape jobs
-      const { data, error } = await supabase.functions.invoke('scrape-jobs');
+      const { data, error } = await supabase.functions.invoke('scrape-jobs', {
+        body: { refreshAll: true },
+      });
       
       if (error) {
         console.error('Error refreshing jobs:', error);
@@ -49,6 +54,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
       });
     } finally {
       setIsRefreshing(false);
+      setRefreshStatus(null);
     }
   };
 
@@ -61,7 +67,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
       {isRefreshing ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          Scraping Jobs...
+          {refreshStatus || "Scraping Jobs..."}
         </>
       ) : (
         <>

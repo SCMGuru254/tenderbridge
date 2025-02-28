@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostedJob, ScrapedJob } from '@/types/jobs';
+import { isJobExpired } from '@/utils/jobUtils';
 
 export const useJobData = () => {
   const [allJobs, setAllJobs] = useState<(PostedJob | ScrapedJob)[]>([]);
@@ -29,7 +30,8 @@ export const useJobData = () => {
       }
       console.log("Posted jobs:", data);
       return data as PostedJob[];
-    }
+    },
+    refetchInterval: 1000 * 60 * 30 // Refetch every 30 minutes
   });
 
   const { data: scrapedJobs, isLoading: isLoadingScraped, refetch: refetchScrapedJobs } = useQuery({
@@ -45,9 +47,16 @@ export const useJobData = () => {
         console.error("Error fetching scraped jobs:", error);
         throw error;
       }
+      
       console.log("Scraped jobs:", data);
-      return data as ScrapedJob[];
-    }
+      
+      // Filter out any obviously expired jobs
+      const nonExpiredJobs = data.filter(job => !isJobExpired(job));
+      console.log(`Filtered out ${data.length - nonExpiredJobs.length} expired jobs`);
+      
+      return nonExpiredJobs as ScrapedJob[];
+    },
+    refetchInterval: 1000 * 60 * 30 // Refetch every 30 minutes
   });
 
   // Combine and filter jobs based on the active tab

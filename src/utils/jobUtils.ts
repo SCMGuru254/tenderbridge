@@ -41,6 +41,36 @@ export const getJobType = (job: PostedJob | ScrapedJob): string => {
   return job.job_type?.toString() || "full_time";
 };
 
+export const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
+  if ('application_deadline' in job) {
+    return job.application_deadline;
+  }
+  return null;
+};
+
+export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
+  // For scraped jobs with application_deadline
+  if ('application_deadline' in job && job.application_deadline) {
+    const deadline = new Date(job.application_deadline);
+    if (!isNaN(deadline.getTime()) && deadline < new Date()) {
+      return true;
+    }
+  }
+  
+  // Consider a scraped job expired if it's more than 30 days old
+  if ('created_at' in job) {
+    const createdAt = new Date(job.created_at);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    if (createdAt < thirtyDaysAgo) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
 export const filterJobs = (
   jobs: (PostedJob | ScrapedJob)[] | undefined,
   { searchTerm, category }: JobFilterParams
@@ -48,6 +78,11 @@ export const filterJobs = (
   if (!jobs) return [];
   
   return jobs.filter(job => {
+    // Filter out expired jobs
+    if (isJobExpired(job)) {
+      return false;
+    }
+    
     // Search in title, description, company name, and location
     const jobCompany = getCompanyName(job) || '';
     const jobLocation = getLocation(job) || '';

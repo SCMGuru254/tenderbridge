@@ -2,10 +2,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, BriefcaseIcon, Share2 } from "lucide-react";
+import { Building2, MapPin, BriefcaseIcon, Share2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 interface JobCardProps {
   title: string;
@@ -14,9 +15,10 @@ interface JobCardProps {
   type: string | null;
   category: string | null;
   jobUrl?: string | null;
+  deadline?: string | null;
 }
 
-export const JobCard = ({ title, company, location, type, category, jobUrl }: JobCardProps) => {
+export const JobCard = ({ title, company, location, type, category, jobUrl, deadline }: JobCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [copying, setCopying] = useState(false);
@@ -73,6 +75,23 @@ export const JobCard = ({ title, company, location, type, category, jobUrl }: Jo
     }
   };
 
+  // Calculate remaining time for deadline
+  const getRemainingTime = () => {
+    if (!deadline) return null;
+    
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) return null;
+    
+    const now = new Date();
+    
+    // If deadline has passed
+    if (deadlineDate < now) return null;
+    
+    return formatDistanceToNow(deadlineDate, { addSuffix: true });
+  };
+  
+  const remainingTime = getRemainingTime();
+
   return (
     <Card className="hover:shadow-lg transition-shadow relative">
       <CardHeader>
@@ -100,12 +119,18 @@ export const JobCard = ({ title, company, location, type, category, jobUrl }: Jo
               </div>
             )}
           </div>
+          
+          {remainingTime && (
+            <div className="flex items-center space-x-1 text-amber-600">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">Closing {remainingTime}</span>
+            </div>
+          )}
+          
           <div className="flex justify-between items-center">
-            {category && (
-              <div className="flex space-x-2">
-                <Badge variant="secondary">{category}</Badge>
-              </div>
-            )}
+            <div className="flex space-x-2">
+              {category && <Badge variant="secondary">{category}</Badge>}
+            </div>
             <Button 
               size="sm" 
               variant="ghost" 

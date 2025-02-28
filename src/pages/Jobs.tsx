@@ -23,6 +23,8 @@ const Jobs = () => {
   const filteredJobs = filterJobs(allJobs, { searchTerm, category });
 
   const handleRefreshComplete = () => {
+    // Refresh both posted and scraped jobs to ensure we have the latest data
+    refetchPostedJobs();
     refetchScrapedJobs();
   };
 
@@ -33,7 +35,7 @@ const Jobs = () => {
         <JobRefreshButton onRefreshComplete={handleRefreshComplete} />
       </div>
       
-      <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
+      <Tabs defaultValue="all" className="mb-8" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">All Jobs</TabsTrigger>
           <TabsTrigger value="posted">Posted Jobs</TabsTrigger>
