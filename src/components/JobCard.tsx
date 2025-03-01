@@ -16,9 +16,10 @@ interface JobCardProps {
   category: string | null;
   jobUrl?: string | null;
   deadline?: string | null;
+  remainingTime?: string | null;
 }
 
-export const JobCard = ({ title, company, location, type, category, jobUrl, deadline }: JobCardProps) => {
+export const JobCard = ({ title, company, location, type, category, jobUrl, deadline, remainingTime }: JobCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [copying, setCopying] = useState(false);
@@ -74,23 +75,6 @@ export const JobCard = ({ title, company, location, type, category, jobUrl, dead
       setCopying(false);
     }
   };
-
-  // Calculate remaining time for deadline
-  const getRemainingTime = () => {
-    if (!deadline) return null;
-    
-    const deadlineDate = new Date(deadline);
-    if (isNaN(deadlineDate.getTime())) return null;
-    
-    const now = new Date();
-    
-    // If deadline has passed
-    if (deadlineDate < now) return null;
-    
-    return formatDistanceToNow(deadlineDate, { addSuffix: true });
-  };
-  
-  const remainingTime = getRemainingTime();
 
   return (
     <Card className="hover:shadow-lg transition-shadow relative">

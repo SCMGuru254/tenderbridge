@@ -23,7 +23,7 @@ export const getLocation = (job: PostedJob | ScrapedJob): string | null => {
 
 export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   // For scraped jobs, use the job_url
-  if ('job_url' in job) {
+  if ('job_url' in job && job.job_url) {
     return job.job_url;
   }
   // For posted jobs, no direct URL is available
@@ -32,7 +32,26 @@ export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
 
 export const getJobSource = (job: PostedJob | ScrapedJob): string => {
   if ('source' in job && job.source) {
-    return job.source;
+    // Format source name nicely
+    switch (job.source.toLowerCase()) {
+      case 'linkedin':
+        return 'LinkedIn';
+      case 'brightermonday':
+      case 'brighter_monday':
+        return 'BrighterMonday';
+      case 'fuzu':
+        return 'Fuzu';
+      case 'myjobmag':
+      case 'my_job_mag':
+        return 'MyJobMag';
+      case 'jobwebkenya':
+      case 'jobweb_kenya':
+        return 'JobWebKenya';
+      case 'indeed':
+        return 'Indeed';
+      default:
+        return job.source;
+    }
   }
   return "Supply Chain Kenya";
 };
@@ -42,7 +61,7 @@ export const getJobType = (job: PostedJob | ScrapedJob): string => {
 };
 
 export const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
-  if ('application_deadline' in job) {
+  if ('application_deadline' in job && job.application_deadline) {
     return job.application_deadline;
   }
   return null;
@@ -72,7 +91,7 @@ export const getRemainingTime = (job: PostedJob | ScrapedJob): string | null => 
       } else if (diffDays <= 7) {
         return `${diffDays} days left`;
       } else {
-        return null; // Don't show remaining time if more than a week
+        return `${diffDays} days left`;
       }
     }
   }
