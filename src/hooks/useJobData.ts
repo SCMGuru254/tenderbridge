@@ -63,6 +63,7 @@ export const useJobData = () => {
     refetchInterval: 1000 * 60 * 30 // Refetch every 30 minutes
   });
 
+  // Enhanced duplicate detection and job merging
   // Combine and filter jobs based on the active tab
   useEffect(() => {
     if (activeTab === "posted" && postedJobs) {
@@ -75,12 +76,34 @@ export const useJobData = () => {
       const jobMap = new Map();
       
       scrapedJobs.forEach(job => {
-        // Create a key based on job title and company for deduplication
-        const key = `${job.title?.toLowerCase() || ''}:${job.company?.toLowerCase() || ''}`;
+        // Create a normalized title for better matching
+        const normalizedTitle = job.title?.toLowerCase()
+            .replace(/\s+/g, ' ')  // normalize whitespace
+            .replace(/[^\w\s]/g, '') // remove punctuation
+            .trim() || '';
         
-        // If we haven't seen this job before, or this one is newer
-        if (!jobMap.has(key) || new Date(job.created_at) > new Date(jobMap.get(key).created_at)) {
-          jobMap.set(key, job);
+        // Create a normalized company name
+        const normalizedCompany = job.company?.toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/[^\w\s]/g, '')
+            .trim() || '';
+        
+        // Create a composite key with more variables for better deduplication
+        const key = `${normalizedTitle}:${normalizedCompany}:${job.location?.toLowerCase().trim() || ''}`;
+        
+        // Skip very short or generic titles that might cause false duplicates
+        if (normalizedTitle.length < 5 || normalizedTitle.includes('job') || normalizedTitle.includes('position')) {
+          // For very generic titles, add source to key to reduce false positives
+          const keyWithSource = `${key}:${job.source || ''}`;
+          
+          if (!jobMap.has(keyWithSource) || new Date(job.created_at) > new Date(jobMap.get(keyWithSource).created_at)) {
+            jobMap.set(keyWithSource, job);
+          }
+        } else {
+          // For normal titles, use standard deduplication
+          if (!jobMap.has(key) || new Date(job.created_at) > new Date(jobMap.get(key).created_at)) {
+            jobMap.set(key, job);
+          }
         }
       });
       
@@ -90,19 +113,60 @@ export const useJobData = () => {
       setAllJobs(dedupedJobs);
     } else if (activeTab === "all") {
       if (postedJobs && scrapedJobs) {
-        // Combine and deduplicate jobs
+        // Combine and deduplicate jobs with improved algorithm
         const allJobsMap = new Map();
         
-        // Add posted jobs first (they take priority)
+        // Process posted jobs first (they take priority)
         postedJobs.forEach(job => {
-          const key = `${job.title?.toLowerCase() || ''}:${getCompanyName(job)?.toLowerCase() || ''}`;
+          // Create normalized strings for better matching
+          const normalizedTitle = job.title?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .replace(/[^\w\s]/g, '')
+              .trim() || '';
+              
+          const normalizedCompany = getCompanyName(job)?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .replace(/[^\w\s]/g, '')
+              .trim() || '';
+              
+          const normalizedLocation = job.location?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .trim() || '';
+          
+          // Create a composite key
+          const key = `${normalizedTitle}:${normalizedCompany}:${normalizedLocation}`;
           allJobsMap.set(key, job);
         });
         
-        // Add scraped jobs if not already added
+        // Process scraped jobs
         scrapedJobs.forEach(job => {
-          const key = `${job.title?.toLowerCase() || ''}:${job.company?.toLowerCase() || ''}`;
-          if (!allJobsMap.has(key)) {
+          // Create normalized strings for better matching
+          const normalizedTitle = job.title?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .replace(/[^\w\s]/g, '')
+              .trim() || '';
+              
+          const normalizedCompany = job.company?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .replace(/[^\w\s]/g, '')
+              .trim() || '';
+              
+          const normalizedLocation = job.location?.toLowerCase()
+              .replace(/\s+/g, ' ')
+              .trim() || '';
+          
+          // Create a composite key
+          const key = `${normalizedTitle}:${normalizedCompany}:${normalizedLocation}`;
+          
+          // Skip very short or generic titles in deduplication
+          if (normalizedTitle.length < 5) {
+            // For very generic titles, add source to key to reduce false positives
+            const keyWithSource = `${key}:${job.source || ''}`;
+            if (!allJobsMap.has(keyWithSource)) {
+              allJobsMap.set(keyWithSource, job);
+            }
+          } else if (!allJobsMap.has(key)) {
+            // Only add if a similar job doesn't exist
             allJobsMap.set(key, job);
           }
         });

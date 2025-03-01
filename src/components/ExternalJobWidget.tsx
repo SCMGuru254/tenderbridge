@@ -14,14 +14,24 @@ export const ExternalJobWidget = () => {
     const handleResize = () => {
       const widgetContainer = document.getElementById('widget-container');
       if (widgetContainer) {
-        // Get container width and adjust iframe accordingly
         const containerWidth = widgetContainer.clientWidth;
         const iframe = widgetContainer.querySelector('iframe');
         if (iframe) {
           // Set the iframe width based on container size
-          // For desktop, use larger width to fill more space
+          // Adjust width for different screen sizes
           const isMobile = window.innerWidth < 768;
-          const widgetWidth = isMobile ? Math.min(containerWidth, 320) : Math.min(containerWidth, 1200);
+          const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+          const isDesktop = window.innerWidth >= 1024;
+          
+          let widgetWidth = containerWidth;
+          if (isMobile) {
+            widgetWidth = Math.min(containerWidth, 320);
+          } else if (isTablet) {
+            widgetWidth = Math.min(containerWidth, 720);
+          } else if (isDesktop) {
+            widgetWidth = Math.min(containerWidth, 1200);
+          }
+          
           iframe.style.width = `${widgetWidth}px`;
         }
       }
@@ -40,9 +50,9 @@ export const ExternalJobWidget = () => {
         <CardTitle className="text-xl">More Jobs in Kenya</CardTitle>
       </CardHeader>
       <CardContent>
-        <div id="widget-container" className="flex justify-center w-full">
+        <div id="widget-container" className="flex justify-center w-full relative overflow-hidden">
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10">
               <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
             </div>
           )}
@@ -53,8 +63,8 @@ export const ExternalJobWidget = () => {
             scrolling="no"
             onLoad={hideLoader}
             title="MyJobMag Kenya Jobs"
-            className="border rounded shadow-sm transition-all duration-300"
-            style={{ minWidth: "300px", maxWidth: "1200px" }}
+            className="border rounded shadow-sm transition-all duration-300 max-w-full"
+            style={{ minWidth: "300px", maxWidth: "1200px", width: "100%" }}
           />
         </div>
       </CardContent>

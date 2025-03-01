@@ -1,3 +1,4 @@
+
 import { Loader2 } from "lucide-react";
 import { JobCard } from "@/components/JobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
@@ -65,6 +66,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
             jobUrl={getJobUrl(job)}
             deadline={getDeadline(job)}
             remainingTime={getRemainingTime(job)}
+            jobId={job.id}
+            fullJob={job} // Pass the full job object for sharing
           />
         ))}
       </div>

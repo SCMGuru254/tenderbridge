@@ -2,11 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, BriefcaseIcon, Share2, Clock } from "lucide-react";
+import { Building2, MapPin, BriefcaseIcon, Share2, Clock, Send, Twitter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface JobCardProps {
   title: string;
@@ -17,12 +18,26 @@ interface JobCardProps {
   jobUrl?: string | null;
   deadline?: string | null;
   remainingTime?: string | null;
+  jobId?: string;
+  fullJob?: any; // The complete job object for sharing
 }
 
-export const JobCard = ({ title, company, location, type, category, jobUrl, deadline, remainingTime }: JobCardProps) => {
+export const JobCard = ({ 
+  title, 
+  company, 
+  location, 
+  type, 
+  category, 
+  jobUrl, 
+  deadline, 
+  remainingTime,
+  jobId,
+  fullJob
+}: JobCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [copying, setCopying] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const handleApply = () => {
     if (jobUrl) {
@@ -76,6 +91,51 @@ export const JobCard = ({ title, company, location, type, category, jobUrl, dead
     }
   };
 
+  const handleSocialShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!fullJob) {
+      toast({
+        variant: "destructive",
+        title: "Error sharing job",
+        description: "Job details are not available for sharing",
+      });
+      return;
+    }
+    
+    try {
+      setSharing(true);
+      
+      // Call the Supabase Edge Function to share the job
+      const { data, error } = await supabase.functions.invoke('share-job', {
+        body: fullJob,
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast({
+          title: "Job shared to social media",
+          description: `Successfully shared to ${[
+            data.twitter ? 'Twitter' : '',
+            data.telegram ? 'Telegram' : ''
+          ].filter(Boolean).join(' and ')}`,
+        });
+      } else {
+        throw new Error(data.errors?.join(', ') || 'Failed to share job');
+      }
+    } catch (error: any) {
+      console.error('Error sharing job to social media:', error);
+      toast({
+        variant: "destructive",
+        title: "Error sharing to social media",
+        description: error.message || "Failed to share job details",
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow relative">
       <CardHeader>
@@ -115,15 +175,28 @@ export const JobCard = ({ title, company, location, type, category, jobUrl, dead
             <div className="flex space-x-2">
               {category && <Badge variant="secondary">{category}</Badge>}
             </div>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              onClick={handleShare} 
-              className="px-2"
-              disabled={copying}
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            <div className="flex space-x-1">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleShare} 
+                className="px-2"
+                disabled={copying}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              {fullJob && (
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleSocialShare} 
+                  className="px-2"
+                  disabled={sharing}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
           <Button 
             className="w-full bg-primary hover:bg-primary/90"
