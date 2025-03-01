@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 
@@ -17,10 +18,10 @@ export const ExternalJobWidget = () => {
         const containerWidth = widgetContainer.clientWidth;
         const iframe = widgetContainer.querySelector('iframe');
         if (iframe) {
-          // Set the iframe width based on container width
-          // On mobile keep it reasonable, on desktop let it expand
+          // Set the iframe width based on container size
+          // For desktop, use larger width to fill more space
           const isMobile = window.innerWidth < 768;
-          const widgetWidth = isMobile ? Math.min(containerWidth, 320) : Math.min(containerWidth, 800);
+          const widgetWidth = isMobile ? Math.min(containerWidth, 320) : Math.min(containerWidth, 1200);
           iframe.style.width = `${widgetWidth}px`;
         }
       }
@@ -46,14 +47,14 @@ export const ExternalJobWidget = () => {
             </div>
           )}
           <iframe 
-            src="https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=&count=45&title=Jobs%20in%20Kenya%20-%20myjobmag.co.ke&width=100%&height=500&bgcolor=FFFFFF&border_color=CCCCCC&border_thickness=1&font_type=Verdana&title_font_size=14&title_font_color=000000&font_size=12&font_color=333333&link_color=031333&show_logo=Yes&scroll=No"
+            src="https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=&count=45&title=Jobs%20in%20Kenya%20-%20myjobmag.co.ke&width=1200&height=500&bgcolor=FFFFFF&border_color=CCCCCC&border_thickness=1&font_type=Verdana&title_font_size=14&title_font_color=000000&font_size=12&font_color=333333&link_color=031333&show_logo=Yes&scroll=No"
             frameBorder="0" 
             height="500" 
             scrolling="no"
             onLoad={hideLoader}
             title="MyJobMag Kenya Jobs"
             className="border rounded shadow-sm transition-all duration-300"
-            style={{ minWidth: "300px" }}
+            style={{ minWidth: "300px", maxWidth: "1200px" }}
           />
         </div>
       </CardContent>

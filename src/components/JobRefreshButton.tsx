@@ -26,7 +26,17 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
 
       // Call the Edge Function to scrape jobs
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
-        body: { refreshAll: true },
+        body: { 
+          refreshAll: true,
+          sources: [
+            "LinkedIn", 
+            "BrighterMonday", 
+            "MyJobMag", 
+            "JobWebKenya", 
+            "Indeed", 
+            "Google"
+          ] 
+        },
       });
       
       if (error) {
@@ -42,7 +52,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         onRefreshComplete();
         toast({
           title: "Jobs refreshed!",
-          description: `${data.message}. Showing the latest supply chain jobs in Kenya.`,
+          description: `${data.message}. Showing the latest supply chain jobs in Kenya from all sources.`,
         });
       }
     } catch (error) {

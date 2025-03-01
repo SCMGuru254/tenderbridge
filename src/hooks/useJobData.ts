@@ -70,18 +70,63 @@ export const useJobData = () => {
       setAllJobs(postedJobs);
     } else if (activeTab === "scraped" && scrapedJobs) {
       console.log("Setting jobs to scraped jobs:", scrapedJobs.length);
-      setAllJobs(scrapedJobs);
+      
+      // Handle duplicate job detection (for jobs from multiple sources)
+      const jobMap = new Map();
+      
+      scrapedJobs.forEach(job => {
+        // Create a key based on job title and company for deduplication
+        const key = `${job.title?.toLowerCase() || ''}:${job.company?.toLowerCase() || ''}`;
+        
+        // If we haven't seen this job before, or this one is newer
+        if (!jobMap.has(key) || new Date(job.created_at) > new Date(jobMap.get(key).created_at)) {
+          jobMap.set(key, job);
+        }
+      });
+      
+      const dedupedJobs = Array.from(jobMap.values());
+      console.log(`Removed ${scrapedJobs.length - dedupedJobs.length} duplicate jobs, showing ${dedupedJobs.length} jobs`);
+      
+      setAllJobs(dedupedJobs);
     } else if (activeTab === "all") {
-      const combined = [
-        ...(postedJobs || []),
-        ...(scrapedJobs || []),
-      ];
-      console.log("Setting jobs to combined:", combined.length);
-      setAllJobs(combined);
+      if (postedJobs && scrapedJobs) {
+        // Combine and deduplicate jobs
+        const allJobsMap = new Map();
+        
+        // Add posted jobs first (they take priority)
+        postedJobs.forEach(job => {
+          const key = `${job.title?.toLowerCase() || ''}:${getCompanyName(job)?.toLowerCase() || ''}`;
+          allJobsMap.set(key, job);
+        });
+        
+        // Add scraped jobs if not already added
+        scrapedJobs.forEach(job => {
+          const key = `${job.title?.toLowerCase() || ''}:${job.company?.toLowerCase() || ''}`;
+          if (!allJobsMap.has(key)) {
+            allJobsMap.set(key, job);
+          }
+        });
+        
+        const combinedJobs = Array.from(allJobsMap.values());
+        console.log(`Combined ${postedJobs.length} posted and ${scrapedJobs.length} scraped jobs into ${combinedJobs.length} unique jobs`);
+        
+        setAllJobs(combinedJobs);
+      }
     }
   }, [activeTab, postedJobs, scrapedJobs]);
 
   const isLoading = isLoadingPosted || isLoadingScraped;
+
+  // Helper function to get company name for deduplication
+  const getCompanyName = (job: PostedJob | ScrapedJob): string | null => {
+    if ('companies' in job && job.companies) {
+      return job.companies.name;
+    }
+    if ('company' in job) {
+      return job.company;
+    }
+    return null;
+  };
 
   return {
     postedJobs,

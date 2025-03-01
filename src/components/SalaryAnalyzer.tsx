@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,45 +6,144 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 // Sample data for demo purposes - in production this would come from an API or database
 const SAMPLE_SALARY_DATA = {
   "Supply Chain Manager": {
-    "Kenya": { min: 150000, max: 350000, currency: "KES", period: "monthly" },
-    "Tanzania": { min: 2500000, max: 6000000, currency: "TZS", period: "monthly" },
-    "Uganda": { min: 4000000, max: 9000000, currency: "UGX", period: "monthly" },
-    "Rwanda": { min: 1200000, max: 3000000, currency: "RWF", period: "monthly" }
+    "Kenya": { 
+      min: 150000, max: 350000, currency: "KES", period: "monthly",
+      regions: {
+        "Nairobi": { min: 180000, max: 400000 },
+        "Mombasa": { min: 150000, max: 320000 },
+        "Kisumu": { min: 130000, max: 280000 },
+        "Nakuru": { min: 120000, max: 250000 }
+      }
+    },
+    "Tanzania": { 
+      min: 2500000, max: 6000000, currency: "TZS", period: "monthly",
+      regions: {
+        "Dar es Salaam": { min: 3000000, max: 7000000 },
+        "Arusha": { min: 2200000, max: 5500000 },
+        "Mwanza": { min: 2000000, max: 5000000 }
+      }
+    },
+    "Uganda": { 
+      min: 4000000, max: 9000000, currency: "UGX", period: "monthly",
+      regions: {
+        "Kampala": { min: 4500000, max: 10000000 },
+        "Entebbe": { min: 3800000, max: 8500000 },
+        "Jinja": { min: 3500000, max: 7500000 }
+      }
+    },
+    "Rwanda": { 
+      min: 1200000, max: 3000000, currency: "RWF", period: "monthly",
+      regions: {
+        "Kigali": { min: 1500000, max: 3500000 },
+        "Other regions": { min: 1000000, max: 2500000 }
+      }
+    }
   },
   "Logistics Coordinator": {
-    "Kenya": { min: 60000, max: 120000, currency: "KES", period: "monthly" },
-    "Tanzania": { min: 1000000, max: 2500000, currency: "TZS", period: "monthly" },
-    "Uganda": { min: 1500000, max: 3500000, currency: "UGX", period: "monthly" },
-    "Rwanda": { min: 500000, max: 1200000, currency: "RWF", period: "monthly" }
+    "Kenya": { 
+      min: 60000, max: 120000, currency: "KES", period: "monthly",
+      regions: {
+        "Nairobi": { min: 70000, max: 140000 },
+        "Mombasa": { min: 65000, max: 130000 },
+        "Other regions": { min: 50000, max: 100000 }
+      }
+    },
+    "Tanzania": { 
+      min: 1000000, max: 2500000, currency: "TZS", period: "monthly",
+      regions: {
+        "Dar es Salaam": { min: 1200000, max: 2800000 },
+        "Other regions": { min: 900000, max: 2200000 }
+      }
+    },
+    "Uganda": { 
+      min: 1500000, max: 3500000, currency: "UGX", period: "monthly",
+      regions: {
+        "Kampala": { min: 1800000, max: 4000000 },
+        "Other regions": { min: 1300000, max: 3000000 }
+      }
+    },
+    "Rwanda": { 
+      min: 500000, max: 1200000, currency: "RWF", period: "monthly",
+      regions: {
+        "Kigali": { min: 600000, max: 1500000 },
+        "Other regions": { min: 450000, max: 1000000 }
+      }
+    }
   },
-  "Procurement Specialist": {
-    "Kenya": { min: 80000, max: 180000, currency: "KES", period: "monthly" },
-    "Tanzania": { min: 1500000, max: 3500000, currency: "TZS", period: "monthly" },
-    "Uganda": { min: 2000000, max: 4500000, currency: "UGX", period: "monthly" },
-    "Rwanda": { min: 800000, max: 1800000, currency: "RWF", period: "monthly" }
-  },
-  "Warehouse Manager": {
-    "Kenya": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
-    "Tanzania": { min: 1800000, max: 4000000, currency: "TZS", period: "monthly" },
-    "Uganda": { min: 2500000, max: 5500000, currency: "UGX", period: "monthly" },
-    "Rwanda": { min: 900000, max: 2000000, currency: "RWF", period: "monthly" }
-  },
-  "Inventory Analyst": {
-    "Kenya": { min: 70000, max: 150000, currency: "KES", period: "monthly" },
-    "Tanzania": { min: 1200000, max: 2800000, currency: "TZS", period: "monthly" },
-    "Uganda": { min: 1800000, max: 4000000, currency: "UGX", period: "monthly" },
-    "Rwanda": { min: 600000, max: 1500000, currency: "RWF", period: "monthly" }
-  }
+  "Procurement Officer": { min: 70000, max: 140000, currency: "KES", period: "monthly" },
+  "Procurement Manager": { min: 120000, max: 250000, currency: "KES", period: "monthly" },
+  "Procurement Director": { min: 300000, max: 600000, currency: "KES", period: "monthly" },
+  "Warehouse Supervisor": { min: 60000, max: 120000, currency: "KES", period: "monthly" },
+  "Warehouse Manager": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "Inventory Analyst": { min: 70000, max: 150000, currency: "KES", period: "monthly" },
+  "Inventory Manager": { min: 110000, max: 220000, currency: "KES", period: "monthly" },
+  "Demand Planner": { min: 90000, max: 180000, currency: "KES", period: "monthly" },
+  "Supply Planner": { min: 90000, max: 180000, currency: "KES", period: "monthly" },
+  "S&OP Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Distribution Manager": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Transportation Manager": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "Fleet Manager": { min: 90000, max: 180000, currency: "KES", period: "monthly" },
+  "Logistics Manager": { min: 120000, max: 250000, currency: "KES", period: "monthly" },
+  "Logistics Director": { min: 250000, max: 500000, currency: "KES", period: "monthly" },
+  "Supply Chain Analyst": { min: 80000, max: 160000, currency: "KES", period: "monthly" },
+  "Supply Chain Coordinator": { min: 70000, max: 140000, currency: "KES", period: "monthly" },
+  "Supply Chain Director": { min: 350000, max: 700000, currency: "KES", period: "monthly" },
+  "Operations Manager": { min: 130000, max: 270000, currency: "KES", period: "monthly" },
+  "Operations Director": { min: 300000, max: 600000, currency: "KES", period: "monthly" },
+  "Sourcing Specialist": { min: 80000, max: 160000, currency: "KES", period: "monthly" },
+  "Category Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Vendor Manager": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Materials Manager": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "Order Fulfillment Specialist": { min: 60000, max: 120000, currency: "KES", period: "monthly" },
+  "Customer Service Manager": { min: 90000, max: 180000, currency: "KES", period: "monthly" },
+  "Import/Export Specialist": { min: 80000, max: 160000, currency: "KES", period: "monthly" },
+  "Customs Compliance Officer": { min: 90000, max: 180000, currency: "KES", period: "monthly" },
+  "Trade Compliance Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Quality Assurance Manager": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Quality Control Specialist": { min: 70000, max: 140000, currency: "KES", period: "monthly" },
+  "Production Planner": { min: 80000, max: 160000, currency: "KES", period: "monthly" },
+  "Production Manager": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Manufacturing Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Plant Manager": { min: 200000, max: 400000, currency: "KES", period: "monthly" },
+  "Continuous Improvement Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Lean Six Sigma Specialist": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Process Improvement Specialist": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "ERP Specialist": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "Supply Chain Systems Analyst": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Logistics Analyst": { min: 80000, max: 160000, currency: "KES", period: "monthly" },
+  "3PL Relationship Manager": { min: 130000, max: 260000, currency: "KES", period: "monthly" },
+  "Contract Manager": { min: 120000, max: 240000, currency: "KES", period: "monthly" },
+  "Supply Chain Consultant": { min: 150000, max: 350000, currency: "KES", period: "monthly" },
+  "Supply Chain Project Manager": { min: 180000, max: 360000, currency: "KES", period: "monthly" },
+  "Sustainability Manager": { min: 150000, max: 300000, currency: "KES", period: "monthly" },
+  "Green Logistics Specialist": { min: 100000, max: 200000, currency: "KES", period: "monthly" },
+  "Supply Chain Risk Manager": { min: 180000, max: 360000, currency: "KES", period: "monthly" },
+  "Business Continuity Planner": { min: 150000, max: 300000, currency: "KES", period: "monthly" }
+};
+
+// List of East African countries
+const COUNTRIES = ["Kenya", "Tanzania", "Uganda", "Rwanda", "Ethiopia", "Burundi", "South Sudan"];
+
+// Sample list of cities by country
+const CITIES_BY_COUNTRY = {
+  "Kenya": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Malindi", "Kitale", "Garissa"],
+  "Tanzania": ["Dar es Salaam", "Mwanza", "Arusha", "Dodoma", "Mbeya", "Morogoro", "Tanga", "Zanzibar"],
+  "Uganda": ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbarara", "Mbale", "Kasese", "Lira"],
+  "Rwanda": ["Kigali", "Butare", "Gitarama", "Ruhengeri", "Gisenyi", "Cyangugu", "Kibungo"],
+  "Ethiopia": ["Addis Ababa", "Dire Dawa", "Mek'ele", "Gondar", "Bahir Dar", "Hawassa", "Jimma"],
+  "Burundi": ["Bujumbura", "Gitega", "Muyinga", "Ngozi", "Rumonge"],
+  "South Sudan": ["Juba", "Wau", "Malakal", "Yei", "Bor"]
 };
 
 type SubmissionForm = {
   role: string;
   country: string;
+  city: string;
   salary: string;
   experience: string;
   education: string;
@@ -54,29 +154,62 @@ type SubmissionForm = {
 export const SalaryAnalyzer = () => {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [salaryData, setSalaryData] = useState<any>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [formData, setFormData] = useState<SubmissionForm>({
     role: "",
     country: "",
+    city: "",
     salary: "",
     experience: "",
     education: "",
     industry: "",
     details: ""
   });
+  const { toast } = useToast();
 
   const handleRoleChange = (role: string) => {
     setSelectedRole(role);
     if (selectedCountry && role) {
-      setSalaryData(SAMPLE_SALARY_DATA[role]?.[selectedCountry]);
+      const data = SAMPLE_SALARY_DATA[role]?.[selectedCountry];
+      setSalaryData(data);
+      
+      // Reset region when role changes
+      setSelectedRegion("");
     }
   };
 
   const handleCountryChange = (country: string) => {
     setSelectedCountry(country);
+    
+    // Update available cities based on country
+    setAvailableCities(CITIES_BY_COUNTRY[country] || []);
+    
+    // Reset region when country changes
+    setSelectedRegion("");
+    
     if (selectedRole && country) {
       setSalaryData(SAMPLE_SALARY_DATA[selectedRole]?.[country]);
+    }
+  };
+
+  const handleRegionChange = (region: string) => {
+    setSelectedRegion(region);
+    
+    // If we have region-specific data, update the salary display
+    if (selectedRole && selectedCountry && region && 
+        SAMPLE_SALARY_DATA[selectedRole]?.[selectedCountry]?.regions?.[region]) {
+      const countryData = SAMPLE_SALARY_DATA[selectedRole][selectedCountry];
+      const regionData = countryData.regions[region];
+      
+      // Merge country data with region-specific overrides
+      setSalaryData({
+        ...countryData,
+        min: regionData.min,
+        max: regionData.max
+      });
     }
   };
 
@@ -89,12 +222,17 @@ export const SalaryAnalyzer = () => {
     console.log("Submitting salary data:", formData);
     
     // For demo, just show a success toast
-    toast.success("Thank you for your contribution! Your anonymous salary data helps others in the community.");
+    toast({
+      title: "Thank you for your contribution!",
+      description: "Your anonymous salary data helps others in the community.",
+      variant: "default",
+    });
     
     // Reset form
     setFormData({
       role: "",
       country: "",
+      city: "",
       salary: "",
       experience: "",
       education: "",
@@ -121,14 +259,14 @@ export const SalaryAnalyzer = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <Label htmlFor="role">Select Role</Label>
               <Select onValueChange={handleRoleChange} value={selectedRole}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Choose a role" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px]">
                   {Object.keys(SAMPLE_SALARY_DATA).map(role => (
                     <SelectItem key={role} value={role}>{role}</SelectItem>
                   ))}
@@ -143,18 +281,35 @@ export const SalaryAnalyzer = () => {
                   <SelectValue placeholder="Choose a country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Kenya">Kenya</SelectItem>
-                  <SelectItem value="Tanzania">Tanzania</SelectItem>
-                  <SelectItem value="Uganda">Uganda</SelectItem>
-                  <SelectItem value="Rwanda">Rwanda</SelectItem>
+                  {COUNTRIES.map(country => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            {selectedCountry && availableCities.length > 0 && (
+              <div>
+                <Label htmlFor="region">Select City/Town</Label>
+                <Select onValueChange={handleRegionChange} value={selectedRegion}>
+                  <SelectTrigger id="region">
+                    <SelectValue placeholder="Choose a city/town" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {salaryData && (
             <div className="mt-6 p-4 bg-muted/50 rounded-md">
-              <h3 className="font-semibold text-lg mb-2">Salary Range for {selectedRole} in {selectedCountry}</h3>
+              <h3 className="font-semibold text-lg mb-2">
+                Salary Range for {selectedRole} in {selectedRegion ? `${selectedRegion}, ${selectedCountry}` : selectedCountry}
+              </h3>
               <p className="text-md">
                 {formatCurrency(salaryData.min, salaryData.currency)} - {formatCurrency(salaryData.max, salaryData.currency)} {salaryData.period}
               </p>
@@ -197,16 +352,31 @@ export const SalaryAnalyzer = () => {
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Kenya">Kenya</SelectItem>
-                        <SelectItem value="Tanzania">Tanzania</SelectItem>
-                        <SelectItem value="Uganda">Uganda</SelectItem>
-                        <SelectItem value="Rwanda">Rwanda</SelectItem>
-                        <SelectItem value="Ethiopia">Ethiopia</SelectItem>
+                        {COUNTRIES.map(country => (
+                          <SelectItem key={country} value={country}>{country}</SelectItem>
+                        ))}
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+
+                {formData.country && CITIES_BY_COUNTRY[formData.country] && (
+                  <div>
+                    <Label htmlFor="form-city">City/Town</Label>
+                    <Select onValueChange={(val) => handleFormChange('city', val)} value={formData.city}>
+                      <SelectTrigger id="form-city">
+                        <SelectValue placeholder="Select city/town" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CITIES_BY_COUNTRY[formData.country].map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

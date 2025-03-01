@@ -1,4 +1,3 @@
-
 import { Loader2 } from "lucide-react";
 import { JobCard } from "@/components/JobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
@@ -27,14 +26,35 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     );
   }
 
-  // Filter out jobs from sources with formatting issues (like Fuzu)
-  // If we want to completely remove Fuzu jobs, uncomment this:
-  const filteredJobs = jobs.filter(job => !(job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu'));
+  // Only filter out jobs with severe formatting issues
+  // We're keeping most sources including Google Jobs
+  const filteredJobs = jobs.filter(job => {
+    // Skip jobs without critical information
+    if (!job.title || (job.title.trim() === '')) {
+      return false;
+    }
+    
+    // Keep all non-Fuzu jobs
+    if (!((job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu'))) {
+      return true;
+    }
+    
+    return false;
+  });
+
+  // Sort by creation date (most recent first)
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
+  // Check if we have sources from various job sites
+  const sources = [...new Set(sortedJobs.map(job => getJobSource(job)))];
+  console.log("Current job sources:", sources);
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.map((job) => (
+        {sortedJobs.map((job) => (
           <JobCard
             key={job.id}
             title={job.title}
