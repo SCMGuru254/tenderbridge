@@ -27,10 +27,14 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     );
   }
 
+  // Filter out jobs from sources with formatting issues (like Fuzu)
+  // If we want to completely remove Fuzu jobs, uncomment this:
+  const filteredJobs = jobs.filter(job => !(job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu'));
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {jobs.map((job) => (
+        {filteredJobs.map((job) => (
           <JobCard
             key={job.id}
             title={job.title}
@@ -45,12 +49,10 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
         ))}
       </div>
       
-      {/* External Job Widget Section */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
+      {/* External Job Widget Section - Full width for better responsiveness */}
+      <div className="mt-12 pt-8 border-t border-gray-200 w-full">
         <h2 className="text-2xl font-bold mb-6 text-center">More Jobs For You</h2>
-        <div className="flex justify-center">
-          <ExternalJobWidget />
-        </div>
+        <ExternalJobWidget />
       </div>
     </div>
   );

@@ -6,10 +6,13 @@ import { filterJobs } from "@/utils/jobUtils";
 import { JobFilters } from "@/components/JobFilters";
 import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
+import { SalaryAnalyzer } from "@/components/SalaryAnalyzer";
+import { Mentorship } from "@/components/Mentorship";
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [mainTab, setMainTab] = useState("jobs");
   const { 
     allJobs, 
     isLoading, 
@@ -35,22 +38,44 @@ const Jobs = () => {
         <JobRefreshButton onRefreshComplete={handleRefreshComplete} />
       </div>
       
-      <Tabs defaultValue="all" className="mb-8" value={activeTab} onValueChange={setActiveTab}>
+      {/* Main tabs for the entire page */}
+      <Tabs defaultValue="jobs" className="mb-8" value={mainTab} onValueChange={setMainTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">All Jobs</TabsTrigger>
-          <TabsTrigger value="posted">Posted Jobs</TabsTrigger>
-          <TabsTrigger value="scraped">External Jobs</TabsTrigger>
+          <TabsTrigger value="jobs">Job Listings</TabsTrigger>
+          <TabsTrigger value="salary">Salary Analyzer</TabsTrigger>
+          <TabsTrigger value="mentorship">Mentorship</TabsTrigger>
         </TabsList>
+        
+        {/* Job Listings Content */}
+        <TabsContent value="jobs" className="mt-4">
+          <Tabs defaultValue="all" className="mb-8" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="all">All Jobs</TabsTrigger>
+              <TabsTrigger value="posted">Posted Jobs</TabsTrigger>
+              <TabsTrigger value="scraped">External Jobs</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <JobFilters 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            category={category}
+            setCategory={setCategory}
+          />
+
+          <JobList jobs={filteredJobs} isLoading={isLoading} />
+        </TabsContent>
+        
+        {/* Salary Analyzer Content */}
+        <TabsContent value="salary" className="mt-4">
+          <SalaryAnalyzer />
+        </TabsContent>
+        
+        {/* Mentorship Content */}
+        <TabsContent value="mentorship" className="mt-4">
+          <Mentorship />
+        </TabsContent>
       </Tabs>
-
-      <JobFilters 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        category={category}
-        setCategory={setCategory}
-      />
-
-      <JobList jobs={filteredJobs} isLoading={isLoading} />
     </div>
   );
 };
