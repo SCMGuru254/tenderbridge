@@ -17,7 +17,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
   const refreshJobs = async () => {
     try {
       setIsRefreshing(true);
-      setRefreshStatus("Initializing job scrapers...");
+      setRefreshStatus("Wacha nicheki kazi mpya...");
       
       toast({
         title: "Refreshing jobs...",
@@ -67,7 +67,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
       {isRefreshing ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          {refreshStatus || "Scraping Jobs..."}
+          {refreshStatus || "Tunasaka kazi..."}
         </>
       ) : (
         <>

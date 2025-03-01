@@ -48,6 +48,37 @@ export const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
   return null;
 };
 
+export const getRemainingTime = (job: PostedJob | ScrapedJob): string | null => {
+  // For scraped jobs with application_deadline
+  if ('application_deadline' in job && job.application_deadline) {
+    const deadline = new Date(job.application_deadline);
+    if (!isNaN(deadline.getTime())) {
+      const now = new Date();
+      const diffTime = deadline.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) {
+        return "Expired";
+      } else if (diffDays === 0) {
+        // Calculate hours if less than a day
+        const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+        if (diffHours <= 0) {
+          return "Closing today";
+        } else {
+          return `${diffHours} hours left`;
+        }
+      } else if (diffDays === 1) {
+        return "1 day left";
+      } else if (diffDays <= 7) {
+        return `${diffDays} days left`;
+      } else {
+        return null; // Don't show remaining time if more than a week
+      }
+    }
+  }
+  return null;
+};
+
 export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
   // For scraped jobs with application_deadline
   if ('application_deadline' in job && job.application_deadline) {

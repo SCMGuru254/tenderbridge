@@ -52,7 +52,11 @@ export const useJobData = () => {
       
       // Filter out any obviously expired jobs
       const nonExpiredJobs = data.filter(job => !isJobExpired(job));
-      console.log(`Filtered out ${data.length - nonExpiredJobs.length} expired jobs`);
+      console.log(`Filtered out ${data.length - nonExpiredJobs.length} expired jobs, showing ${nonExpiredJobs.length} jobs`);
+      
+      // Check if we have jobs from different sources
+      const sources = [...new Set(nonExpiredJobs.map(job => job.source))];
+      console.log("Job sources:", sources);
       
       return nonExpiredJobs as ScrapedJob[];
     },

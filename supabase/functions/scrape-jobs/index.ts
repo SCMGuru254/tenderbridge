@@ -30,13 +30,20 @@ serve(async (req) => {
       console.log('Successfully cleared existing scraped jobs');
     }
     
-    // Get job sites configuration
+    // Get job sites configuration - these are multiple Kenyan job sites
     const jobSites = getJobSites();
+    console.log(`Will scrape ${jobSites.length} job sources: ${jobSites.map(site => site.source).join(', ')}`);
     
     // Scrape each site and process the results
     let totalJobsScraped = 0;
+    let jobsBySource = {};
+    
     for (const site of jobSites) {
+      console.log(`Scraping jobs from: ${site.source}`);
       const scrapedJobs = await scrapeJobSites(site);
+      
+      // Track jobs by source for logging
+      jobsBySource[site.source] = scrapedJobs.length;
       
       // Insert each job into the database
       for (const job of scrapedJobs) {
@@ -45,12 +52,13 @@ serve(async (req) => {
           console.error(`Error inserting job from ${site.source}:`, insertResult.error);
         } else {
           totalJobsScraped++;
-          console.log(`Inserted job: ${job.title} at ${job.company}`);
+          console.log(`Inserted job: ${job.title} at ${job.company || 'Unknown'} from ${job.source}`);
         }
       }
     }
 
     console.log(`Job scraping completed. Total jobs added: ${totalJobsScraped}`);
+    console.log('Jobs by source:', JSON.stringify(jobsBySource));
     
     // Only add fallback jobs if no real jobs were scraped
     if (totalJobsScraped === 0) {
@@ -71,7 +79,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true,
-      message: `Successfully scraped ${totalJobsScraped} jobs` 
+      message: `Successfully scraped ${totalJobsScraped} jobs from multiple Kenyan sources` 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

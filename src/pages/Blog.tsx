@@ -23,7 +23,12 @@ const Blog = () => {
         .order('published_date', { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Process content to ensure it's properly formatted text
+      return data.map(item => ({
+        ...item,
+        content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : ""
+      }));
     }
   });
 
@@ -36,7 +41,12 @@ const Blog = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Process content to ensure it's properly formatted text
+      return data.map(post => ({
+        ...post,
+        content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : ""
+      }));
     }
   });
 
