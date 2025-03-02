@@ -4,6 +4,8 @@ import { JobCard } from "@/components/JobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getRemainingTime } from "@/utils/jobUtils";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface JobListProps {
   jobs: (PostedJob | ScrapedJob)[] | undefined;
@@ -47,23 +49,41 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
-  // Display sources to help with debugging
-  const sources = [...new Set(sortedJobs.map(job => {
-    // Get the original source without formatting
-    if ('source' in job && job.source) {
-      return job.source;
+  // Get job sources information
+  const jobsBySource = sortedJobs.reduce((acc, job) => {
+    const source = getJobSource(job);
+    if (!acc[source]) {
+      acc[source] = [];
     }
-    return "Supply Chain Kenya";
-  }))];
-  
-  console.log("Original job sources:", sources);
-  
-  // Display formatted sources
-  const formattedSources = [...new Set(sortedJobs.map(job => getJobSource(job)))];
-  console.log("Current job sources:", formattedSources);
+    acc[source].push(job);
+    return acc;
+  }, {} as Record<string, (PostedJob | ScrapedJob)[]>);
+
+  // Display sources to help with debugging
+  console.log("Original job sources:", 
+    Object.entries(jobsBySource).map(([source, jobs]) => 
+      `${source}: ${jobs.length} jobs`
+    )
+  );
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Source Statistics */}
+      <Card className="bg-muted/30">
+        <CardHeader>
+          <CardTitle className="text-lg">Job Sources</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(jobsBySource).map(([source, sourceJobs]) => (
+              <Badge key={source} variant="outline" className="px-3 py-1">
+                {source}: {sourceJobs.length} job{sourceJobs.length !== 1 ? 's' : ''}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => (
           <JobCard
@@ -90,3 +110,4 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     </div>
   );
 };
+
