@@ -6,6 +6,11 @@ export type PostedJob = {
   location: string;
   job_type: "full_time" | "part_time" | "contract" | "internship";
   created_at: string;
+  skills?: string[] | null;
+  requirements?: string[] | null;
+  responsibilities?: string[] | null;
+  salary_range?: string | null;
+  application_deadline?: string | null;
   companies?: {
     name: string | null;
     location: string | null;
@@ -21,8 +26,13 @@ export type ScrapedJob = {
   job_type: string | null;
   source: string | null;
   job_url: string | null;
+  application_url: string | null;
   created_at: string;
   application_deadline: string | null;
+  skills?: string[] | null;
+  requirements?: string[] | null;
+  responsibilities?: string[] | null;
+  salary_range?: string | null;
 }
 
 export type JobType = PostedJob | ScrapedJob;
