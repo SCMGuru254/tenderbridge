@@ -24,11 +24,11 @@ export const getLocation = (job: PostedJob | ScrapedJob): string | null => {
 export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   // For scraped jobs, use the job_url
   if ('job_url' in job && job.job_url) {
-    return job.job_url;
+    return job.job_url as string; // Type assertion to fix TS error
   }
   // For scraped jobs, fall back to application_url if job_url is not available
   if ('application_url' in job && job.application_url) {
-    return job.application_url;
+    return job.application_url as string; // Type assertion to fix TS error
   }
   // For posted jobs, no direct URL is available
   return null;

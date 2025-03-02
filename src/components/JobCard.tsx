@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,10 +40,11 @@ export const JobCard = ({
   const [sharing, setSharing] = useState(false);
 
   const handleApply = () => {
-    if (jobUrl) {
-      window.open(jobUrl, "_blank");
-    } else if (fullJob) {
+    if (fullJob) {
+      // Always navigate to job details page first
       navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
+    } else if (jobUrl) {
+      window.open(jobUrl, "_blank");
     } else {
       toast({
         variant: "destructive",
