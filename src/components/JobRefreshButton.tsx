@@ -24,7 +24,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         description: "This may take up to a minute while we fetch the latest jobs from multiple sources.",
       });
 
-      // Call the Edge Function to scrape jobs
+      // Call the Edge Function to scrape jobs from multiple sources
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
         body: { 
           refreshAll: true,
@@ -35,7 +35,8 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
             "JobWebKenya", 
             "Indeed", 
             "Google"
-          ] 
+          ],
+          keywords: ["supply chain", "logistics", "procurement", "warehouse", "inventory"]
         },
       });
       

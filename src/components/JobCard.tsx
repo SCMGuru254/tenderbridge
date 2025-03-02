@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,8 +41,14 @@ export const JobCard = ({
   const handleApply = () => {
     if (jobUrl) {
       window.open(jobUrl, "_blank");
+    } else if (fullJob) {
+      navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
     } else {
-      navigate(`/jobs/apply`);
+      toast({
+        variant: "destructive",
+        title: "Cannot apply",
+        description: "The job details are not available. Please try again later.",
+      });
     }
   };
 
@@ -53,14 +58,12 @@ export const JobCard = ({
     try {
       setCopying(true);
       
-      // Format job details for sharing
       const jobDetails = 
         `Job Title: ${title}\n` +
         `Company: ${company || 'Not specified'}\n` +
         `Location: ${location || 'Not specified'}\n` +
         (jobUrl ? `Apply here: ${jobUrl}` : 'Check the job board for more details.');
       
-      // Use navigator.share if available (mobile devices)
       if (navigator.share) {
         await navigator.share({
           title: `Supply Chain Job: ${title}`,
@@ -72,7 +75,6 @@ export const JobCard = ({
           description: "Job details have been shared",
         });
       } else {
-        // Fallback to clipboard
         await navigator.clipboard.writeText(jobDetails);
         toast({
           title: "Job details copied",
@@ -106,7 +108,6 @@ export const JobCard = ({
     try {
       setSharing(true);
       
-      // Call the Supabase Edge Function to share the job
       const { data, error } = await supabase.functions.invoke('share-job', {
         body: fullJob,
       });

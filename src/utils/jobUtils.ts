@@ -26,6 +26,10 @@ export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   if ('job_url' in job && job.job_url) {
     return job.job_url;
   }
+  // For scraped jobs, fall back to application_url if job_url is not available
+  if ('application_url' in job && job.application_url) {
+    return job.application_url;
+  }
   // For posted jobs, no direct URL is available
   return null;
 };
@@ -33,24 +37,25 @@ export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
 export const getJobSource = (job: PostedJob | ScrapedJob): string => {
   if ('source' in job && job.source) {
     // Format source name nicely
-    switch (job.source.toLowerCase()) {
-      case 'linkedin':
-        return 'LinkedIn';
-      case 'brightermonday':
-      case 'brighter_monday':
-        return 'BrighterMonday';
-      case 'fuzu':
-        return 'Fuzu';
-      case 'myjobmag':
-      case 'my_job_mag':
-        return 'MyJobMag';
-      case 'jobwebkenya':
-      case 'jobweb_kenya':
-        return 'JobWebKenya';
-      case 'indeed':
-        return 'Indeed';
-      default:
-        return job.source;
+    const source = job.source.toLowerCase().trim();
+    
+    if (source.includes('linkedin')) {
+      return 'LinkedIn';
+    } else if (source.includes('brightermonday') || source.includes('brighter_monday')) {
+      return 'BrighterMonday';
+    } else if (source.includes('fuzu')) {
+      return 'Fuzu';
+    } else if (source.includes('myjobmag') || source.includes('my_job_mag')) {
+      return 'MyJobMag';
+    } else if (source.includes('jobwebkenya') || source.includes('jobweb_kenya') || source.includes('jobweb')) {
+      return 'JobWebKenya';
+    } else if (source.includes('indeed')) {
+      return 'Indeed';
+    } else if (source.includes('google')) {
+      return 'Google Jobs';
+    } else {
+      // Return the original source with first letter capitalized
+      return source.charAt(0).toUpperCase() + source.slice(1);
     }
   }
   return "Supply Chain Kenya";

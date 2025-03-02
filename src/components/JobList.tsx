@@ -28,19 +28,18 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   }
 
   // Only filter out jobs with severe formatting issues
-  // We're keeping most sources including Google Jobs
   const filteredJobs = jobs.filter(job => {
     // Skip jobs without critical information
     if (!job.title || (job.title.trim() === '')) {
       return false;
     }
     
-    // Keep all non-Fuzu jobs
-    if (!((job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu'))) {
-      return true;
+    // Remove Fuzu jobs as they have formatting issues
+    if ((job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu')) {
+      return false;
     }
     
-    return false;
+    return true;
   });
 
   // Sort by creation date (most recent first)
@@ -48,9 +47,20 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
-  // Check if we have sources from various job sites
-  const sources = [...new Set(sortedJobs.map(job => getJobSource(job)))];
-  console.log("Current job sources:", sources);
+  // Display sources to help with debugging
+  const sources = [...new Set(sortedJobs.map(job => {
+    // Get the original source without formatting
+    if ('source' in job && job.source) {
+      return job.source;
+    }
+    return "Supply Chain Kenya";
+  }))];
+  
+  console.log("Original job sources:", sources);
+  
+  // Display formatted sources
+  const formattedSources = [...new Set(sortedJobs.map(job => getJobSource(job)))];
+  console.log("Current job sources:", formattedSources);
 
   return (
     <div className="space-y-8 animate-fade-in">
