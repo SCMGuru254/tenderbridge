@@ -24,40 +24,61 @@ export const getLocation = (job: PostedJob | ScrapedJob): string | null => {
 export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   // For scraped jobs, use the job_url
   if ('job_url' in job && job.job_url) {
-    return job.job_url as string; // Type assertion to fix TS error
+    return job.job_url as string;
   }
   // For scraped jobs, fall back to application_url if job_url is not available
   if ('application_url' in job && job.application_url) {
-    return job.application_url as string; // Type assertion to fix TS error
+    return job.application_url as string;
   }
-  // For posted jobs, no direct URL is available
+  // For posted jobs with ID, create a link to the job details page
+  if (job.id) {
+    return `/jobs/details/${job.id}`;
+  }
+  // Return null if no URL is available
   return null;
 };
 
 export const getJobSource = (job: PostedJob | ScrapedJob): string => {
+  // For posted jobs (directly posted on our platform)
+  if ('companies' in job) {
+    return "Supply Chain Kenya";
+  }
+  
+  // For scraped jobs with source information
   if ('source' in job && job.source) {
-    // Format source name nicely
+    // Normalize the source string
     const source = job.source.toLowerCase().trim();
     
+    // Match against known job sites with more specific checks
     if (source.includes('linkedin')) {
       return 'LinkedIn';
-    } else if (source.includes('brightermonday') || source.includes('brighter_monday')) {
+    } else if (source.includes('brightermonday') || source.includes('brighter_monday') || source.includes('brighter-monday')) {
       return 'BrighterMonday';
     } else if (source.includes('fuzu')) {
       return 'Fuzu';
-    } else if (source.includes('myjobmag') || source.includes('my_job_mag')) {
+    } else if (source.includes('myjobmag') || source.includes('my_job_mag') || source.includes('my-job-mag')) {
       return 'MyJobMag';
-    } else if (source.includes('jobwebkenya') || source.includes('jobweb_kenya') || source.includes('jobweb')) {
+    } else if (source.includes('jobwebkenya') || source.includes('jobweb_kenya') || source.includes('jobweb') || source.includes('job-web')) {
       return 'JobWebKenya';
     } else if (source.includes('indeed')) {
       return 'Indeed';
     } else if (source.includes('google')) {
       return 'Google Jobs';
+    } else if (source.includes('pigiame') || source.includes('pigia-me')) {
+      return 'PigiaMe';
+    } else if (source.includes('ajira') || source.includes('ajira-digital')) {
+      return 'Ajira Digital';
+    } else if (source.includes('kazi')) {
+      return 'KaziRemote';
     } else {
-      // Return the original source with first letter capitalized
-      return source.charAt(0).toUpperCase() + source.slice(1);
+      // Format the source name by capitalizing first letter of each word
+      return source.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     }
   }
+  
+  // Default source if none is specified
   return "Supply Chain Kenya";
 };
 
@@ -155,4 +176,21 @@ export const filterJobs = (
     
     return matchesSearch && matchesCategory;
   });
+};
+
+// New utility function to safely get array data
+export const getSafeArray = (data: unknown): string[] => {
+  if (Array.isArray(data)) {
+    return data.map(item => String(item));
+  }
+  return [];
+};
+
+// Get description that's suitable for social sharing
+export const getSocialDescription = (job: PostedJob | ScrapedJob): string => {
+  const company = getCompanyName(job) || 'Company';
+  const location = getLocation(job) || 'Kenya';
+  const jobType = getJobType(job);
+  
+  return `${job.title} - ${company} in ${location} (${jobType})`;
 };
