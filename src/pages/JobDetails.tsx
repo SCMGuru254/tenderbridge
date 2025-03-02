@@ -1,3 +1,4 @@
+
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,8 +6,9 @@ import { Loader2, Calendar, MapPin, Building, Share2, ExternalLink } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCompanyName, getLocation, getJobUrl, getJobSource, getSafeArray } from '@/utils/jobUtils';
+import { getCompanyName, getLocation, getJobUrl, getJobSource, getSafeArray, getDeadline } from '@/utils/jobUtils';
 import { toast } from 'sonner';
+import { PostedJob, ScrapedJob } from '@/types/jobs';
 
 const JobDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +39,7 @@ const JobDetails = () => {
         }
         return null;
       }
-      return data;
+      return data as PostedJob;
     },
     enabled: !!id,
   });
@@ -61,7 +63,7 @@ const JobDetails = () => {
         }
         return null;
       }
-      return data;
+      return data as ScrapedJob;
     },
     enabled: !!id && (!postedJob || isLoadingPosted),
   });
@@ -103,10 +105,11 @@ const JobDetails = () => {
     );
   }
 
-  // Safely get arrays from job data
+  // Safely get arrays from job data using getSafeArray utility
   const requirements = getSafeArray(job.requirements);
   const responsibilities = getSafeArray(job.responsibilities);
   const skills = getSafeArray(job.skills);
+  const deadline = getDeadline(job);
 
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
@@ -207,10 +210,10 @@ const JobDetails = () => {
         
         <CardFooter className="flex justify-between pt-6 border-t">
           <div>
-            {job.application_deadline && (
+            {deadline && (
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4 mr-1" />
-                <span>Deadline: {new Date(job.application_deadline).toLocaleDateString()}</span>
+                <span>Deadline: {new Date(deadline).toLocaleDateString()}</span>
               </div>
             )}
           </div>
