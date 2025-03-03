@@ -13,6 +13,7 @@ import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import JobDetails from "@/pages/JobDetails";
+import InterviewPrep from "@/pages/InterviewPrep"; // Add the new page import
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ function App() {
               <Route path="/blog" element={<Blog />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/interview-prep" element={<InterviewPrep />} /> {/* Add the new route */}
             </Routes>
           </div>
         </BrowserRouter>

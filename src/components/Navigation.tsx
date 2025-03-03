@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -31,6 +32,9 @@ export const Navigation = () => {
             </Link>
             <Link to="/blog" className="text-gray-700 hover:text-primary">
               Blog
+            </Link>
+            <Link to="/interview-prep" className="text-gray-700 hover:text-primary">
+              Interview Prep
             </Link>
           </div>
           <div className="flex items-center space-x-4">
