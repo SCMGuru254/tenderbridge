@@ -1,45 +1,279 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageSquare, Briefcase, Star, Building, HelpCircle, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Sparkles, MessageSquare, Briefcase, Star, Building, HelpCircle, ThumbsUp, ThumbsDown, Plus, Filter } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const InterviewPrep = () => {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  
+  // AI Assistant state
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiResponses, setAiResponses] = useState<{question: string, answer: string}[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
+  // Interview questions state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddingQuestion, setIsAddingQuestion] = useState(false);
+  const [newQuestion, setNewQuestion] = useState({
+    company_name: "",
+    position: "",
+    question: "",
+    difficulty: "Medium",
+    is_anonymous: false
+  });
+
+  // Interview reviews state 
+  const [isAddingReview, setIsAddingReview] = useState(false);
+  const [newReview, setNewReview] = useState({
+    company_name: "",
+    position: "",
+    review_text: "",
+    difficulty: "Medium",
+    interview_process: "",
+    company_culture: [] as string[],
+    rating: 4.0,
+    is_anonymous: false
+  });
+
+  // Fetch session
+  const { data: session } = useQuery({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      return session;
+    }
+  });
+
+  // Fetch interview questions
+  const { data: interviewQuestions = [], isLoading: questionsLoading } = useQuery({
+    queryKey: ['interview-questions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('interview_questions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch company reviews
+  const { data: companyReviews = [], isLoading: reviewsLoading } = useQuery({
+    queryKey: ['company-reviews'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('interview_reviews')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Add interview question mutation
+  const addQuestionMutation = useMutation({
+    mutationFn: async (questionData: typeof newQuestion) => {
+      if (!session?.user) {
+        navigate("/auth");
+        throw new Error("You must be logged in to add a question");
+      }
+      
+      const { data, error } = await supabase
+        .from('interview_questions')
+        .insert([
+          {
+            ...questionData,
+            user_id: session.user.id
+          }
+        ]);
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interview-questions'] });
+      setIsAddingQuestion(false);
+      setNewQuestion({
+        company_name: "",
+        position: "",
+        question: "",
+        difficulty: "Medium",
+        is_anonymous: false
+      });
+      toast.success("Question added successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to add question: ${error.message}`);
+    }
+  });
+
+  // Add company review mutation
+  const addReviewMutation = useMutation({
+    mutationFn: async (reviewData: typeof newReview) => {
+      if (!session?.user) {
+        navigate("/auth");
+        throw new Error("You must be logged in to add a review");
+      }
+      
+      const { data, error } = await supabase
+        .from('interview_reviews')
+        .insert([
+          {
+            ...reviewData,
+            user_id: session.user.id
+          }
+        ]);
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['company-reviews'] });
+      setIsAddingReview(false);
+      setNewReview({
+        company_name: "",
+        position: "",
+        review_text: "",
+        difficulty: "Medium",
+        interview_process: "",
+        company_culture: [],
+        rating: 4.0,
+        is_anonymous: false
+      });
+      toast.success("Review added successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to add review: ${error.message}`);
+    }
+  });
+
+  // Vote on a question mutation
+  const voteQuestionMutation = useMutation({
+    mutationFn: async ({ id, voteType }: { id: string, voteType: 'upvote' | 'downvote' }) => {
+      if (!session?.user) {
+        navigate("/auth");
+        throw new Error("You must be logged in to vote");
+      }
+      
+      const questionToUpdate = interviewQuestions.find(q => q.id === id);
+      if (!questionToUpdate) throw new Error("Question not found");
+      
+      const updates = voteType === 'upvote' 
+        ? { upvotes: (questionToUpdate.upvotes || 0) + 1 } 
+        : { downvotes: (questionToUpdate.downvotes || 0) + 1 };
+      
+      const { data, error } = await supabase
+        .from('interview_questions')
+        .update(updates)
+        .eq('id', id);
+        
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interview-questions'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to vote: ${error.message}`);
+    }
+  });
+
+  // Handle AI question
   const handleAiQuestion = async () => {
     if (!aiQuestion.trim()) return;
     
-    setLoading(true);
-    
-    // In a real implementation, this would call an API to get AI responses
-    // For now, we'll simulate a response
-    setTimeout(() => {
+    try {
+      setAiLoading(true);
+      
+      // Call our edge function
+      const { data, error } = await supabase.functions.invoke('interview-ai', {
+        body: { question: aiQuestion }
+      });
+      
+      if (error) throw error;
+      
       setAiResponses([
         ...aiResponses,
         {
           question: aiQuestion,
-          answer: `Here's how you might approach "${aiQuestion}": 
-          
-          1. Start by briefly introducing your background relevant to this question.
-          2. Use the STAR method (Situation, Task, Action, Result) to structure your answer.
-          3. Be specific about your contributions and quantify results if possible.
-          4. Keep your answer concise but detailed enough to demonstrate your skills.
-          
-          Practice this answer out loud a few times to make it sound natural!`
+          answer: data.answer
         }
       ]);
+      
       setAiQuestion("");
-      setLoading(false);
-    }, 1500);
+    } catch (error) {
+      console.error("Error calling AI assistant:", error);
+      toast.error("Failed to get AI response. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
   };
+
+  // Handle form submissions
+  const handleAddQuestion = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newQuestion.company_name || !newQuestion.position || !newQuestion.question) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    addQuestionMutation.mutate(newQuestion);
+  };
+
+  const handleAddReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReview.company_name || !newReview.position || !newReview.review_text) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    addReviewMutation.mutate(newReview);
+  };
+
+  // Handle culture trait toggling
+  const toggleCultureTrait = (trait: string) => {
+    setNewReview(prev => {
+      const traits = [...prev.company_culture];
+      const index = traits.indexOf(trait);
+      
+      if (index >= 0) {
+        traits.splice(index, 1);
+      } else {
+        traits.push(trait);
+      }
+      
+      return { ...prev, company_culture: traits };
+    });
+  };
+
+  // Filter questions and reviews based on search term
+  const filteredQuestions = interviewQuestions.filter(q => 
+    q.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.question.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredReviews = companyReviews.filter(r => 
+    r.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.position.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -75,8 +309,8 @@ const InterviewPrep = () => {
                     onKeyDown={(e) => e.key === 'Enter' && handleAiQuestion()}
                     className="flex-1"
                   />
-                  <Button onClick={handleAiQuestion} disabled={loading}>
-                    {loading ? (
+                  <Button onClick={handleAiQuestion} disabled={aiLoading}>
+                    {aiLoading ? (
                       <>Getting Answer...</>
                     ) : (
                       <>
@@ -233,100 +467,167 @@ const InterviewPrep = () => {
             <CardContent>
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-4 mb-8">
-                  <div className="flex-1">
-                    <Input placeholder="Search for questions by keyword or company..." />
+                  <div className="flex-1 relative">
+                    <Input 
+                      placeholder="Search for questions by keyword or company..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <Button 
+                        variant="ghost" 
+                        className="absolute right-0 top-0 h-full" 
+                        onClick={() => setSearchTerm("")}
+                      >
+                        ×
+                      </Button>
+                    )}
                   </div>
-                  <Button>
+                  <Button onClick={() => {
+                    if (session) {
+                      setIsAddingQuestion(true);
+                    } else {
+                      toast.error("Please sign in to add your experience");
+                      navigate("/auth");
+                    }
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Your Experience
                   </Button>
                 </div>
                 
-                {/* Sample Interview Questions */}
-                {[
-                  {
-                    company: "Logistics Corp Kenya",
-                    position: "Supply Chain Manager",
-                    difficulty: "Medium",
-                    question: "Describe how you would handle a situation where a critical supplier fails to deliver on time for a major client.",
-                    upvotes: 24,
-                    date: "2 weeks ago"
-                  },
-                  {
-                    company: "Global Freight Ltd",
-                    position: "Procurement Officer",
-                    difficulty: "Hard",
-                    question: "How would you approach negotiating with a supplier who has suddenly increased prices by 15% due to 'market conditions'?",
-                    upvotes: 18,
-                    date: "1 month ago"
-                  },
-                  {
-                    company: "East Africa Distributors",
-                    position: "Inventory Specialist",
-                    difficulty: "Easy",
-                    question: "Which inventory management methods have you used and which do you find most effective for perishable goods?",
-                    upvotes: 31,
-                    date: "3 weeks ago"
-                  }
-                ].map((q, idx) => (
-                  <Card key={idx} className="mb-4">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-base">{q.company}</CardTitle>
-                          <CardDescription>{q.position}</CardDescription>
-                        </div>
-                        <Badge>{q.difficulty}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <p className="text-sm md:text-base">{q.question}</p>
-                    </CardContent>
-                    <CardFooter className="flex justify-between items-center pt-2">
-                      <div className="flex space-x-4 text-sm text-muted-foreground">
-                        <span>{q.date}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <ThumbsUp className="h-4 w-4" />
-                        </Button>
-                        <span className="text-sm font-medium">{q.upvotes}</span>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <ThumbsDown className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-                
-                <div className="mt-6">
-                  <Card>
+                {/* Question Form */}
+                {isAddingQuestion && (
+                  <Card className="mb-8">
                     <CardHeader>
-                      <CardTitle className="text-lg">Share Your Interview Experience</CardTitle>
+                      <CardTitle className="text-lg">Share an Interview Question</CardTitle>
                       <CardDescription>
                         Help others prepare by sharing questions you were asked
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">Company Name</label>
-                          <Input placeholder="Company name" />
+                      <form onSubmit={handleAddQuestion} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="company">Company Name <span className="text-red-500">*</span></Label>
+                            <Input 
+                              id="company" 
+                              placeholder="Company name" 
+                              value={newQuestion.company_name}
+                              onChange={(e) => setNewQuestion({...newQuestion, company_name: e.target.value})}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="position">Position <span className="text-red-500">*</span></Label>
+                            <Input 
+                              id="position" 
+                              placeholder="Job title/position" 
+                              value={newQuestion.position}
+                              onChange={(e) => setNewQuestion({...newQuestion, position: e.target.value})}
+                              required
+                            />
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium">Position</label>
-                          <Input placeholder="Job title/position" />
+                          <Label htmlFor="difficulty">Difficulty</Label>
+                          <Select 
+                            value={newQuestion.difficulty} 
+                            onValueChange={(value) => setNewQuestion({...newQuestion, difficulty: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Easy">Easy</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Hard">Hard</SelectItem>
+                              <SelectItem value="Very Hard">Very Hard</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Interview Question</label>
-                        <Textarea placeholder="What question were you asked?" className="min-h-[100px]" />
-                      </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="question">Interview Question <span className="text-red-500">*</span></Label>
+                          <Textarea 
+                            id="question" 
+                            placeholder="What question were you asked?" 
+                            className="min-h-[100px]" 
+                            value={newQuestion.question}
+                            onChange={(e) => setNewQuestion({...newQuestion, question: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="anonymous" 
+                            checked={newQuestion.is_anonymous}
+                            onCheckedChange={(checked) => setNewQuestion({...newQuestion, is_anonymous: checked})}
+                          />
+                          <Label htmlFor="anonymous">Submit anonymously</Label>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setIsAddingQuestion(false)}>
+                            Cancel
+                          </Button>
+                          <Button type="submit">
+                            Submit Question
+                          </Button>
+                        </div>
+                      </form>
                     </CardContent>
-                    <CardFooter>
-                      <Button>Submit Question</Button>
-                    </CardFooter>
                   </Card>
-                </div>
+                )}
+                
+                {/* Question List */}
+                {questionsLoading ? (
+                  <div className="text-center py-8">Loading questions...</div>
+                ) : filteredQuestions.length === 0 ? (
+                  <div className="text-center py-8">
+                    {searchTerm ? "No questions match your search" : "No questions yet. Be the first to share!"}
+                  </div>
+                ) : (
+                  filteredQuestions.map((q) => (
+                    <Card key={q.id} className="mb-4">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-base">{q.company_name}</CardTitle>
+                            <CardDescription>{q.position}</CardDescription>
+                          </div>
+                          <Badge>{q.difficulty}</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm md:text-base">{q.question}</p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between items-center pt-2">
+                        <div className="flex space-x-4 text-sm text-muted-foreground">
+                          <span>{new Date(q.created_at).toLocaleDateString()}</span>
+                          {!q.is_anonymous && <span>By: {q.user_id}</span>}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => voteQuestionMutation.mutate({ id: q.id, voteType: 'upvote' })}
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                          </Button>
+                          <span className="text-sm font-medium">{q.upvotes || 0}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => voteQuestionMutation.mutate({ id: q.id, voteType: 'downvote' })}
+                          >
+                            <ThumbsDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -347,95 +648,226 @@ const InterviewPrep = () => {
             <CardContent>
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-4 mb-8">
-                  <div className="flex-1">
-                    <Input placeholder="Search for companies..." />
+                  <div className="flex-1 relative">
+                    <Input 
+                      placeholder="Search for companies..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                      <Button 
+                        variant="ghost" 
+                        className="absolute right-0 top-0 h-full" 
+                        onClick={() => setSearchTerm("")}
+                      >
+                        ×
+                      </Button>
+                    )}
                   </div>
-                  <Button>
+                  <Button onClick={() => {
+                    if (session) {
+                      setIsAddingReview(true);
+                    } else {
+                      toast.error("Please sign in to add a company review");
+                      navigate("/auth");
+                    }
+                  }}>
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Company Review
                   </Button>
                 </div>
                 
-                {/* Company Reviews */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {[
-                    {
-                      name: "Logistics Corp Kenya",
-                      reviews: 12,
-                      rating: 4.2,
-                      process: "3 interviews",
-                      difficulty: "Medium",
-                      culture: ["Fast-paced", "Collaborative", "Structured"],
-                      comment: "The interview process was thorough but fair. Started with a phone screening, followed by a technical assessment and final interview with the department head."
-                    },
-                    {
-                      name: "Global Freight Ltd",
-                      reviews: 8,
-                      rating: 3.8,
-                      process: "2 interviews",
-                      difficulty: "Hard",
-                      culture: ["Competitive", "Results-oriented", "Long hours"],
-                      comment: "Challenging technical questions and case studies. They value analytical thinking and problem-solving. Be prepared to discuss past supply chain optimizations in detail."
-                    },
-                    {
-                      name: "East Africa Distributors",
-                      reviews: 15,
-                      rating: 4.5,
-                      process: "2-3 interviews",
-                      difficulty: "Medium",
-                      culture: ["Supportive", "Work-life balance", "Learning-focused"],
-                      comment: "Very pleasant experience. They focus on cultural fit as much as technical skills. The team was welcoming and transparent about expectations."
-                    },
-                    {
-                      name: "Nairobi Supply Solutions",
-                      reviews: 7,
-                      rating: 3.5,
-                      process: "4 interviews",
-                      difficulty: "Very Hard",
-                      culture: ["Innovative", "High-pressure", "Goal-driven"],
-                      comment: "Lengthy process with multiple stakeholders. Technical assessment was particularly challenging. They value experience with digital supply chain tools."
-                    }
-                  ].map((company, idx) => (
-                    <Card key={idx} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{company.name}</CardTitle>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-500 mr-1" />
-                            <span className="font-medium">{company.rating}</span>
+                {/* Review Form */}
+                {isAddingReview && (
+                  <Card className="mb-8">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Share Your Interview Experience</CardTitle>
+                      <CardDescription>
+                        Help others prepare by sharing your interview experience
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <form onSubmit={handleAddReview} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-company">Company Name <span className="text-red-500">*</span></Label>
+                            <Input 
+                              id="review-company" 
+                              placeholder="Company name" 
+                              value={newReview.company_name}
+                              onChange={(e) => setNewReview({...newReview, company_name: e.target.value})}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-position">Position <span className="text-red-500">*</span></Label>
+                            <Input 
+                              id="review-position" 
+                              placeholder="Job title/position" 
+                              value={newReview.position}
+                              onChange={(e) => setNewReview({...newReview, position: e.target.value})}
+                              required
+                            />
                           </div>
                         </div>
-                        <CardDescription>{company.reviews} interview reviews • {company.process}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-3 pb-2">
-                        <div>
-                          <p className="text-sm font-medium mb-2">Interview Difficulty: 
-                            <span className={`ml-2 ${
-                              company.difficulty === "Very Hard" ? "text-red-500" : 
-                              company.difficulty === "Hard" ? "text-orange-500" :
-                              company.difficulty === "Medium" ? "text-yellow-600" :
-                              "text-green-500"
-                            }`}>
-                              {company.difficulty}
-                            </span>
-                          </p>
-                          <p className="text-sm">{company.comment}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="review-difficulty">Interview Difficulty</Label>
+                            <Select 
+                              value={newReview.difficulty} 
+                              onValueChange={(value) => setNewReview({...newReview, difficulty: value})}
+                            >
+                              <SelectTrigger id="review-difficulty">
+                                <SelectValue placeholder="Select difficulty" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Easy">Easy</SelectItem>
+                                <SelectItem value="Medium">Medium</SelectItem>
+                                <SelectItem value="Hard">Hard</SelectItem>
+                                <SelectItem value="Very Hard">Very Hard</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="review-rating">Overall Rating (1-5)</Label>
+                            <Select 
+                              value={String(newReview.rating)} 
+                              onValueChange={(value) => setNewReview({...newReview, rating: parseFloat(value)})}
+                            >
+                              <SelectTrigger id="review-rating">
+                                <SelectValue placeholder="Select rating" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="1">1 - Poor</SelectItem>
+                                <SelectItem value="2">2 - Below Average</SelectItem>
+                                <SelectItem value="3">3 - Average</SelectItem>
+                                <SelectItem value="4">4 - Good</SelectItem>
+                                <SelectItem value="5">5 - Excellent</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium mb-1">Company Culture:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {company.culture.map((trait, i) => (
-                              <Badge key={i} variant="outline">{trait}</Badge>
+                        <div className="space-y-2">
+                          <Label htmlFor="review-process">Interview Process</Label>
+                          <Textarea 
+                            id="review-process" 
+                            placeholder="Describe the interview process (e.g., number of rounds, types of interviews)" 
+                            value={newReview.interview_process}
+                            onChange={(e) => setNewReview({...newReview, interview_process: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Company Culture (select all that apply)</Label>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {["Fast-paced", "Collaborative", "Structured", "Competitive", "Results-oriented", 
+                              "Supportive", "Work-life balance", "Learning-focused", "Innovative", "High-pressure"].map((trait) => (
+                              <Badge 
+                                key={trait}
+                                variant={newReview.company_culture.includes(trait) ? "default" : "outline"}
+                                className="cursor-pointer"
+                                onClick={() => toggleCultureTrait(trait)}
+                              >
+                                {trait}
+                              </Badge>
                             ))}
                           </div>
                         </div>
-                      </CardContent>
-                      <CardFooter className="pt-2">
-                        <Button variant="outline" size="sm" className="w-full">
-                          Read Full Reviews
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                        <div className="space-y-2">
+                          <Label htmlFor="review-text">Interview Experience <span className="text-red-500">*</span></Label>
+                          <Textarea 
+                            id="review-text" 
+                            placeholder="Share your overall experience - what went well, what was challenging, any advice for others" 
+                            className="min-h-[150px]" 
+                            value={newReview.review_text}
+                            onChange={(e) => setNewReview({...newReview, review_text: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="review-anonymous" 
+                            checked={newReview.is_anonymous}
+                            onCheckedChange={(checked) => setNewReview({...newReview, is_anonymous: checked})}
+                          />
+                          <Label htmlFor="review-anonymous">Submit anonymously</Label>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button type="button" variant="outline" onClick={() => setIsAddingReview(false)}>
+                            Cancel
+                          </Button>
+                          <Button type="submit">
+                            Submit Review
+                          </Button>
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Company Reviews */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {reviewsLoading ? (
+                    <div className="text-center py-8 col-span-2">Loading reviews...</div>
+                  ) : filteredReviews.length === 0 ? (
+                    <div className="text-center py-8 col-span-2">
+                      {searchTerm ? "No company reviews match your search" : "No company reviews yet. Be the first to share!"}
+                    </div>
+                  ) : (
+                    filteredReviews.map((review) => (
+                      <Card key={review.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg">{review.company_name}</CardTitle>
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                              <span className="font-medium">{review.rating}</span>
+                            </div>
+                          </div>
+                          <CardDescription>
+                            {review.position} • {new Date(review.created_at).toLocaleDateString()}
+                            {!review.is_anonymous && ` • By User`}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 pb-2">
+                          <div>
+                            <p className="text-sm font-medium mb-2">
+                              Interview Difficulty: 
+                              <span className={`ml-2 ${
+                                review.difficulty === "Very Hard" ? "text-red-500" : 
+                                review.difficulty === "Hard" ? "text-orange-500" :
+                                review.difficulty === "Medium" ? "text-yellow-600" :
+                                "text-green-500"
+                              }`}>
+                                {review.difficulty}
+                              </span>
+                            </p>
+                            <p className="text-sm">{review.review_text}</p>
+                          </div>
+                          {review.interview_process && (
+                            <div>
+                              <p className="text-sm font-medium mb-1">Interview Process:</p>
+                              <p className="text-sm">{review.interview_process}</p>
+                            </div>
+                          )}
+                          {review.company_culture && review.company_culture.length > 0 && (
+                            <div>
+                              <p className="text-sm font-medium mb-1">Company Culture:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {review.company_culture.map((trait, i) => (
+                                  <Badge key={i} variant="outline">{trait}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                        <CardFooter className="pt-2">
+                          <Button variant="outline" size="sm" className="w-full">
+                            Read Full Review
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </div>
             </CardContent>
