@@ -43,12 +43,13 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
 
       console.log("Testing sources:", sourcesToScrape);
 
-      // Call the Edge Function to scrape jobs from selected sources
+      // Call the Edge Function to scrape jobs from selected sources with specific configuration
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
         body: { 
           refreshAll: selectedSource === "all",
           debug: true, // Enable detailed debugging
-          testMode: selectedSource !== "all", // Enable test mode when testing a single source
+          testMode: false, // Set to false to actually save jobs
+          forceUpdate: true, // Force update even if we've scraped before
           sources: sourcesToScrape,
           keywords: ["supply chain", "logistics", "procurement", "warehouse", "inventory"]
         },
@@ -141,7 +142,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         ) : (
           <>
             <RefreshCcw className="h-4 w-4" />
-            Test Source
+            Refresh Jobs
           </>
         )}
       </Button>

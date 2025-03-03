@@ -3,3 +3,4 @@ project_id = "dqlfolsngrspnlpzzthv"
 
 [functions.scrape-jobs]
 verify_jwt = false
+
