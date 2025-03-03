@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,16 +15,43 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
+interface InterviewQuestion {
+  id: string;
+  company_name: string;
+  position: string;
+  question: string;
+  difficulty: string;
+  upvotes: number;
+  downvotes: number;
+  user_id: string;
+  is_anonymous: boolean;
+  created_at: string;
+}
+
+interface InterviewReview {
+  id: string;
+  company_name: string;
+  position: string;
+  review_text: string;
+  difficulty: string;
+  interview_process?: string;
+  company_culture?: string[];
+  rating: number;
+  interview_date?: string;
+  is_anonymous: boolean;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const InterviewPrep = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
-  // AI Assistant state
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiResponses, setAiResponses] = useState<{question: string, answer: string}[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Interview questions state
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [newQuestion, setNewQuestion] = useState({
@@ -36,7 +62,6 @@ const InterviewPrep = () => {
     is_anonymous: false
   });
 
-  // Interview reviews state 
   const [isAddingReview, setIsAddingReview] = useState(false);
   const [newReview, setNewReview] = useState({
     company_name: "",
@@ -49,7 +74,6 @@ const InterviewPrep = () => {
     is_anonymous: false
   });
 
-  // Fetch session
   const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
@@ -59,8 +83,7 @@ const InterviewPrep = () => {
     }
   });
 
-  // Fetch interview questions
-  const { data: interviewQuestions = [], isLoading: questionsLoading } = useQuery({
+  const { data: interviewQuestions = [], isLoading: questionsLoading } = useQuery<InterviewQuestion[]>({
     queryKey: ['interview-questions'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -68,13 +91,15 @@ const InterviewPrep = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching interview questions:', error);
+        throw error;
+      }
       return data || [];
     }
   });
 
-  // Fetch company reviews
-  const { data: companyReviews = [], isLoading: reviewsLoading } = useQuery({
+  const { data: companyReviews = [], isLoading: reviewsLoading } = useQuery<InterviewReview[]>({
     queryKey: ['company-reviews'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,12 +107,14 @@ const InterviewPrep = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching company reviews:', error);
+        throw error;
+      }
       return data || [];
     }
   });
 
-  // Add interview question mutation
   const addQuestionMutation = useMutation({
     mutationFn: async (questionData: typeof newQuestion) => {
       if (!session?.user) {
@@ -124,7 +151,6 @@ const InterviewPrep = () => {
     }
   });
 
-  // Add company review mutation
   const addReviewMutation = useMutation({
     mutationFn: async (reviewData: typeof newReview) => {
       if (!session?.user) {
@@ -164,7 +190,6 @@ const InterviewPrep = () => {
     }
   });
 
-  // Vote on a question mutation
   const voteQuestionMutation = useMutation({
     mutationFn: async ({ id, voteType }: { id: string, voteType: 'upvote' | 'downvote' }) => {
       if (!session?.user) {
@@ -195,14 +220,12 @@ const InterviewPrep = () => {
     }
   });
 
-  // Handle AI question
   const handleAiQuestion = async () => {
     if (!aiQuestion.trim()) return;
     
     try {
       setAiLoading(true);
       
-      // Call our edge function
       const { data, error } = await supabase.functions.invoke('interview-ai', {
         body: { question: aiQuestion }
       });
@@ -226,7 +249,6 @@ const InterviewPrep = () => {
     }
   };
 
-  // Handle form submissions
   const handleAddQuestion = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.company_name || !newQuestion.position || !newQuestion.question) {
@@ -247,7 +269,6 @@ const InterviewPrep = () => {
     addReviewMutation.mutate(newReview);
   };
 
-  // Handle culture trait toggling
   const toggleCultureTrait = (trait: string) => {
     setNewReview(prev => {
       const traits = [...prev.company_culture];
@@ -263,7 +284,6 @@ const InterviewPrep = () => {
     });
   };
 
-  // Filter questions and reviews based on search term
   const filteredQuestions = interviewQuestions.filter(q => 
     q.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     q.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -287,7 +307,6 @@ const InterviewPrep = () => {
           <TabsTrigger value="companies">Company Reviews</TabsTrigger>
         </TabsList>
         
-        {/* AI Assistant Tab */}
         <TabsContent value="assistant" className="space-y-6">
           <Card>
             <CardHeader>
@@ -321,7 +340,6 @@ const InterviewPrep = () => {
                   </Button>
                 </div>
                 
-                {/* AI Conversation History */}
                 <div className="space-y-4 mt-6">
                   {aiResponses.map((response, idx) => (
                     <div key={idx} className="space-y-2">
@@ -338,7 +356,6 @@ const InterviewPrep = () => {
             </CardContent>
           </Card>
           
-          {/* Common Questions Section */}
           <Card>
             <CardHeader>
               <CardTitle>Common Supply Chain Interview Questions</CardTitle>
@@ -374,7 +391,6 @@ const InterviewPrep = () => {
           </Card>
         </TabsContent>
         
-        {/* HR Coaches Tab */}
         <TabsContent value="coaches">
           <Card>
             <CardHeader>
@@ -388,7 +404,6 @@ const InterviewPrep = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Coach Cards */}
                 {[
                   {
                     name: "Jane Smith",
@@ -452,7 +467,6 @@ const InterviewPrep = () => {
           </Card>
         </TabsContent>
         
-        {/* Interview Questions Tab */}
         <TabsContent value="questions">
           <Card>
             <CardHeader>
@@ -496,7 +510,6 @@ const InterviewPrep = () => {
                   </Button>
                 </div>
                 
-                {/* Question Form */}
                 {isAddingQuestion && (
                   <Card className="mb-8">
                     <CardHeader>
@@ -578,7 +591,6 @@ const InterviewPrep = () => {
                   </Card>
                 )}
                 
-                {/* Question List */}
                 {questionsLoading ? (
                   <div className="text-center py-8">Loading questions...</div>
                 ) : filteredQuestions.length === 0 ? (
@@ -633,7 +645,6 @@ const InterviewPrep = () => {
           </Card>
         </TabsContent>
         
-        {/* Company Reviews Tab */}
         <TabsContent value="companies">
           <Card>
             <CardHeader>
@@ -677,7 +688,6 @@ const InterviewPrep = () => {
                   </Button>
                 </div>
                 
-                {/* Review Form */}
                 {isAddingReview && (
                   <Card className="mb-8">
                     <CardHeader>
@@ -804,7 +814,6 @@ const InterviewPrep = () => {
                   </Card>
                 )}
                 
-                {/* Company Reviews */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {reviewsLoading ? (
                     <div className="text-center py-8 col-span-2">Loading reviews...</div>

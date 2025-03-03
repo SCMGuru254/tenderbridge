@@ -66,6 +66,8 @@ Be honest about your experience level with each system rather than overselling y
     let bestResponse = responses.default;
     let bestMatchScore = 0;
     
+    console.log(`Processing question: "${question}"`);
+    
     // Very simple matching algorithm - for production you'd use a real NLP approach
     for (const [key, response] of Object.entries(responses)) {
       if (key === 'default') continue;
@@ -81,6 +83,8 @@ Be honest about your experience level with each system rather than overselling y
         }
       });
       
+      console.log(`Key "${key}" matched with score: ${matchScore}`);
+      
       // If this is a better match than what we have, use it
       if (matchScore > bestMatchScore) {
         bestMatchScore = matchScore;
@@ -88,10 +92,10 @@ Be honest about your experience level with each system rather than overselling y
       }
     }
 
-    console.log(`Question: ${question}`);
-    console.log(`Matched with score: ${bestMatchScore}`);
+    console.log(`Final match score: ${bestMatchScore}, returning response`);
     
     // For a real implementation, you would call an AI API here
+    // For example, you could use OpenAI API or a custom AI service
     return new Response(JSON.stringify({ 
       answer: bestResponse 
     }), {

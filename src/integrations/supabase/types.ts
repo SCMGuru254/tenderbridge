@@ -113,6 +113,93 @@ export type Database = {
           },
         ]
       }
+      interview_questions: {
+        Row: {
+          company_name: string
+          created_at: string
+          difficulty: string
+          downvotes: number | null
+          id: string
+          is_anonymous: boolean | null
+          position: string
+          question: string
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          difficulty: string
+          downvotes?: number | null
+          id?: string
+          is_anonymous?: boolean | null
+          position: string
+          question: string
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          difficulty?: string
+          downvotes?: number | null
+          id?: string
+          is_anonymous?: boolean | null
+          position?: string
+          question?: string
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      interview_reviews: {
+        Row: {
+          company_culture: string[] | null
+          company_name: string
+          created_at: string
+          difficulty: string
+          id: string
+          interview_date: string | null
+          interview_process: string | null
+          is_anonymous: boolean | null
+          position: string
+          rating: number | null
+          review_text: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company_culture?: string[] | null
+          company_name: string
+          created_at?: string
+          difficulty: string
+          id?: string
+          interview_date?: string | null
+          interview_process?: string | null
+          is_anonymous?: boolean | null
+          position: string
+          rating?: number | null
+          review_text: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_culture?: string[] | null
+          company_name?: string
+          created_at?: string
+          difficulty?: string
+          id?: string
+          interview_date?: string | null
+          interview_process?: string | null
+          is_anonymous?: boolean | null
+          position?: string
+          rating?: number | null
+          review_text?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applicant_id: string | null
