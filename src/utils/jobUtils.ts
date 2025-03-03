@@ -1,4 +1,3 @@
-
 import { PostedJob, ScrapedJob, JobFilterParams } from '@/types/jobs';
 
 export const getCompanyName = (job: PostedJob | ScrapedJob): string | null => {
@@ -36,6 +35,12 @@ export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   }
   // Return null if no URL is available
   return null;
+};
+
+export const hasExternalUrl = (job: PostedJob | ScrapedJob): boolean => {
+  const url = getJobUrl(job);
+  if (!url) return false;
+  return url.startsWith('http');
 };
 
 export const getJobSource = (job: PostedJob | ScrapedJob): string => {

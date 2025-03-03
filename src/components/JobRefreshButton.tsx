@@ -16,14 +16,14 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const { toast } = useToast();
 
+  // Make sure this matches the sources in the jobSites.ts file
   const sources = [
     { id: "all", name: "All Sources" },
     { id: "LinkedIn", name: "LinkedIn" },
     { id: "BrighterMonday", name: "Brighter Monday" },
     { id: "MyJobMag", name: "My Job Mag" },
     { id: "JobWebKenya", name: "JobWeb Kenya" },
-    { id: "Indeed", name: "Indeed" },
-    { id: "Google", name: "Google" },
+    { id: "Google", name: "Google Jobs" },
   ];
 
   const refreshJobs = async () => {
@@ -148,4 +148,3 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
     </div>
   );
 };
-

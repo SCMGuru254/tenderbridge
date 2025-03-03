@@ -6,7 +6,7 @@ import { Loader2, Calendar, MapPin, Building, Share2, ExternalLink } from 'lucid
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCompanyName, getLocation, getJobUrl, getJobSource, getSafeArray, getDeadline } from '@/utils/jobUtils';
+import { getCompanyName, getLocation, getJobUrl, getJobSource, getSafeArray, getDeadline, hasExternalUrl } from '@/utils/jobUtils';
 import { toast } from 'sonner';
 import { PostedJob, ScrapedJob } from '@/types/jobs';
 
@@ -70,16 +70,20 @@ const JobDetails = () => {
 
   const job = postedJob || scrapedJob;
   const isLoading = isLoadingPosted || isLoadingScraped;
+  const jobUrl = job ? getJobUrl(job) : null;
+  const isExternalUrl = job ? hasExternalUrl(job) : false;
 
   const handleApply = () => {
-    const jobUrl = getJobUrl(job);
     if (jobUrl) {
-      if (jobUrl.startsWith('/')) {
-        // Internal link
-        navigate(jobUrl);
-      } else {
-        // External link
+      if (isExternalUrl) {
+        // External link - open in new tab
         window.open(jobUrl, '_blank', 'noopener,noreferrer');
+        
+        // Track application click (could be implemented later)
+        toast.success("Opening application page in a new tab");
+      } else {
+        // Internal link to our own application process
+        navigate(jobUrl);
       }
     } else {
       toast.error("Application link not available");
@@ -205,6 +209,20 @@ const JobDetails = () => {
                 <p>{job.salary_range}</p>
               </div>
             )}
+            
+            {isExternalUrl && jobUrl && (
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Application Link</h3>
+                <a 
+                  href={jobUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline flex items-center"
+                >
+                  {jobUrl} <ExternalLink className="h-4 w-4 ml-1" />
+                </a>
+              </div>
+            )}
           </div>
         </CardContent>
         
@@ -218,7 +236,7 @@ const JobDetails = () => {
             )}
           </div>
           <Button onClick={handleApply} className="flex items-center gap-2">
-            Apply Now <ExternalLink className="h-4 w-4" />
+            Apply Now {isExternalUrl && <ExternalLink className="h-4 w-4" />}
           </Button>
         </CardFooter>
       </Card>

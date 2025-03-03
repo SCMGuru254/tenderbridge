@@ -1,13 +1,13 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, BriefcaseIcon, Share2, Clock, Send, Twitter } from "lucide-react";
+import { Building2, MapPin, BriefcaseIcon, Share2, Clock, Send, ExternalLink, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface JobCardProps {
   title: string;
@@ -39,12 +39,21 @@ export const JobCard = ({
   const [copying, setCopying] = useState(false);
   const [sharing, setSharing] = useState(false);
 
-  const handleApply = () => {
-    if (fullJob) {
-      // Always navigate to job details page first
+  const handleViewDetails = () => {
+    if (jobId) {
       navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
-    } else if (jobUrl) {
-      window.open(jobUrl, "_blank");
+    }
+  };
+
+  const handleApply = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click event
+    
+    if (jobUrl) {
+      // If we have a direct job URL, open it in a new tab
+      window.open(jobUrl, "_blank", "noopener,noreferrer");
+    } else if (jobId) {
+      // Otherwise navigate to job details page
+      navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
     } else {
       toast({
         variant: "destructive",
@@ -140,7 +149,7 @@ export const JobCard = ({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow relative">
+    <Card className="hover:shadow-lg transition-shadow relative" onClick={handleViewDetails}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">{title}</CardTitle>
         {company && (
@@ -201,12 +210,38 @@ export const JobCard = ({
               )}
             </div>
           </div>
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90"
-            onClick={handleApply}
-          >
-            Apply Now
-          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              className="flex-1 bg-primary hover:bg-primary/90"
+              onClick={handleApply}
+            >
+              {jobUrl ? (
+                <>
+                  Apply Now <ExternalLink className="ml-1 h-4 w-4" />
+                </>
+              ) : (
+                "Apply Now"
+              )}
+            </Button>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 sm:flex-none"
+                    onClick={handleViewDetails}
+                  >
+                    <Info className="h-4 w-4 mr-1" /> Details
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View full job details</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </CardContent>
     </Card>
