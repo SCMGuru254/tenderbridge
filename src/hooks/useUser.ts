@@ -40,5 +40,18 @@ export const useUser = () => {
     };
   }, []);
 
-  return { user, loading };
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error in signOut function:', error);
+    }
+  };
+
+  return { user, loading, signOut };
 };

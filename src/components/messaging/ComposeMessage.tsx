@@ -76,12 +76,14 @@ export const ComposeMessage = ({
     try {
       setSending(true);
 
-      const { error } = await supabase.from("messages").insert({
-        sender_id: currentUserId,
-        recipient_id: values.recipient_id,
-        subject: values.subject,
-        content: values.content,
-      });
+      const { error } = await supabase
+        .from("messages")
+        .insert({
+          sender_id: currentUserId,
+          recipient_id: values.recipient_id,
+          subject: values.subject,
+          content: values.content,
+        });
 
       if (error) throw error;
 

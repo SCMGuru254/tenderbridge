@@ -22,9 +22,14 @@ export const MessageList = ({ filter, currentUserId }: MessageListProps) => {
       if (!currentUserId) return [];
       
       let query = supabase.from("messages").select(`
-        *,
-        sender:sender_id(id, full_name, avatar_url),
-        recipient:recipient_id(id, full_name, avatar_url)
+        id,
+        sender_id,
+        recipient_id,
+        subject,
+        content,
+        created_at,
+        updated_at,
+        read
       `);
       
       if (filter === "sent") {
@@ -42,7 +47,39 @@ export const MessageList = ({ filter, currentUserId }: MessageListProps) => {
         throw error;
       }
       
-      return data as Message[];
+      // Get sender and recipient profile information
+      const userIds = new Set<string>();
+      data.forEach(msg => {
+        userIds.add(msg.sender_id);
+        userIds.add(msg.recipient_id);
+      });
+      
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", Array.from(userIds));
+      
+      const profileMap = new Map();
+      profiles?.forEach(profile => {
+        profileMap.set(profile.id, profile);
+      });
+      
+      // Attach sender and recipient information to messages
+      const messagesWithProfiles = data.map(msg => ({
+        ...msg,
+        sender: profileMap.get(msg.sender_id) || { 
+          id: msg.sender_id, 
+          full_name: 'Unknown User', 
+          avatar_url: null 
+        },
+        recipient: profileMap.get(msg.recipient_id) || { 
+          id: msg.recipient_id, 
+          full_name: 'Unknown User', 
+          avatar_url: null 
+        }
+      }));
+      
+      return messagesWithProfiles as Message[];
     },
     enabled: !!currentUserId,
   });
