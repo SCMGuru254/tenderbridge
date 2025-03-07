@@ -74,5 +74,33 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
+    // PigiaMe Jobs in Kenya
+    {
+      url: "https://www.pigiame.co.ke/jobs?q=logistics",
+      source: "PigiaMe",
+      selectors: {
+        jobContainer: ".listings__item",
+        title: ".listings__title",
+        company: ".listings__author",
+        location: ".listings__address",
+        jobLink: ".listings__title a",
+        jobType: null,
+        deadline: null
+      }
+    },
+    // Fuzu Jobs
+    {
+      url: "https://www.fuzu.com/kenya/jobs?&filter[categories][]=Supply%20Chain%20%2F%20Logistics",
+      source: "Fuzu",
+      selectors: {
+        jobContainer: ".JobCard",
+        title: ".JobCard__title",
+        company: ".JobCard__company-name",
+        location: ".JobCardDetails__location",
+        jobLink: ".JobCard a",
+        jobType: ".JobCardDetails__type",
+        deadline: null
+      }
+    }
   ];
 };

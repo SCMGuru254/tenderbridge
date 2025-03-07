@@ -36,11 +36,17 @@ export const JobCardActions = ({
   const handleApply = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
     
-    if (jobUrl) {
-      if (isExternalUrl) {
+    // First check job_url, then application_url from the full job object as fallbacks
+    const directJobUrl = jobUrl || fullJob?.job_url || fullJob?.application_url;
+    
+    if (directJobUrl) {
+      if (directJobUrl.startsWith('http')) {
         // If we have a direct job URL, open it in a new tab
-        window.open(jobUrl, "_blank", "noopener,noreferrer");
-        console.log("Opening external job URL:", jobUrl);
+        window.open(directJobUrl, "_blank", "noopener,noreferrer");
+        console.log("Opening external job URL:", directJobUrl);
+        
+        // Log application attempt for analytics
+        toast.success("Opening application page in a new tab");
       } else {
         // Otherwise navigate to job details page
         navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
