@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +12,8 @@ import Blog from "./pages/Blog";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import JobDetails from "@/pages/JobDetails";
-import InterviewPrep from "@/pages/InterviewPrep"; // Add the new page import
+import InterviewPrep from "@/pages/InterviewPrep";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +35,8 @@ function App() {
               <Route path="/blog" element={<Blog />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} /> {/* Add the new route */}
+              <Route path="/interview-prep" element={<InterviewPrep />} />
+              <Route path="/messages" element={<Messages />} />
             </Routes>
           </div>
         </BrowserRouter>

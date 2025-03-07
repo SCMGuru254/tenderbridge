@@ -1,63 +1,128 @@
+import {
+  Home,
+  Briefcase,
+  Users,
+  Settings,
+  LogOut,
+  UserPlus,
+  Mail,
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { useUser } from "@/hooks/useUser";
+import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+const Navigation = () => {
+  const { user, signOut } = useUser();
+  const [mounted, setMounted] = useState(false);
 
-export const Navigation = () => {
-  const navigate = useNavigate();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const { data: session } = useQuery({
-    queryKey: ['session'],
-    queryFn: async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      return session;
-    }
-  });
+  if (!mounted) {
+    return null;
+  }
+
+  const navigationItems = [
+    {
+      name: "Home",
+      path: "/",
+      icon: Home,
+    },
+    {
+      name: "Jobs",
+      path: "/jobs",
+      icon: Briefcase,
+    },
+    {
+      name: "Companies",
+      path: "/companies",
+      icon: Users,
+    },
+    {
+      name: "Messages",
+      path: "/messages",
+      icon: Mail, // Make sure to import Mail from lucide-react
+    },
+  ];
+
+  const profileActions = [
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: Settings,
+    },
+    {
+      name: "Sign Out",
+      action: signOut,
+      icon: LogOut,
+    },
+  ];
 
   return (
-    <nav className="bg-white shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-primary">
-            SupplyChainKE
-          </Link>
-          <div className="hidden md:flex space-x-4">
-            <Link to="/jobs" className="text-gray-700 hover:text-primary">
-              Jobs
-            </Link>
-            <Link to="/discussions" className="text-gray-700 hover:text-primary">
-              Discussions
-            </Link>
-            <Link to="/blog" className="text-gray-700 hover:text-primary">
-              Blog
-            </Link>
-            <Link to="/interview-prep" className="text-gray-700 hover:text-primary">
-              Interview Prep
-            </Link>
-          </div>
-          <div className="flex items-center space-x-4">
-            {session ? (
-              <Button 
-                variant="default" 
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => navigate("/post-job")}
-              >
-                Post a Job
-              </Button>
-            ) : (
-              <Button 
-                variant="default" 
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => navigate("/auth")}
-              >
-                Sign In
-              </Button>
-            )}
-          </div>
-        </div>
+    <nav className="flex flex-col w-64 bg-gray-100 dark:bg-gray-900 p-4 rounded-md shadow-md">
+      <div className="flex items-center justify-between mb-8">
+        <span className="text-lg font-bold dark:text-white">Menu</span>
+        {user ? (
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={user.avatar_url} />
+            <AvatarFallback>{user.email[0].toUpperCase()}</AvatarFallback>
+          </Avatar>
+        ) : (
+          <NavLink to="/auth">
+            <UserPlus className="w-6 h-6 dark:text-white" />
+          </NavLink>
+        )}
       </div>
+      <ul className="flex-1 space-y-2">
+        {navigationItems.map((item) => (
+          <li key={item.name}>
+            <NavLink
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${
+                  isActive
+                    ? "bg-gray-200 dark:bg-gray-800 font-semibold"
+                    : "dark:text-gray-400 dark:hover:text-white"
+                }`
+              }
+            >
+              <item.icon className="w-5 h-5 mr-2" />
+              <span>{item.name}</span>
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+      {user && (
+        <div className="mt-8">
+          <ul className="space-y-2">
+            {profileActions.map((item, index) => (
+              <li key={index}>
+                {item.action ? (
+                  <button
+                    onClick={item.action}
+                    className="flex items-center px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors w-full text-left"
+                  >
+                    <item.icon className="w-5 h-5 mr-2" />
+                    <span>{item.name}</span>
+                  </button>
+                ) : (
+                  <NavLink
+                    to={item.path}
+                    className="flex items-center px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-400 dark:hover:text-white transition-colors"
+                  >
+                    <item.icon className="w-5 h-5 mr-2" />
+                    <span>{item.name}</span>
+                  </NavLink>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </nav>
   );
 };
+
+export default Navigation;
