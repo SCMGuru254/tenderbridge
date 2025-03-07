@@ -63,6 +63,7 @@ const JobDetails = () => {
         }
         return null;
       }
+      console.log("Scraped job data:", data);
       return data as ScrapedJob;
     },
     enabled: !!id && (!postedJob || isLoadingPosted),
@@ -72,6 +73,10 @@ const JobDetails = () => {
   const isLoading = isLoadingPosted || isLoadingScraped;
   const jobUrl = job ? getJobUrl(job) : null;
   const isExternalUrl = job ? hasExternalUrl(job) : false;
+
+  console.log("Job details:", job);
+  console.log("Job URL:", jobUrl);
+  console.log("Is external URL:", isExternalUrl);
 
   const handleApply = () => {
     if (jobUrl) {
@@ -110,10 +115,10 @@ const JobDetails = () => {
   }
 
   // Safely get arrays from job data using getSafeArray utility
-  const requirements = getSafeArray(job.requirements);
-  const responsibilities = getSafeArray(job.responsibilities);
-  const skills = getSafeArray(job.skills);
-  const deadline = getDeadline(job);
+  const requirements = job ? getSafeArray(job.requirements) : [];
+  const responsibilities = job ? getSafeArray(job.responsibilities) : [];
+  const skills = job ? getSafeArray(job.skills) : [];
+  const deadline = job ? getDeadline(job) : null;
 
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
@@ -125,123 +130,137 @@ const JobDetails = () => {
         Back to Jobs
       </Button>
       
-      <Card className="mb-8">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-2xl font-bold">{job.title}</CardTitle>
-              <CardDescription className="mt-2 flex flex-wrap gap-2 items-center">
-                {getCompanyName(job) && (
-                  <span className="flex items-center">
-                    <Building className="h-4 w-4 mr-1" />
-                    {getCompanyName(job)}
-                  </span>
-                )}
-                {getLocation(job) && (
-                  <span className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {getLocation(job)}
-                  </span>
-                )}
-                <Badge variant="secondary">{getJobSource(job)}</Badge>
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success("Link copied to clipboard");
-                }}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-6">
-            {job.description && (
+      {isLoading ? (
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin mr-2" />
+          <p>Loading job details...</p>
+        </div>
+      ) : !job ? (
+        <div className="container mx-auto px-4 py-12 text-center">
+          <h2 className="text-2xl font-bold mb-4">Job Not Found</h2>
+          <p className="mb-8">The job you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate('/jobs')}>Back to Jobs</Button>
+        </div>
+      ) : (
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.description }} />
+                <CardTitle className="text-2xl font-bold">{job.title}</CardTitle>
+                <CardDescription className="mt-2 flex flex-wrap gap-2 items-center">
+                  {getCompanyName(job) && (
+                    <span className="flex items-center">
+                      <Building className="h-4 w-4 mr-1" />
+                      {getCompanyName(job)}
+                    </span>
+                  )}
+                  {getLocation(job) && (
+                    <span className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {getLocation(job)}
+                    </span>
+                  )}
+                  <Badge variant="secondary">{getJobSource(job)}</Badge>
+                </CardDescription>
               </div>
-            )}
-            
-            {requirements.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Requirements</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  {requirements.map((req, index) => (
-                    <li key={index}>{req}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {responsibilities.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Responsibilities</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  {responsibilities.map((resp, index) => (
-                    <li key={index}>{resp}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {skills.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Skills</h3>
-                <div className="flex flex-wrap gap-2">
-                  {skills.map((skill, index) => (
-                    <Badge key={index}>{skill}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {job.salary_range && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Salary Range</h3>
-                <p>{job.salary_range}</p>
-              </div>
-            )}
-            
-            {isExternalUrl && jobUrl && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Application Link</h3>
-                <a 
-                  href={jobUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline flex items-center"
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link copied to clipboard");
+                  }}
                 >
-                  {jobUrl} <ExternalLink className="h-4 w-4 ml-1" />
-                </a>
+                  <Share2 className="h-4 w-4" />
+                </Button>
               </div>
-            )}
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex justify-between pt-6 border-t">
-          <div>
-            {deadline && (
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>Deadline: {new Date(deadline).toLocaleDateString()}</span>
-              </div>
-            )}
-          </div>
-          <Button onClick={handleApply} className="flex items-center gap-2">
-            Apply Now {isExternalUrl && <ExternalLink className="h-4 w-4" />}
-          </Button>
-        </CardFooter>
-      </Card>
-      
-      {/* Add the job matching analysis component here in the future */}
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="space-y-6">
+              {job.description && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Description</h3>
+                  <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.description }} />
+                </div>
+              )}
+              
+              {requirements.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {requirements.map((req, index) => (
+                      <li key={index}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {responsibilities.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Responsibilities</h3>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {responsibilities.map((resp, index) => (
+                      <li key={index}>{resp}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {skills.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Skills</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((skill, index) => (
+                      <Badge key={index}>{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {job.salary_range && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Salary Range</h3>
+                  <p>{job.salary_range}</p>
+                </div>
+              )}
+              
+              {isExternalUrl && jobUrl && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Application Link</h3>
+                  <a 
+                    href={jobUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline flex items-center"
+                  >
+                    {jobUrl} <ExternalLink className="h-4 w-4 ml-1" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </CardContent>
+          
+          <CardFooter className="flex justify-between pt-6 border-t">
+            <div>
+              {deadline && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>Deadline: {new Date(deadline).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+            <Button 
+              onClick={handleApply} 
+              className="flex items-center gap-2"
+            >
+              Apply Now {isExternalUrl && <ExternalLink className="h-4 w-4" />}
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 };

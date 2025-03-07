@@ -183,7 +183,6 @@ export const filterJobs = (
   });
 };
 
-// New utility function to safely get array data
 export const getSafeArray = (data: unknown): string[] => {
   if (Array.isArray(data)) {
     return data.map(item => String(item));
@@ -191,7 +190,6 @@ export const getSafeArray = (data: unknown): string[] => {
   return [];
 };
 
-// Get description that's suitable for social sharing
 export const getSocialDescription = (job: PostedJob | ScrapedJob): string => {
   const company = getCompanyName(job) || 'Company';
   const location = getLocation(job) || 'Kenya';

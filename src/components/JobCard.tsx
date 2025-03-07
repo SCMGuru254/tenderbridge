@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { hasExternalUrl } from "@/utils/jobUtils";
 
 interface JobCardProps {
   title: string;
@@ -38,6 +39,8 @@ export const JobCard = ({
   const { toast } = useToast();
   const [copying, setCopying] = useState(false);
   const [sharing, setSharing] = useState(false);
+  
+  const isExternalUrl = jobUrl ? jobUrl.startsWith('http') : false;
 
   const handleViewDetails = () => {
     if (jobId) {
@@ -49,11 +52,14 @@ export const JobCard = ({
     e.stopPropagation(); // Prevent card click event
     
     if (jobUrl) {
-      // If we have a direct job URL, open it in a new tab
-      window.open(jobUrl, "_blank", "noopener,noreferrer");
-    } else if (jobId) {
-      // Otherwise navigate to job details page
-      navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
+      if (isExternalUrl) {
+        // If we have a direct job URL, open it in a new tab
+        window.open(jobUrl, "_blank", "noopener,noreferrer");
+        console.log("Opening external job URL:", jobUrl);
+      } else {
+        // Otherwise navigate to job details page
+        navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
+      }
     } else {
       toast({
         variant: "destructive",
@@ -149,7 +155,7 @@ export const JobCard = ({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow relative" onClick={handleViewDetails}>
+    <Card className="hover:shadow-lg transition-shadow relative">
       <CardHeader>
         <CardTitle className="text-xl font-semibold">{title}</CardTitle>
         {company && (
@@ -216,7 +222,7 @@ export const JobCard = ({
               className="flex-1 bg-primary hover:bg-primary/90"
               onClick={handleApply}
             >
-              {jobUrl ? (
+              {isExternalUrl ? (
                 <>
                   Apply Now <ExternalLink className="ml-1 h-4 w-4" />
                 </>
