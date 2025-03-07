@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import PostJob from "./pages/PostJob";
@@ -25,20 +27,26 @@ function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="min-h-screen bg-gray-50">
-            <Navigation />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/details/:id" element={<JobDetails />} />
-              <Route path="/post-job" element={<PostJob />} />
-              <Route path="/discussions" element={<Discussions />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} />
-              <Route path="/messages" element={<Messages />} />
-            </Routes>
+          <div className="flex flex-col min-h-screen bg-gray-50">
+            <Header />
+            <div className="flex flex-1 pt-16">
+              <Navigation />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/jobs/details/:id" element={<JobDetails />} />
+                  <Route path="/post-job" element={<PostJob />} />
+                  <Route path="/discussions" element={<Discussions />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/interview-prep" element={<InterviewPrep />} />
+                  <Route path="/messages" element={<Messages />} />
+                </Routes>
+              </main>
+            </div>
+            <Footer />
           </div>
         </BrowserRouter>
       </TooltipProvider>

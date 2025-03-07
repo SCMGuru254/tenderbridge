@@ -1,51 +1,86 @@
+
+import OnboardingAnimation from "@/components/OnboardingAnimation";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+import { ArrowRight, Package, Truck, FileText, Users } from "lucide-react";
 
 const Index = () => {
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Find Your Next Supply Chain Career in Kenya
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            The leading platform for supply chain, logistics, and procurement jobs in Kenya
-          </p>
-          <div className="space-x-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-              <Link to="/jobs">Browse Jobs</Link>
+    <div className="min-h-screen">
+      <OnboardingAnimation />
+      
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">What We Offer</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              SupplyChain_KE provides comprehensive tools and resources for supply chain professionals in Kenya.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: Briefcase,
+                title: "Job Opportunities",
+                description: "Find specialized supply chain positions across Kenya",
+                color: "text-primary bg-primary/10"
+              },
+              {
+                icon: Users,
+                title: "Professional Network",
+                description: "Connect with industry leaders and peers",
+                color: "text-secondary bg-secondary/10"
+              },
+              {
+                icon: FileText,
+                title: "Industry Insights",
+                description: "Access the latest supply chain news and analysis",
+                color: "text-accent bg-accent/10"
+              },
+              {
+                icon: Truck,
+                title: "Resource Hub",
+                description: "Leverage tools tailored for supply chain management",
+                color: "text-green-500 bg-green-500/10"
+              }
+            ].map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <div key={index} className="rounded-lg p-6 text-center hover:shadow-md transition-shadow animate-fade-in">
+                  <div className={`mx-auto rounded-full p-3 w-fit ${feature.color} mb-4`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Start Your Journey Today</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Join thousands of supply chain professionals in Kenya and take your career to the next level.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button size="lg" asChild>
+              <NavLink to="/jobs">
+                Browse Jobs <ArrowRight className="ml-2 h-4 w-4" />
+              </NavLink>
             </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/discussions">Join Discussion</Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link to="/auth">Sign In</Link>
+            <Button size="lg" variant="outline" asChild>
+              <NavLink to="/post-job">Post a Job</NavLink>
             </Button>
           </div>
         </div>
-
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-2">Job Search</h3>
-            <p className="text-gray-600">
-              Find specialized roles in supply chain, logistics, and procurement
-            </p>
-          </div>
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-2">Industry Insights</h3>
-            <p className="text-gray-600">
-              Stay updated with the latest supply chain news and trends
-            </p>
-          </div>
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-2">Community</h3>
-            <p className="text-gray-600">
-              Connect with other supply chain professionals in Kenya
-            </p>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
   );
 };
