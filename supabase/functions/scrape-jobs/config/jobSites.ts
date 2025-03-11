@@ -17,21 +17,7 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
-    // BrighterMonday Supply Chain jobs in Kenya
-    {
-      url: "https://www.brightermonday.co.ke/jobs/supply-chain",
-      source: "BrighterMonday",
-      selectors: {
-        jobContainer: ".search-result",
-        title: "h3",
-        company: ".search-result__job-meta span:first-child",
-        location: ".search-result__location",
-        jobLink: "h3 a",
-        jobType: ".search-result__job-type",
-        deadline: null,
-      }
-    },
-    // MyJobMag Supply Chain jobs in Kenya
+    // MyJobMag Supply Chain jobs in Kenya - improved selectors
     {
       url: "https://www.myjobmag.co.ke/jobs-by-field/logistics-transportation",
       source: "MyJobMag",
@@ -59,7 +45,7 @@ export const getJobSites = (): JobSite[] => {
         deadline: ".mdi-calendar-range",
       }
     },
-    // Direct Google Jobs search
+    // Direct Google Jobs search - improved implementation
     {
       url: "https://www.google.com/search?q=supply+chain+jobs+kenya&ibp=htl;jobs",
       source: "Google",
@@ -70,21 +56,6 @@ export const getJobSites = (): JobSite[] => {
         location: "[role='article'] > div:first-child > div:first-child > div:nth-child(3)",
         jobLink: "a",
         jobType: null,
-        deadline: null,
-      }
-    },
-    // Google Jobs (via job API endpoint) - kept as fallback
-    {
-      url: "https://serpapi.com/search.json?engine=google_jobs&q=supply%20chain%20kenya&hl=en&gl=ke",
-      source: "Google API",
-      selectors: {
-        // This is a special API source, selectors don't apply the same way
-        jobContainer: "jobs_results.results",
-        title: "title",
-        company: "company_name",
-        location: "location",
-        jobLink: "apply_link.link",
-        jobType: "detected_extensions.schedule_type",
         deadline: null,
       }
     },
@@ -102,18 +73,18 @@ export const getJobSites = (): JobSite[] => {
         deadline: null
       }
     },
-    // Fuzu Jobs
+    // MyJobMag Widget Scraper (new approach)
     {
-      url: "https://www.fuzu.com/kenya/jobs?&filter[categories][]=Supply%20Chain%20%2F%20Logistics",
-      source: "Fuzu",
+      url: "https://www.myjobmag.co.ke/search-results?q=supply+chain",
+      source: "MyJobMag Direct",
       selectors: {
-        jobContainer: ".JobCard",
-        title: ".JobCard__title",
-        company: ".JobCard__company-name",
-        location: ".JobCardDetails__location",
-        jobLink: ".JobCard a",
-        jobType: ".JobCardDetails__type",
-        deadline: null
+        jobContainer: ".job-list",
+        title: "h2.job-title",
+        company: ".company-name",
+        location: ".job-location",
+        jobLink: "h2.job-title a",
+        jobType: ".job-type",
+        deadline: ".job-deadline",
       }
     }
   ];
