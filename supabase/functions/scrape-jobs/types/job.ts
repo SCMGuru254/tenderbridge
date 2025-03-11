@@ -6,5 +6,6 @@ export interface Job {
   job_type: string;
   description: string;
   job_url: string | null;
+  application_url?: string | null;
   source: string;
 }

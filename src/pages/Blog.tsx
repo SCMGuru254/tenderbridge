@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Calendar, User, Filter, MessageSquare } from "lucide-react";
+import { Loader2, Calendar, User, Filter, MessageSquare, PenSquare } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NewsRefreshButton } from "@/components/NewsRefreshButton";
@@ -27,6 +27,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks/useUser";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 const supplyChainTags = [
   "Logistics", "Procurement", "Inventory", "Warehousing", "Transportation",
@@ -37,6 +39,7 @@ const supplyChainTags = [
 
 const Blog = () => {
   const { user } = useUser();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("news");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -55,7 +58,8 @@ const Blog = () => {
       // Process content to ensure it's properly formatted text
       return data.map(item => ({
         ...item,
-        content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : ""
+        content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
+        tags: item.tags || []
       }));
     }
   });
@@ -73,7 +77,8 @@ const Blog = () => {
       // Process content to ensure it's properly formatted text
       return data.map(post => ({
         ...post,
-        content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : ""
+        content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
+        tags: post.tags || []
       }));
     }
   });
@@ -83,13 +88,13 @@ const Blog = () => {
         (item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
-         (item.tags && selectedTags.some(tag => item.tags?.includes(tag))))
+         (item.tags && selectedTags.some(tag => item.tags.includes(tag))))
       )
     : posts?.filter(post =>
         (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
-         (post.tags && selectedTags.some(tag => post.tags?.includes(tag))))
+         (post.tags && selectedTags.some(tag => post.tags.includes(tag))))
       );
 
   // Helper function to safely format dates
@@ -124,15 +129,32 @@ const Blog = () => {
     }
   };
 
+  const handleCreatePost = () => {
+    if (!user) {
+      toast.error("You must be logged in to create a post");
+      return;
+    }
+    setCreateDialogOpen(true);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Supply Chain Insights</h1>
-        {activeTab === "news" && (
-          <div className="mt-4 md:mt-0">
+        <div className="mt-4 md:mt-0 flex gap-2 items-center">
+          {activeTab === "news" && (
             <NewsRefreshButton onRefreshComplete={() => refetchNews()} />
-          </div>
-        )}
+          )}
+          {activeTab === "blog" && (
+            <Button 
+              onClick={handleCreatePost}
+              className="flex items-center gap-2"
+            >
+              <PenSquare className="h-4 w-4" />
+              Write Post
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 mb-8">
@@ -206,7 +228,7 @@ const Blog = () => {
               <p className="mb-6">Be the first to contribute to our community knowledge base</p>
               {activeTab === "blog" && (
                 <Button 
-                  onClick={() => setCreateDialogOpen(true)}
+                  onClick={handleCreatePost}
                   className="bg-primary hover:bg-primary/90"
                 >
                   Write a Blog Post

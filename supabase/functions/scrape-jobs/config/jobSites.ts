@@ -50,11 +50,11 @@ export const getJobSites = (): JobSite[] => {
       url: "https://www.google.com/search?q=supply+chain+jobs+kenya&ibp=htl;jobs",
       source: "Google",
       selectors: {
-        jobContainer: "[role='article']",
-        title: "h3",
-        company: "[role='article'] > div:first-child > div:first-child > div:nth-child(2)",
-        location: "[role='article'] > div:first-child > div:first-child > div:nth-child(3)",
-        jobLink: "a",
+        jobContainer: "div[jscontroller] > div[class='gws-plugins-horizon-jobs__tl-lif']",
+        title: "div[role='heading']",
+        company: "div:nth-child(1) > div:nth-child(2)",
+        location: "div:nth-child(1) > div:nth-child(3)",
+        jobLink: "a[jsname]",
         jobType: null,
         deadline: null,
       }
