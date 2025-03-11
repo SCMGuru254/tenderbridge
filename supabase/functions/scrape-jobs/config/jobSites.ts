@@ -59,10 +59,24 @@ export const getJobSites = (): JobSite[] => {
         deadline: ".mdi-calendar-range",
       }
     },
-    // Google Jobs (via job API endpoint)
+    // Direct Google Jobs search
+    {
+      url: "https://www.google.com/search?q=supply+chain+jobs+kenya&ibp=htl;jobs",
+      source: "Google",
+      selectors: {
+        jobContainer: "[role='article']",
+        title: "h3",
+        company: "[role='article'] > div:first-child > div:first-child > div:nth-child(2)",
+        location: "[role='article'] > div:first-child > div:first-child > div:nth-child(3)",
+        jobLink: "a",
+        jobType: null,
+        deadline: null,
+      }
+    },
+    // Google Jobs (via job API endpoint) - kept as fallback
     {
       url: "https://serpapi.com/search.json?engine=google_jobs&q=supply%20chain%20kenya&hl=en&gl=ke",
-      source: "Google",
+      source: "Google API",
       selectors: {
         // This is a special API source, selectors don't apply the same way
         jobContainer: "jobs_results.results",

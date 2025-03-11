@@ -17,6 +17,7 @@ import Onboarding from "./pages/Onboarding";
 import JobDetails from "@/pages/JobDetails";
 import InterviewPrep from "@/pages/InterviewPrep";
 import Messages from "./pages/Messages";
+import Faq from "./pages/Faq";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ function App() {
                   <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/interview-prep" element={<InterviewPrep />} />
                   <Route path="/messages" element={<Messages />} />
+                  <Route path="/faq" element={<Faq />} />
                 </Routes>
               </main>
             </div>

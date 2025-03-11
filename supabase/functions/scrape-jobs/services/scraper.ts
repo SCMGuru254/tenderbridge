@@ -10,7 +10,12 @@ export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
   try {
     console.log(`Scraping ${site.source} at ${site.url}...`);
     
-    // Special handling for API endpoints (e.g., Google Jobs)
+    // Enhanced direct Google Jobs handling - if the site is Google Jobs
+    if (site.source === 'Google') {
+      return await scrapeDirectFromGoogle(site);
+    }
+    
+    // Special handling for API endpoints (e.g., Google Jobs via SerpAPI)
     if (site.source === 'Google' && site.url.includes('serpapi.com')) {
       return await scrapeFromGoogleJobsApi(site);
     }
@@ -91,6 +96,113 @@ export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
     return scrapedJobs;
   } catch (error) {
     console.error(`Error scraping ${site.url}:`, error);
+    return scrapedJobs;
+  }
+}
+
+// New function to scrape directly from Google Jobs
+async function scrapeDirectFromGoogle(site: JobSite): Promise<Job[]> {
+  const scrapedJobs: Job[] = [];
+  const keywords = ["supply chain kenya", "logistics kenya", "procurement kenya", "warehouse kenya"];
+  
+  try {
+    console.log("Scraping directly from Google Jobs...");
+    
+    for (const keyword of keywords) {
+      const encodedKeyword = encodeURIComponent(keyword);
+      const googleJobsUrl = `https://www.google.com/search?q=${encodedKeyword}&ibp=htl;jobs`;
+      
+      console.log(`Fetching Google Jobs for keyword: ${keyword}`);
+      
+      const response = await fetch(googleJobsUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://www.google.com/'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error(`Error fetching Google Jobs: ${response.status} ${response.statusText}`);
+        continue;
+      }
+      
+      const html = await response.text();
+      console.log(`Received HTML from Google Jobs, length: ${html.length} chars`);
+      
+      // Parse the HTML
+      const parser = new DOMParser();
+      const document = parser.parseFromString(html, "text/html");
+      
+      if (!document) {
+        console.error(`Failed to parse HTML from Google Jobs`);
+        continue;
+      }
+      
+      // Google Jobs structure: Each job card is in a div with role="article"
+      const jobElements = document.querySelectorAll('[role="article"]');
+      console.log(`Found ${jobElements.length} potential job listings on Google Jobs`);
+      
+      for (const jobElement of jobElements) {
+        try {
+          // Extract job details
+          const titleElement = jobElement.querySelector('h3');
+          const companyElement = jobElement.querySelector('[role="article"] > div:first-child > div:first-child > div:nth-child(2)');
+          const locationElement = jobElement.querySelector('[role="article"] > div:first-child > div:first-child > div:nth-child(3)');
+          
+          // Skip if we can't find the title
+          if (!titleElement) continue;
+          
+          const title = titleElement.textContent?.trim() || '';
+          const company = companyElement?.textContent?.trim() || 'Unknown Company';
+          const location = locationElement?.textContent?.trim() || 'Kenya';
+          
+          // Extract URL by finding the parent link
+          const linkElement = titleElement.closest('a');
+          let jobUrl = null;
+          
+          if (linkElement && linkElement.hasAttribute('href')) {
+            let href = linkElement.getAttribute('href');
+            
+            // Clean up Google redirect URLs
+            if (href.startsWith('/url?')) {
+              const urlParams = new URLSearchParams(href.substring(5));
+              href = urlParams.get('q') || href;
+            }
+            
+            // Add domain if the URL is relative
+            if (href.startsWith('/')) {
+              href = `https://www.google.com${href}`;
+            }
+            
+            jobUrl = href;
+          }
+          
+          // Only add jobs that look like supply chain jobs
+          if (hasSupplyChainKeywords(title)) {
+            scrapedJobs.push({
+              title,
+              company,
+              location,
+              source: 'Google Jobs',
+              job_type: 'full_time', // Default
+              description: `${title} at ${company} in ${location}`,
+              job_url: jobUrl,
+              application_url: jobUrl
+            });
+          }
+        } catch (error) {
+          console.error('Error processing Google job listing:', error);
+        }
+      }
+      
+      console.log(`Found ${scrapedJobs.length} jobs for keyword: ${keyword}`);
+    }
+    
+    return scrapedJobs;
+  } catch (error) {
+    console.error('Error scraping from Google Jobs:', error);
     return scrapedJobs;
   }
 }

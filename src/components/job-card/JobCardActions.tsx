@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Share2, Send, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,21 +37,40 @@ export const JobCardActions = ({
   const handleApply = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
     
-    // First check job_url, then application_url from the full job object as fallbacks
-    const directJobUrl = jobUrl || fullJob?.job_url || fullJob?.application_url;
+    // First check if there's a direct job URL from the job object
+    let directJobUrl = null;
+    
+    // Try all possible URL properties
+    if (fullJob) {
+      if (fullJob.job_url) {
+        directJobUrl = fullJob.job_url;
+      } else if (fullJob.application_url) {
+        directJobUrl = fullJob.application_url;
+      }
+    }
+    
+    // If no URL found in the job object, use the jobUrl prop
+    if (!directJobUrl && jobUrl) {
+      directJobUrl = jobUrl;
+    }
     
     if (directJobUrl) {
-      if (directJobUrl.startsWith('http')) {
-        // If we have a direct job URL, open it in a new tab
-        window.open(directJobUrl, "_blank", "noopener,noreferrer");
-        console.log("Opening external job URL:", directJobUrl);
-        
-        // Log application attempt for analytics
-        toast.success("Opening application page in a new tab");
-      } else {
-        // Otherwise navigate to job details page
-        navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
+      // Make sure URL is properly formatted
+      if (!directJobUrl.startsWith('http')) {
+        directJobUrl = 'https://' + directJobUrl;
       }
+      
+      console.log("Opening external job URL:", directJobUrl);
+      window.open(directJobUrl, "_blank", "noopener,noreferrer");
+      
+      // Log application attempt for analytics
+      toast.success("Opening application page in a new tab");
+    } else if (jobId) {
+      // If no direct URL but we have a job ID, go to job details page
+      navigate(`/jobs/details/${jobId}`, { state: { job: fullJob } });
+      toast("Viewing job details", {
+        description: "No direct application link available"
+      });
     } else {
       uiToast({
         variant: "destructive",

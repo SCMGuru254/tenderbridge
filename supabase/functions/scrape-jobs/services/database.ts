@@ -11,6 +11,19 @@ export async function clearExistingJobs(supabaseUrl: string, supabaseKey: string
 }
 
 export async function insertJob(supabaseUrl: string, supabaseKey: string, job: Job) {
+  // Ensure URLs are properly formatted
+  let jobUrl = job.job_url;
+  let applicationUrl = job.application_url;
+  
+  // Format URLs if they exist but don't start with http
+  if (jobUrl && !jobUrl.startsWith('http')) {
+    jobUrl = 'https://' + jobUrl;
+  }
+  
+  if (applicationUrl && !applicationUrl.startsWith('http')) {
+    applicationUrl = 'https://' + applicationUrl;
+  }
+  
   const supabase = createClient(supabaseUrl, supabaseKey);
   return await supabase.from('scraped_jobs').insert({
     title: job.title,
@@ -19,6 +32,7 @@ export async function insertJob(supabaseUrl: string, supabaseKey: string, job: J
     source: job.source,
     job_type: job.job_type,
     description: job.description,
-    job_url: job.job_url
+    job_url: jobUrl,
+    application_url: applicationUrl || jobUrl // Ensure at least one URL is set
   }).select();
 }
