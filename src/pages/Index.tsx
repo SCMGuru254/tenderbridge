@@ -1,8 +1,7 @@
-
 import OnboardingAnimation from "@/components/OnboardingAnimation";
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router-dom";
-import { ArrowRight, Package, Truck, FileText, Users } from "lucide-react";
+import { ArrowRight, Package, Truck, FileText, Users, Briefcase } from "lucide-react";
 
 const Index = () => {
   return (
