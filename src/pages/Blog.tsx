@@ -30,6 +30,35 @@ import { useUser } from "@/hooks/useUser";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
+// Define types for our news and blog post data
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  published_date: string;
+  source_url: string;
+  source_name: string;
+  created_at: string;
+  updated_at: string;
+  image_url?: string;
+  tags?: string[];
+}
+
+interface BlogPost {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  image_url?: string;
+  tags?: string[];
+  author?: {
+    full_name: string | null;
+    avatar_url: string | null;
+  };
+}
+
 const supplyChainTags = [
   "Logistics", "Procurement", "Inventory", "Warehousing", "Transportation",
   "Manufacturing", "Distribution", "Planning", "Sustainability", "Technology",
@@ -60,7 +89,7 @@ const Blog = () => {
         ...item,
         content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
         tags: item.tags || []
-      }));
+      })) as NewsItem[];
     }
   });
 
@@ -79,7 +108,7 @@ const Blog = () => {
         ...post,
         content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
         tags: post.tags || []
-      }));
+      })) as BlogPost[];
     }
   });
 
@@ -88,13 +117,13 @@ const Blog = () => {
         (item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
-         (item.tags && selectedTags.some(tag => item.tags.includes(tag))))
+         (item.tags && selectedTags.some(tag => item.tags?.includes(tag))))
       )
     : posts?.filter(post =>
         (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
-         (post.tags && selectedTags.some(tag => post.tags.includes(tag))))
+         (post.tags && selectedTags.some(tag => post.tags?.includes(tag))))
       );
 
   // Helper function to safely format dates
@@ -255,15 +284,15 @@ const Blog = () => {
                           <span>
                             {formatDate(activeTab === "news" ? item.published_date : item.created_at)}
                           </span>
-                          {activeTab === "blog" && item.author && (
+                          {activeTab === "blog" && (item as BlogPost).author && (
                             <div className="flex items-center ml-4">
                               <Avatar className="h-6 w-6 mr-2">
-                                <AvatarImage src={item.author?.avatar_url} />
+                                <AvatarImage src={(item as BlogPost).author?.avatar_url || ''} />
                                 <AvatarFallback>
                                   <User className="h-4 w-4" />
                                 </AvatarFallback>
                               </Avatar>
-                              <span>{item.author?.full_name || 'Anonymous'}</span>
+                              <span>{(item as BlogPost).author?.full_name || 'Anonymous'}</span>
                             </div>
                           )}
                         </div>
@@ -279,9 +308,9 @@ const Blog = () => {
                         <p className="text-gray-600 line-clamp-4">{item.content}</p>
                       </CardContent>
                       <CardFooter className="p-0 pt-2 flex justify-between">
-                        {activeTab === "news" && item.source_url && (
+                        {activeTab === "news" && (item as NewsItem).source_url && (
                           <a
-                            href={item.source_url}
+                            href={(item as NewsItem).source_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline mt-4 inline-block"

@@ -15,6 +15,11 @@ export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
       return await scrapeDirectFromGoogle(site);
     }
     
+    // Special handling for MyJobMag Widget
+    if (site.source === 'MyJobMag Widget') {
+      return await scrapeMyJobMagWidget(site);
+    }
+    
     // Special handling for API endpoints (e.g., Google Jobs via SerpAPI)
     if (site.source === 'Google' && site.url.includes('serpapi.com')) {
       return await scrapeFromGoogleJobsApi(site);
@@ -96,6 +101,98 @@ export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
     return scrapedJobs;
   } catch (error) {
     console.error(`Error scraping ${site.url}:`, error);
+    return scrapedJobs;
+  }
+}
+
+// Special handler for MyJobMag Widget
+async function scrapeMyJobMagWidget(site: JobSite): Promise<Job[]> {
+  const scrapedJobs: Job[] = [];
+  
+  try {
+    console.log("Scraping from MyJobMag Widget...");
+    
+    const response = await fetch(site.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`Error fetching MyJobMag Widget: ${response.status} ${response.statusText}`);
+      return scrapedJobs;
+    }
+    
+    const html = await response.text();
+    console.log(`Received HTML from MyJobMag Widget, length: ${html.length} chars`);
+    
+    // Parse the HTML
+    const parser = new DOMParser();
+    const document = parser.parseFromString(html, "text/html");
+    
+    if (!document) {
+      console.error(`Failed to parse HTML from MyJobMag Widget`);
+      return scrapedJobs;
+    }
+    
+    // Widget-specific selectors
+    const jobElements = document.querySelectorAll(".list-group-item");
+    console.log(`Found ${jobElements.length} job listings in MyJobMag Widget`);
+    
+    for (const jobElement of jobElements) {
+      try {
+        const titleElement = jobElement.querySelector("a.job-title");
+        const companyElement = jobElement.querySelector(".company-name");
+        const locationElement = jobElement.querySelector(".job-location");
+        
+        if (!titleElement) continue;
+        
+        const title = titleElement.textContent?.trim() || "";
+        const company = companyElement?.textContent?.trim() || "Unknown Company";
+        const location = locationElement?.textContent?.trim() || "Kenya";
+        
+        // Get job URL
+        let jobUrl = null;
+        if (titleElement.hasAttribute("href")) {
+          jobUrl = titleElement.getAttribute("href");
+          // Add domain if URL is relative
+          if (jobUrl && jobUrl.startsWith("/")) {
+            jobUrl = `https://www.myjobmag.co.ke${jobUrl}`;
+          }
+        }
+        
+        // Extract deadline if present
+        const deadlineElement = jobElement.querySelector(".deadline-date");
+        const deadline = deadlineElement?.textContent?.trim() || null;
+        
+        // Extract job type if present
+        const jobTypeElement = jobElement.querySelector(".job-type");
+        const jobType = jobTypeElement?.textContent?.trim() || "full_time";
+        
+        if (hasSupplyChainKeywords(title)) {
+          scrapedJobs.push({
+            title,
+            company,
+            location,
+            job_type: mapToStandardJobType(jobType),
+            source: "MyJobMag Widget",
+            description: `${title} position at ${company} in ${location}`,
+            job_url: jobUrl,
+            application_url: jobUrl,
+            deadline: deadline
+          });
+        }
+      } catch (error) {
+        console.error("Error processing MyJobMag widget job:", error);
+      }
+    }
+    
+    console.log(`Successfully scraped ${scrapedJobs.length} jobs from MyJobMag Widget`);
+    return scrapedJobs;
+  } catch (error) {
+    console.error("Error scraping from MyJobMag Widget:", error);
     return scrapedJobs;
   }
 }

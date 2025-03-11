@@ -73,9 +73,9 @@ export const getJobSites = (): JobSite[] => {
         deadline: null
       }
     },
-    // MyJobMag Widget Scraper (new approach)
+    // MyJobMag Widget Scraper (enhanced approach)
     {
-      url: "https://www.myjobmag.co.ke/search-results?q=supply+chain",
+      url: "https://www.myjobmag.co.ke/search-results?q=supply%20chain",
       source: "MyJobMag Direct",
       selectors: {
         jobContainer: ".job-list",
@@ -83,6 +83,20 @@ export const getJobSites = (): JobSite[] => {
         company: ".company-name",
         location: ".job-location",
         jobLink: "h2.job-title a",
+        jobType: ".job-type",
+        deadline: ".job-deadline",
+      }
+    },
+    // MyJobMag Advanced - new scraper to better handle widget data
+    {
+      url: "https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain&count=45",
+      source: "MyJobMag Widget",
+      selectors: {
+        jobContainer: ".job-list",
+        title: ".job-title a",
+        company: ".company-name",
+        location: ".job-location",
+        jobLink: ".job-title a",
         jobType: ".job-type",
         deadline: ".job-deadline",
       }
