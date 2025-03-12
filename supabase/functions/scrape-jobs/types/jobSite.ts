@@ -12,4 +12,5 @@ export interface JobSite {
     deadline: string | null;
   };
   keywords?: string[];
+  isXmlFeed?: boolean;
 }

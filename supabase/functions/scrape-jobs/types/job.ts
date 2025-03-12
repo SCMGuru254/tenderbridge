@@ -11,4 +11,5 @@ export interface Job {
   deadline?: string | null;
   salary?: string | null;
   tags?: string[] | null;
+  image_url?: string | null;
 }

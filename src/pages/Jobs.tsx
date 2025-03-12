@@ -8,6 +8,7 @@ import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
 import { SalaryAnalyzer } from "@/components/SalaryAnalyzer";
 import { Mentorship } from "@/components/Mentorship";
+import { JobMatchingChat } from "@/components/JobMatchingChat";
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,8 +41,9 @@ const Jobs = () => {
       
       {/* Main tabs for the entire page */}
       <Tabs defaultValue="jobs" className="mb-8" value={mainTab} onValueChange={setMainTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="jobs">Job Listings</TabsTrigger>
+          <TabsTrigger value="chat">Job Matching</TabsTrigger>
           <TabsTrigger value="salary">Salary Analyzer</TabsTrigger>
           <TabsTrigger value="mentorship">Mentorship</TabsTrigger>
         </TabsList>
@@ -64,6 +66,11 @@ const Jobs = () => {
           />
 
           <JobList jobs={filteredJobs} isLoading={isLoading} />
+        </TabsContent>
+        
+        {/* Job Matching Chat Content */}
+        <TabsContent value="chat" className="mt-4">
+          <JobMatchingChat />
         </TabsContent>
         
         {/* Salary Analyzer Content */}

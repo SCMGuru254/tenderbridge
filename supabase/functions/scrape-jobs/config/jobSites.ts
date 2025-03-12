@@ -31,19 +31,21 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
-    // JobWebKenya Supply Chain jobs
+    // JobWebKenya Supply Chain jobs - XML Feed
     {
-      url: "https://jobwebkenya.com/supply-chain-jobs-in-kenya",
+      url: "https://jobwebkenya.com/feed/?post_type=job_listing",
       source: "JobWebKenya",
       selectors: {
-        jobContainer: ".card-content",
-        title: ".card-title a",
-        company: ".mdi-office-building",
-        location: ".mdi-map-marker",
-        jobLink: ".card-title a",
-        jobType: null,
-        deadline: ".mdi-calendar-range",
-      }
+        // These will be ignored as we'll use XML parsing instead
+        jobContainer: "item",
+        title: "title",
+        company: "job_listing_company",
+        location: "job_listing_location",
+        jobLink: "link",
+        jobType: "job_listing_job_type",
+        deadline: "job_listing_expiry_date",
+      },
+      isXmlFeed: true // New flag to indicate this is an XML feed
     },
     // Direct Google Jobs search - improved implementation
     {
@@ -73,21 +75,7 @@ export const getJobSites = (): JobSite[] => {
         deadline: null
       }
     },
-    // MyJobMag Widget Scraper (enhanced approach)
-    {
-      url: "https://www.myjobmag.co.ke/search-results?q=supply%20chain",
-      source: "MyJobMag Direct",
-      selectors: {
-        jobContainer: ".job-list",
-        title: "h2.job-title",
-        company: ".company-name",
-        location: ".job-location",
-        jobLink: "h2.job-title a",
-        jobType: ".job-type",
-        deadline: ".job-deadline",
-      }
-    },
-    // MyJobMag Advanced - new scraper to better handle widget data
+    // MyJobMag Widget - more reliable approach
     {
       url: "https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain&count=45",
       source: "MyJobMag Widget",

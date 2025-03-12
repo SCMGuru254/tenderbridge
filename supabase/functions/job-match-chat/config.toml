@@ -1,0 +1,5 @@
+
+project_id = "dqlfolsngrspnlpzzthv"
+
+[functions.job-match-chat]
+verify_jwt = false

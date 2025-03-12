@@ -1,14 +1,19 @@
-
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 import { JobSite } from "../types/jobSite.ts";
 import { Job } from "../types/job.ts";
 import { hasSupplyChainKeywords } from "../utils/jobFilters.ts";
+import { parseXmlFeed } from "../utils/xmlParser.ts";
 
 export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
   const scrapedJobs: Job[] = [];
   
   try {
     console.log(`Scraping ${site.source} at ${site.url}...`);
+    
+    // Check if this is an XML feed
+    if (site.isXmlFeed) {
+      return await scrapeXmlFeed(site);
+    }
     
     // Enhanced direct Google Jobs handling - if the site is Google Jobs
     if (site.source === 'Google') {
@@ -105,7 +110,6 @@ export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
   }
 }
 
-// Special handler for MyJobMag Widget
 async function scrapeMyJobMagWidget(site: JobSite): Promise<Job[]> {
   const scrapedJobs: Job[] = [];
   
@@ -197,7 +201,6 @@ async function scrapeMyJobMagWidget(site: JobSite): Promise<Job[]> {
   }
 }
 
-// New function to scrape directly from Google Jobs
 async function scrapeDirectFromGoogle(site: JobSite): Promise<Job[]> {
   const scrapedJobs: Job[] = [];
   const keywords = ["supply chain kenya", "logistics kenya", "procurement kenya", "warehouse kenya"];
@@ -350,6 +353,65 @@ async function scrapeFromGoogleJobsApi(site: JobSite): Promise<Job[]> {
   }
 }
 
+async function scrapeXmlFeed(site: JobSite): Promise<Job[]> {
+  const scrapedJobs: Job[] = [];
+  
+  try {
+    console.log(`Scraping XML feed from ${site.source} at ${site.url}...`);
+    
+    // Fetch the XML content
+    const response = await fetch(site.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml,application/xml;q=0.9,*/*;q=0.8'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`Error fetching XML feed ${site.url}: ${response.status} ${response.statusText}`);
+      return scrapedJobs;
+    }
+    
+    const xmlText = await response.text();
+    console.log(`Received XML from ${site.source}, length: ${xmlText.length} chars`);
+    
+    // Parse the XML feed
+    const items = parseXmlFeed(xmlText);
+    console.log(`Parsed ${items.length} items from XML feed of ${site.source}`);
+    
+    // Process each item
+    for (const item of items) {
+      try {
+        // Check if the job title contains supply chain keywords
+        if (hasSupplyChainKeywords(item.title)) {
+          const job: Job = {
+            title: item.title,
+            company: item.company || site.source,
+            location: item.location || "Kenya",
+            job_type: mapToStandardJobType(item.jobType || "full_time"),
+            description: item.description || `${item.title} position`,
+            job_url: item.link || null,
+            application_url: item.link || null,
+            source: site.source,
+            deadline: item.expiryDate || null,
+            tags: extractKeywordsFromText(item.title + " " + (item.description || ""))
+          };
+          
+          scrapedJobs.push(job);
+        }
+      } catch (itemError) {
+        console.error(`Error processing XML item from ${site.source}:`, itemError);
+      }
+    }
+    
+    console.log(`Successfully scraped ${scrapedJobs.length} jobs from XML feed of ${site.source}`);
+    return scrapedJobs;
+  } catch (error) {
+    console.error(`Error scraping XML feed from ${site.source}:`, error);
+    return scrapedJobs;
+  }
+}
+
 function extractJobFromListing(listing: Element, site: JobSite): Job | null {
   const titleElement = listing.querySelector(site.selectors.title);
   const companyElement = listing.querySelector(site.selectors.company);
@@ -440,4 +502,17 @@ function mapToStandardJobType(jobType: string): string {
   if (jobTypeLower.includes('contract')) return 'contract';
   if (jobTypeLower.includes('intern')) return 'internship';
   return 'full_time';
+}
+
+function extractKeywordsFromText(text: string): string[] {
+  const keywords = [
+    'supply chain', 'logistics', 'procurement', 'warehouse', 'inventory',
+    'shipping', 'distribution', 'operations', 'sourcing', 'purchasing',
+    'scm', 'freight', 'supply', 'chain', 'transport', 'fleet', 'planning',
+    'demand', 'forecasting', 'material', 'import', 'export', 'customs',
+    'lean', 'six sigma', 'erp', 'sap', 'wms', 'tms'
+  ];
+  
+  const textLower = text.toLowerCase();
+  return keywords.filter(keyword => textLower.includes(keyword));
 }
