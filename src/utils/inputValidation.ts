@@ -24,7 +24,13 @@ const patterns = {
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/,
   
   // Zip code (US format)
-  zipcode: /^\d{5}(-\d{4})?$/
+  zipcode: /^\d{5}(-\d{4})?$/,
+  
+  // LinkedIn URL format
+  linkedin: /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]{5,30}[a-zA-Z0-9]$/,
+  
+  // Date format (YYYY-MM-DD)
+  date: /^\d{4}-\d{2}-\d{2}$/
 };
 
 type ValidationPattern = keyof typeof patterns;
@@ -129,4 +135,55 @@ export function secureValidate(
     sanitized,
     securityIssues
   };
+}
+
+/**
+ * Validate file uploads for security
+ */
+export function validateFileUpload(file: File, allowedTypes: string[], maxSizeMB: number): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+  
+  // Check file size
+  if (file.size > maxSizeBytes) {
+    errors.push(`File size exceeds the ${maxSizeMB}MB limit`);
+  }
+  
+  // Check file type
+  const fileType = file.type;
+  if (!allowedTypes.includes(fileType)) {
+    errors.push('File type not allowed');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * Validate PDF files (for CVs/resumes)
+ */
+export function validatePDFUpload(file: File): {
+  isValid: boolean;
+  errors: string[];
+} {
+  return validateFileUpload(file, ['application/pdf'], 5); // 5MB limit for PDFs
+}
+
+/**
+ * Validate image files (for profile photos)
+ */
+export function validateImageUpload(file: File): {
+  isValid: boolean;
+  errors: string[];
+} {
+  return validateFileUpload(
+    file, 
+    ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    2 // 2MB limit for images
+  );
 }

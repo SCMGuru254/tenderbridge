@@ -19,6 +19,8 @@ import InterviewPrep from "@/pages/InterviewPrep";
 import Messages from "./pages/Messages";
 import Faq from "./pages/Faq";
 import Security from "./pages/Security";
+import Profile from "./pages/Profile";
+import JobSeekers from "./pages/JobSeekers";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +57,9 @@ function App() {
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/faq" element={<Faq />} />
                   <Route path="/security" element={<Security />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/profile/:id" element={<Profile />} />
+                  <Route path="/job-seekers" element={<JobSeekers />} />
                 </Routes>
               </main>
             </div>
