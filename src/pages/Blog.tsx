@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,17 +29,15 @@ import { useUser } from "@/hooks/useUser";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
-// Define types for our news and blog post data
 interface NewsItem {
   id: string;
   title: string;
   content: string;
   published_date: string;
-  source_url: string;
   source_name: string;
+  source_url: string;
   created_at: string;
   updated_at: string;
-  image_url?: string;
   tags?: string[];
 }
 
@@ -48,10 +45,9 @@ interface BlogPost {
   id: string;
   title: string;
   content: string;
-  author_id: string;
   created_at: string;
   updated_at: string;
-  image_url?: string;
+  author_id: string;
   tags?: string[];
   author?: {
     full_name: string | null;
@@ -84,7 +80,6 @@ const Blog = () => {
 
       if (error) throw error;
       
-      // Process content to ensure it's properly formatted text
       return data.map(item => ({
         ...item,
         content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
@@ -93,7 +88,7 @@ const Blog = () => {
     }
   });
 
-  const { data: posts, isLoading: isLoadingPosts } = useQuery({
+  const { data: blogPosts = [], isLoading: blogLoading } = useQuery<BlogPost[]>({
     queryKey: ['blog-posts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -103,7 +98,6 @@ const Blog = () => {
 
       if (error) throw error;
       
-      // Process content to ensure it's properly formatted text
       return data.map(post => ({
         ...post,
         content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
@@ -120,20 +114,17 @@ const Blog = () => {
         (selectedTags.length === 0 || // No tags selected, show all
          (item.tags && selectedTags.some(tag => item.tags?.includes(tag))))
       )
-    : posts?.filter(post =>
+    : blogPosts?.filter(post =>
         (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
          (post.tags && selectedTags.some(tag => post.tags?.includes(tag))))
       );
 
-  // Helper function to safely format dates
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'No date';
-      // Parse the ISO string
       const date = parseISO(dateString);
-      // Check if date is valid
       if (isNaN(date.getTime())) return 'Invalid date';
       return format(date, 'MMMM d, yyyy');
     } catch (error) {
@@ -142,7 +133,6 @@ const Blog = () => {
     }
   };
 
-  // Helper to get post image (placeholder if none exists)
   const getPostImage = (item) => {
     if (activeTab === "news") {
       return item.image_url || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80";
@@ -247,7 +237,7 @@ const Blog = () => {
             </div>
           </div>
 
-          {(isLoadingNews || isLoadingPosts) ? (
+          {(isLoadingNews || blogLoading) ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
