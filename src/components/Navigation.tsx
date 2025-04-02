@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { 
   Briefcase, Home, MessageSquare, BookOpen, 
-  Search, PenTool, LogIn, User, BookOpenCheck, HelpCircle, Menu
+  LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield
 } from "lucide-react";
 
 const Navigation = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [isOpen, setIsOpen] = useState(!isMobile);
-  const { user, loading } = useUser();
+  const { user, loading, signOut } = useUser();
 
   // Close sidebar on route change on mobile
   useEffect(() => {
@@ -37,15 +37,10 @@ const Navigation = () => {
   ];
 
   const accountItems = [
-    { to: "/post-job", icon: <PenTool size={18} />, label: "Post a Job", authRequired: false },
+    { to: "/post-job", icon: <Briefcase size={18} />, label: "Post a Job", authRequired: false },
     { to: "/messages", icon: <MessageSquare size={18} />, label: "Messages", authRequired: true },
+    { to: "/security", icon: <Shield size={18} />, label: "Security", authRequired: true },
   ];
-
-  // Add a signOut function to useUser hook
-  const signOut = () => {
-    // Implementation will be in the useUser hook
-    console.log("Sign out clicked");
-  };
 
   return (
     <>
@@ -53,7 +48,7 @@ const Navigation = () => {
       <Button 
         variant="ghost" 
         size="icon" 
-        className="fixed top-20 left-2 bg-primary text-white rounded-full z-50 md:hidden"
+        className="fixed top-4 left-2 bg-primary text-white rounded-full z-50 md:hidden"
         onClick={toggleSidebar}
       >
         <Menu size={18} />

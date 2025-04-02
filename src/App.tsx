@@ -18,8 +18,17 @@ import JobDetails from "@/pages/JobDetails";
 import InterviewPrep from "@/pages/InterviewPrep";
 import Messages from "./pages/Messages";
 import Faq from "./pages/Faq";
+import Security from "./pages/Security";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
@@ -45,6 +54,7 @@ function App() {
                   <Route path="/interview-prep" element={<InterviewPrep />} />
                   <Route path="/messages" element={<Messages />} />
                   <Route path="/faq" element={<Faq />} />
+                  <Route path="/security" element={<Security />} />
                 </Routes>
               </main>
             </div>

@@ -33,9 +33,9 @@ interface NewsItem {
   id: string;
   title: string;
   content: string;
-  published_date: string;
-  source_name: string;
-  source_url: string;
+  source_name?: string;
+  source_url?: string;
+  published_date?: string;
   created_at: string;
   updated_at: string;
   tags?: string[];
@@ -45,14 +45,14 @@ interface BlogPost {
   id: string;
   title: string;
   content: string;
+  author_id: string;
   created_at: string;
   updated_at: string;
-  author_id: string;
   tags?: string[];
-  author?: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  author: {
+    full_name: string;
+    avatar_url: string;
+  };
 }
 
 const supplyChainTags = [
