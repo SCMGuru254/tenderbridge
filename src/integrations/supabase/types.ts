@@ -15,6 +15,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          tags: string[] | null
           title: string
           updated_at: string
         }
@@ -23,6 +24,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          tags?: string[] | null
           title: string
           updated_at?: string
         }
@@ -31,6 +33,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          tags?: string[] | null
           title?: string
           updated_at?: string
         }
@@ -555,6 +558,7 @@ export type Database = {
           published_date: string | null
           source_name: string | null
           source_url: string | null
+          tags: string[] | null
           title: string
           updated_at: string
         }
@@ -565,6 +569,7 @@ export type Database = {
           published_date?: string | null
           source_name?: string | null
           source_url?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
         }
@@ -575,6 +580,7 @@ export type Database = {
           published_date?: string | null
           source_name?: string | null
           source_url?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
         }
