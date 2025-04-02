@@ -56,7 +56,7 @@ interface BlogPost {
   author?: {
     full_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 const supplyChainTags = [
@@ -98,7 +98,7 @@ const Blog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('*, author:profiles(full_name, avatar_url)')
+        .select('*, profiles:author_id(full_name, avatar_url)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -107,8 +107,9 @@ const Blog = () => {
       return data.map(post => ({
         ...post,
         content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
-        tags: post.tags || []
-      })) as BlogPost[];
+        tags: post.tags || [],
+        author: post.profiles || null
+      })) as unknown as BlogPost[];
     }
   });
 
@@ -284,7 +285,7 @@ const Blog = () => {
                           <span>
                             {formatDate(activeTab === "news" ? item.published_date : item.created_at)}
                           </span>
-                          {activeTab === "blog" && (item as BlogPost).author && (
+                          {activeTab === "blog" && (
                             <div className="flex items-center ml-4">
                               <Avatar className="h-6 w-6 mr-2">
                                 <AvatarImage src={(item as BlogPost).author?.avatar_url || ''} />
