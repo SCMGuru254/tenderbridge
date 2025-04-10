@@ -13,27 +13,27 @@ const OnboardingAnimation = () => {
   
   const steps = [
     {
-      icon: Truck,
-      title: "Streamline Your Supply Chain",
-      description: "Connect with logistics professionals, manage shipments, and optimize your supply chain operations in Kenya and beyond.",
+      icon: Briefcase,
+      title: "Discover Supply Chain Jobs",
+      description: "Access specialized job listings in procurement, logistics, warehousing, and transport across Kenya - all in one place.",
       color: "bg-primary/10 text-primary",
     },
     {
-      icon: Briefcase,
-      title: "Find Supply Chain Opportunities",
-      description: "Access specialized job listings in procurement, logistics, warehousing, transportation, and more across Kenya.",
+      icon: Users,
+      title: "Connect with Employers Directly",
+      description: "Build your professional network and get noticed by employers who can contact you directly when they're interested.",
       color: "bg-secondary/10 text-secondary",
     },
     {
-      icon: Users,
-      title: "Connect with Industry Professionals",
-      description: "Build your network with supply chain professionals, share insights, and grow your career opportunities.",
+      icon: Truck,
+      title: "Track Job Application Progress",
+      description: "No more uncertainty - see who viewed your profile and receive decisions from employers who have reviewed your application.",
       color: "bg-accent/10 text-accent",
     },
     {
       icon: FileText,
-      title: "Stay Updated with Industry News",
-      description: "Get the latest supply chain trends, disruptions, innovations, and best practices relevant to Kenya's market.",
+      title: "Showcase Your Professional Profile",
+      description: "Create a complete profile with your CV, photo, and LinkedIn to stand out to potential employers in Kenya's supply chain sector.",
       color: "bg-green-500/10 text-green-500",
     },
   ];
@@ -56,7 +56,7 @@ const OnboardingAnimation = () => {
             SupplyChain_KE
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Your complete platform for supply chain professionals in Kenya
+            Your career platform for supply chain professionals in Kenya
           </p>
           
           {!user && (

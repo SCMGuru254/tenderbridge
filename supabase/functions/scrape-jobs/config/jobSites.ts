@@ -3,6 +3,22 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
+    // MyJobMag Supply Chain Jobs XML Feed - Direct integration
+    {
+      url: "https://www.myjobmag.co.ke/jobsxml_by_categories.xml",
+      source: "MyJobMag XML Feed",
+      selectors: {
+        jobContainer: "job",
+        title: "title",
+        company: "company",
+        location: "location",
+        jobLink: "link",
+        jobType: "job_type",
+        deadline: "deadline",
+      },
+      isXmlFeed: true,
+      useDirectXmlParser: true
+    },
     // LinkedIn Supply Chain jobs in Kenya
     {
       url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain&location=Kenya",
@@ -45,7 +61,7 @@ export const getJobSites = (): JobSite[] => {
         jobType: "job_listing_job_type",
         deadline: "job_listing_expiry_date",
       },
-      isXmlFeed: true // New flag to indicate this is an XML feed
+      isXmlFeed: true
     },
     // Direct Google Jobs search - improved implementation
     {

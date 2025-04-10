@@ -1,535 +1,386 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
-import { CalendarIcon, Download, Linkedin, Mail, FileText, Eye, MessageCircle, Calendar as CalendarIcon2, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Profile, ProfileView as ProfileViewType, HiringDecision } from "@/types/profiles";
+import { Briefcase, Calendar, Download, User, File, Linkedin, Mail, Eye, CheckCircle } from "lucide-react";
+import { Profile, ProfileView, HiringDecision } from "@/types/profiles";
+import { useUser } from "@/hooks/useUser";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
-export default function ProfileView() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const ProfileViewComponent = () => {
+  const { id } = useParams<{ id: string }>();
+  const { user } = useUser();
   const { toast } = useToast();
-  const [date, setDate] = useState<Date>();
-  const [message, setMessage] = useState("");
-  const [contactOpen, setContactOpen] = useState(false);
-  const [decisionOpen, setDecisionOpen] = useState(false);
-  const [isCurrentUser, setIsCurrentUser] = useState(false);
+  const navigate = useNavigate();
   
-  // Fetch profile data
-  const { data: profile, isLoading, error } = useQuery({
-    queryKey: ['profile', id],
-    queryFn: async () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileViews, setProfileViews] = useState<ProfileView[]>([]);
+  const [hiringDecisions, setHiringDecisions] = useState<HiringDecision[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [decisionDate, setDecisionDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    
+    const fetchProfile = async () => {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', id)
+        setLoading(true);
+        
+        // Fetch the profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", id)
           .single();
           
-        if (error) throw error;
-        return data as Profile;
+        if (profileError) throw profileError;
+        
+        setProfile(profileData);
+        
+        // Record a profile view if the viewer is not the profile owner
+        if (user && user.id !== id) {
+          // Use RPC to call the record_profile_view function
+          const { error: viewError } = await supabase.rpc(
+            "record_profile_view",
+            { profile_id_param: id, viewer_id_param: user.id }
+          );
+          
+          if (viewError) {
+            console.error("Error recording profile view:", viewError);
+          }
+        }
+        
+        // Fetch profile views if the user is the profile owner
+        if (user && user.id === id) {
+          // Use RPC to call the get_profile_views function
+          const { data: viewsData, error: viewsError } = await supabase.rpc(
+            "get_profile_views",
+            { profile_id_param: id }
+          );
+          
+          if (viewsError) {
+            console.error("Error fetching profile views:", viewsError);
+          } else {
+            setProfileViews(viewsData as ProfileView[]);
+          }
+          
+          // Fetch hiring decisions for this candidate
+          const { data: decisionsData, error: decisionsError } = await supabase.rpc(
+            "get_hiring_decisions",
+            { candidate_id_param: id }
+          );
+          
+          if (decisionsError) {
+            console.error("Error fetching hiring decisions:", decisionsError);
+          } else {
+            setHiringDecisions(decisionsData as HiringDecision[]);
+          }
+        }
+        
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching profile:", error);
-        throw error;
-      }
-    }
-  });
-  
-  // Fetch profile views with a more type-safe approach
-  const { data: profileViews } = useQuery<ProfileViewType[]>({
-    queryKey: ['profile-views', id],
-    enabled: !!id && isCurrentUser,
-    queryFn: async () => {
-      try {
-        // Using a raw SQL query via RPC is more type-safe
-        const { data, error } = await supabase
-          .rpc('get_profile_views', { profile_id_param: id })
-          .then(result => {
-            if (result.error) throw result.error;
-            return { data: result.data, error: null };
-          });
-          
-        if (error) throw error;
-        return data as unknown as ProfileViewType[];
-      } catch (error) {
-        console.error("Error fetching profile views:", error);
-        return [];
-      }
-    }
-  });
-  
-  // Fetch hiring decisions with a more type-safe approach
-  const { data: decisions } = useQuery<HiringDecision[]>({
-    queryKey: ['hiring-decisions', id],
-    enabled: !!id && isCurrentUser,
-    queryFn: async () => {
-      try {
-        // Using a raw SQL query via RPC is more type-safe
-        const { data, error } = await supabase
-          .rpc('get_hiring_decisions', { candidate_id_param: id })
-          .then(result => {
-            if (result.error) throw result.error;
-            return { data: result.data, error: null };
-          });
-          
-        if (error) throw error;
-        return data as unknown as HiringDecision[];
-      } catch (error) {
-        console.error("Error fetching hiring decisions:", error);
-        return [];
-      }
-    }
-  });
-  
-  // Record profile view
-  useEffect(() => {
-    const trackProfileView = async () => {
-      try {
-        if (!id || isCurrentUser) return;
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) return;
-        
-        // Don't record duplicate views in the same session
-        const viewKey = `profile_view_${id}`;
-        const lastView = sessionStorage.getItem(viewKey);
-        
-        if (lastView) {
-          const timeDiff = Date.now() - Number(lastView);
-          // If viewed in the last hour, don't record a new view
-          if (timeDiff < 3600000) return;
-        }
-        
-        // Record the view using RPC
-        const { error } = await supabase
-          .rpc('record_profile_view', { 
-            profile_id_param: id,
-            viewer_id_param: user.id
-          });
-          
-        if (error) {
-          console.error("Error recording profile view:", error);
-          return;
-        }
-        
-        // Update session storage
-        sessionStorage.setItem(viewKey, Date.now().toString());
-        
-      } catch (err) {
-        console.error("Error recording profile view:", err);
+        toast({
+          title: "Error",
+          description: "Failed to load profile information",
+          variant: "destructive",
+        });
+        setLoading(false);
       }
     };
+
+    fetchProfile();
+  }, [id, user, toast]);
+
+  const handleRecordDecision = async () => {
+    if (!user || !profile) return;
     
-    trackProfileView();
-  }, [id, isCurrentUser]);
-  
-  // Check if current user is viewing their own profile
-  useEffect(() => {
-    const checkCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user && id === user.id) {
-        setIsCurrentUser(true);
-      }
-    };
-    
-    checkCurrentUser();
-  }, [id]);
-  
-  const handleContact = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to contact this user",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-      
-      const { error } = await supabase
-        .from('messages')
-        .insert({
-          sender_id: user.id,
-          recipient_id: id,
-          subject: "Job Opportunity",
-          content: message
-        });
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Message sent",
-        description: "Your message has been sent to the candidate"
-      });
-      
-      setContactOpen(false);
-      setMessage("");
-      
-    } catch (err: any) {
-      toast({
-        title: "Error",
-        description: err.message || "Failed to send message",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  const handleDecision = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to record a decision",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return;
-      }
-      
-      if (!date) {
-        toast({
-          title: "Date required",
-          description: "Please select a decision date",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Using RPC to handle the hiring decision
-      const { error } = await supabase
-        .rpc('record_hiring_decision', {
+      // Use RPC to call the record_hiring_decision function
+      const { error } = await supabase.rpc(
+        "record_hiring_decision",
+        { 
           employer_id_param: user.id,
-          candidate_id_param: id,
-          decision_date_param: format(date, 'yyyy-MM-dd'),
-          notes_param: message
-        });
-        
+          candidate_id_param: profile.id,
+          decision_date_param: decisionDate,
+          notes_param: notes
+        }
+      );
+      
       if (error) throw error;
       
       toast({
         title: "Decision recorded",
-        description: "The candidate will be notified about your decision date"
+        description: "Your hiring decision has been recorded and the candidate will be notified.",
       });
       
-      setDecisionOpen(false);
-      setMessage("");
-      setDate(undefined);
+      // Refresh hiring decisions list
+      const { data: updatedDecisions, error: fetchError } = await supabase.rpc(
+        "get_hiring_decisions",
+        { candidate_id_param: profile.id }
+      );
       
-    } catch (err: any) {
+      if (!fetchError && updatedDecisions) {
+        setHiringDecisions(updatedDecisions as HiringDecision[]);
+      }
+      
+      // Reset form
+      setNotes("");
+    } catch (error) {
+      console.error("Error recording decision:", error);
       toast({
         title: "Error",
-        description: err.message || "Failed to record decision",
+        description: "Failed to record your decision",
         variant: "destructive",
       });
     }
   };
-  
-  if (isLoading) {
+
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="container mx-auto p-8 flex justify-center">
+        <div className="animate-pulse">Loading profile...</div>
       </div>
     );
   }
-  
-  if (error || !profile) {
+
+  if (!profile) {
     return (
-      <Alert variant="destructive" className="max-w-md mx-auto mt-8">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load profile information. The profile may not exist or you may not have permission to view it.
-        </AlertDescription>
-      </Alert>
+      <div className="container mx-auto p-8">
+        <h1 className="text-2xl font-bold">Profile not found</h1>
+        <p className="mt-4">The profile you are looking for does not exist or has been removed.</p>
+        <Button className="mt-4" onClick={() => navigate("/jobs")}>
+          Go to Jobs
+        </Button>
+      </div>
     );
   }
-  
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Profile Card */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Avatar className="w-24 h-24">
-                {profile.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} alt={profile.full_name || ''} />
-                ) : (
-                  <AvatarFallback>{profile.full_name?.charAt(0) || "U"}</AvatarFallback>
-                )}
-              </Avatar>
-              <div className="flex-1 text-center md:text-left">
-                <CardTitle className="text-2xl">{profile.full_name}</CardTitle>
+    <div className="container mx-auto p-4 md:p-8 animate-fade-in">
+      <Card className="mb-8">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <Avatar className="h-20 w-20">
+              {profile.avatar_url ? (
+                <AvatarImage src={profile.avatar_url} alt={profile.full_name || "User"} />
+              ) : (
+                <AvatarFallback className="text-2xl">
+                  {profile.full_name ? profile.full_name[0].toUpperCase() : <User />}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <CardTitle className="text-2xl">{profile.full_name || "Unnamed User"}</CardTitle>
+              <CardDescription className="flex items-center gap-2 mt-1">
                 {profile.position && (
-                  <CardDescription className="text-lg mt-1">
-                    {profile.position}
-                    {profile.company && ` at ${profile.company}`}
-                  </CardDescription>
+                  <span className="flex items-center gap-1">
+                    <Briefcase className="h-4 w-4" /> {profile.position}
+                  </span>
                 )}
-              </div>
+                {profile.company && (
+                  <span className="flex items-center gap-1">
+                    at {profile.company}
+                  </span>
+                )}
+              </CardDescription>
             </div>
-          </CardHeader>
+          </div>
           
-          <CardContent className="space-y-6">
-            {profile.bio && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">About</h3>
-                <p className="text-muted-foreground">{profile.bio}</p>
+          <div className="flex flex-wrap gap-2">
+            {profile.cv_url && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={profile.cv_url} target="_blank" rel="noreferrer" download>
+                  <Download className="h-4 w-4 mr-1" /> Download CV
+                </a>
+              </Button>
+            )}
+            {profile.linkedin_url && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={profile.linkedin_url} target="_blank" rel="noreferrer">
+                  <Linkedin className="h-4 w-4 mr-1" /> LinkedIn
+                </a>
+              </Button>
+            )}
+            {profile.email && user && user.id !== profile.id && (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/messages?to=${profile.id}`)}>
+                <Mail className="h-4 w-4 mr-1" /> Message
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          <Tabs defaultValue="about">
+            <TabsList>
+              <TabsTrigger value="about">About</TabsTrigger>
+              {user && user.id === profile.id && (
+                <>
+                  <TabsTrigger value="profile-views">Profile Views</TabsTrigger>
+                  <TabsTrigger value="hiring-decisions">Hiring Decisions</TabsTrigger>
+                </>
+              )}
+              {user && user.id !== profile.id && user.id && (
+                <TabsTrigger value="record-decision">Record Decision</TabsTrigger>
+              )}
+            </TabsList>
+            
+            <TabsContent value="about" className="mt-4">
+              <div className="space-y-4">
+                {profile.bio && (
+                  <div>
+                    <h3 className="font-medium mb-2">Bio</h3>
+                    <p className="text-sm text-gray-600">{profile.bio}</p>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.email && (
+                    <div>
+                      <h3 className="font-medium mb-1">Email</h3>
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        <Mail className="h-4 w-4" /> {profile.email}
+                      </p>
+                    </div>
+                  )}
+                  {profile.role && (
+                    <div>
+                      <h3 className="font-medium mb-1">Role</h3>
+                      <p className="text-sm text-gray-600 capitalize">{profile.role.replace('_', ' ')}</p>
+                    </div>
+                  )}
+                </div>
               </div>
+            </TabsContent>
+            
+            {user && user.id === profile.id && (
+              <TabsContent value="profile-views" className="mt-4">
+                <h3 className="font-medium mb-4">People who viewed your profile</h3>
+                {profileViews.length === 0 ? (
+                  <p className="text-sm text-gray-500">No one has viewed your profile yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {profileViews.map((view) => (
+                      <Card key={view.id} className="overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              {view.viewer.avatar_url ? (
+                                <AvatarImage src={view.viewer.avatar_url} alt={view.viewer.full_name || "Viewer"} />
+                              ) : (
+                                <AvatarFallback>
+                                  {view.viewer.full_name ? view.viewer.full_name[0].toUpperCase() : <User />}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="font-medium">{view.viewer.full_name}</div>
+                              {view.viewer.company && (
+                                <div className="text-sm text-gray-500">{view.viewer.company}</div>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500 flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {format(new Date(view.viewed_at), "MMM d, yyyy")}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
             )}
             
-            <div className="flex flex-wrap gap-4">
-              {profile.linkedin_url && (
-                <a 
-                  href={profile.linkedin_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-                >
-                  <Linkedin size={16} />
-                  <span>LinkedIn Profile</span>
-                </a>
-              )}
-              
-              {profile.cv_url && (
-                <a 
-                  href={profile.cv_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
-                >
-                  <FileText size={16} />
-                  <span>View CV</span>
-                </a>
-              )}
-            </div>
-          </CardContent>
-          
-          {!isCurrentUser && (
-            <CardFooter className="flex flex-col sm:flex-row gap-3">
-              <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto">
-                    <Mail className="mr-2 h-4 w-4" /> Contact
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Contact {profile.full_name}</DialogTitle>
-                    <DialogDescription>
-                      Send a message to this candidate about job opportunities.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Your message</Label>
-                      <Textarea
-                        id="message"
-                        placeholder="Write about the job opportunity..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="min-h-[150px]"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setContactOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleContact} disabled={!message.trim()}>
-                      Send Message
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              
-              <Dialog open={decisionOpen} onOpenChange={setDecisionOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    <CalendarIcon2 className="mr-2 h-4 w-4" /> Set Decision Date
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Set Decision Date</DialogTitle>
-                    <DialogDescription>
-                      Let the candidate know when to expect your hiring decision.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Decision Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP") : "Select a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            initialFocus
-                            disabled={(date) => date < new Date()}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Notes (optional)</Label>
-                      <Textarea
-                        id="notes"
-                        placeholder="Add any notes about the decision process..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDecisionOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleDecision} disabled={!date}>
-                      Set Decision Date
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              
-              {profile.cv_url && (
-                <a 
-                  href={profile.cv_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto"
-                >
-                  <Button variant="secondary" className="w-full">
-                    <Download className="mr-2 h-4 w-4" /> Download CV
-                  </Button>
-                </a>
-              )}
-            </CardFooter>
-          )}
-        </Card>
-        
-        {/* Profile Stats & Activity */}
-        {isCurrentUser && (
-          <div className="space-y-6">
-            {/* Profile Views */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye size={18} /> Profile Views
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {profileViews && profileViews.length > 0 ? (
-                  <div className="space-y-4">
-                    {profileViews.slice(0, 5).map((view) => (
-                      <div key={view.id} className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          {view.viewer.avatar_url ? (
-                            <AvatarImage src={view.viewer.avatar_url} alt={view.viewer.full_name || ''} />
-                          ) : (
-                            <AvatarFallback>{view.viewer.full_name?.charAt(0) || '?'}</AvatarFallback>
-                          )}
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {view.viewer.full_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {view.viewer.company}
-                          </p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(view.viewed_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+            {user && user.id === profile.id && (
+              <TabsContent value="hiring-decisions" className="mt-4">
+                <h3 className="font-medium mb-4">Hiring Decisions</h3>
+                {hiringDecisions.length === 0 ? (
+                  <p className="text-sm text-gray-500">No hiring decisions have been recorded for you yet.</p>
                 ) : (
-                  <p className="text-muted-foreground text-sm">
-                    No profile views yet. Complete your profile to attract more views.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-            
-            {/* Decision Dates */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock size={18} /> Decision Dates
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {decisions && decisions.length > 0 ? (
                   <div className="space-y-4">
-                    {decisions.map((decision) => (
-                      <div key={decision.id} className="border rounded-lg p-3">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Avatar className="h-8 w-8">
-                            {decision.employer.avatar_url ? (
-                              <AvatarImage src={decision.employer.avatar_url} alt={decision.employer.full_name || ''} />
-                            ) : (
-                              <AvatarFallback>{decision.employer.full_name?.charAt(0) || '?'}</AvatarFallback>
-                            )}
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">{decision.employer.full_name}</p>
-                            <p className="text-xs text-muted-foreground">{decision.employer.company}</p>
+                    {hiringDecisions.map((decision) => (
+                      <Card key={decision.id} className="overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              {decision.employer.avatar_url ? (
+                                <AvatarImage src={decision.employer.avatar_url} alt={decision.employer.full_name || "Employer"} />
+                              ) : (
+                                <AvatarFallback>
+                                  {decision.employer.full_name ? decision.employer.full_name[0].toUpperCase() : <User />}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="font-medium">{decision.employer.full_name}</div>
+                              {decision.employer.company && (
+                                <div className="text-sm text-gray-500">{decision.employer.company}</div>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500 flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(decision.decision_date), "MMM d, yyyy")}
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center text-sm mb-2">
-                          <CalendarIcon2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <span>Decision by: <span className="font-medium">{new Date(decision.decision_date).toLocaleDateString()}</span></span>
-                        </div>
-                        {decision.notes && (
-                          <p className="text-sm text-muted-foreground">{decision.notes}</p>
-                        )}
-                      </div>
+                          {decision.notes && (
+                            <div className="mt-3 text-sm p-3 bg-secondary/10 rounded-md">
+                              {decision.notes}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    No decision dates yet. Employers will set decision dates after reviewing your profile.
-                  </p>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+              </TabsContent>
+            )}
+            
+            {user && user.id !== profile.id && (
+              <TabsContent value="record-decision" className="mt-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="decision-date">Decision Date</Label>
+                    <Input
+                      id="decision-date"
+                      type="date"
+                      value={decisionDate}
+                      onChange={(e) => setDecisionDate(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="notes">Notes (optional)</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Add any comments or notes about your decision..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <Button onClick={handleRecordDecision} className="w-full">
+                    <CheckCircle className="h-4 w-4 mr-2" /> Record Decision
+                  </Button>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default ProfileViewComponent;

@@ -13,4 +13,5 @@ export interface JobSite {
   };
   keywords?: string[];
   isXmlFeed?: boolean;
+  useDirectXmlParser?: boolean; // Flag to use our custom XML parser
 }

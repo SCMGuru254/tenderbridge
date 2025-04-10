@@ -1,14 +1,21 @@
+
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 import { JobSite } from "../types/jobSite.ts";
 import { Job } from "../types/job.ts";
 import { hasSupplyChainKeywords } from "../utils/jobFilters.ts";
 import { parseXmlFeed } from "../utils/xmlParser.ts";
+import { parseSupplyChainJobsXml } from "../utils/xmlJobParser.ts";
 
 export async function scrapeJobSites(site: JobSite): Promise<Job[]> {
   const scrapedJobs: Job[] = [];
   
   try {
     console.log(`Scraping ${site.source} at ${site.url}...`);
+    
+    // Use our custom XML parser for direct feed integration
+    if (site.useDirectXmlParser) {
+      return await parseSupplyChainJobsXml(site.url);
+    }
     
     // Check if this is an XML feed
     if (site.isXmlFeed) {
