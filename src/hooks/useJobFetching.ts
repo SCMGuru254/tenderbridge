@@ -16,7 +16,9 @@ export const usePostedJobs = () => {
           *,
           companies (
             name,
-            location
+            location,
+            website,
+            description
           )
         `)
         .eq('is_active', true);
@@ -57,5 +59,26 @@ export const useScrapedJobs = () => {
       return nonExpiredJobs as ScrapedJob[];
     },
     refetchInterval: 1000 * 60 * 30 // Refetch every 30 minutes
+  });
+};
+
+// Fetch companies
+export const useCompanies = () => {
+  return useQuery({
+    queryKey: ['companies'],
+    queryFn: async () => {
+      console.log("Fetching companies...");
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*');
+
+      if (error) {
+        console.error("Error fetching companies:", error);
+        throw error;
+      }
+      
+      console.log("Companies:", data);
+      return data;
+    }
   });
 };

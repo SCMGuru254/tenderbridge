@@ -3,8 +3,8 @@
 export function parseXmlFeed(xmlText: string): any[] {
   const items = [];
   
-  // Extract all <item> elements
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  // First try to extract <item> elements (RSS feeds)
+  let itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
   
   while ((match = itemRegex.exec(xmlText)) !== null) {
@@ -74,6 +74,84 @@ export function parseXmlFeed(xmlText: string): any[] {
     // Check if the item has enough data to be useful
     if (item.title && (item.link || item.description)) {
       items.push(item);
+    }
+  }
+  
+  // If no items found, try to extract <job> elements (custom job feeds)
+  if (items.length === 0) {
+    itemRegex = /<job>([\s\S]*?)<\/job>/g;
+    
+    while ((match = itemRegex.exec(xmlText)) !== null) {
+      const jobContent = match[1];
+      const job: Record<string, string> = {};
+      
+      // Extract standard fields
+      const fieldRegex = /<([^>]+)>([\s\S]*?)<\/\1>/g;
+      let fieldMatch;
+      
+      while ((fieldMatch = fieldRegex.exec(jobContent)) !== null) {
+        const fieldName = fieldMatch[1].toLowerCase();
+        const fieldValue = fieldMatch[2]
+          .replace(/<!\[CDATA\[/g, '')
+          .replace(/\]\]>/g, '')
+          .replace(/<[^>]*>/g, ' ')
+          .trim();
+          
+        job[fieldName] = fieldValue;
+      }
+      
+      // Check if job has minimum required fields
+      if (job.title && (job.description || job.link)) {
+        // Map fields to standard format
+        if (job.link) job.link = job.link;
+        if (job.url) job.link = job.url;
+        if (job.description) job.description = job.description;
+        if (job.company) job.company = job.company;
+        if (job.location) job.location = job.location;
+        if (job.job_type) job.jobType = job.job_type;
+        if (job.deadline) job.deadline = job.deadline;
+        
+        items.push(job);
+      }
+    }
+  }
+  
+  // If still no items found, try one more approach with generic tag extraction
+  if (items.length === 0) {
+    // Try to extract based on XML structure patterns
+    const tagRegex = /<([a-zA-Z0-9_]+)>([\s\S]*?)<\/\1>/g;
+    const jobData: Record<string, string[]> = {};
+    
+    while ((match = tagRegex.exec(xmlText)) !== null) {
+      const tagName = match[1].toLowerCase();
+      const tagContent = match[2].trim()
+        .replace(/<!\[CDATA\[/g, '')
+        .replace(/\]\]>/g, '')
+        .replace(/<[^>]*>/g, ' ');
+      
+      if (!jobData[tagName]) {
+        jobData[tagName] = [];
+      }
+      
+      jobData[tagName].push(tagContent);
+    }
+    
+    // Build job objects based on extracted data
+    if (jobData.title && jobData.title.length > 0) {
+      for (let i = 0; i < jobData.title.length; i++) {
+        const job: Record<string, string> = {
+          title: jobData.title[i]
+        };
+        
+        // Map other fields if available
+        if (jobData.description && jobData.description[i]) job.description = jobData.description[i];
+        if (jobData.link && jobData.link[i]) job.link = jobData.link[i];
+        if (jobData.company && jobData.company[i]) job.company = jobData.company[i];
+        if (jobData.location && jobData.location[i]) job.location = jobData.location[i];
+        if (jobData.job_type && jobData.job_type[i]) job.jobType = jobData.job_type[i];
+        
+        items.push(job);
+      }
     }
   }
   
