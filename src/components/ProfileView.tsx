@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,8 +66,8 @@ const ProfileViewComponent = () => {
         
         // Fetch profile views if the user is the profile owner
         if (user && user.id === id) {
-          // Use RPC to call the get_profile_views function
-          const { data: viewsData, error: viewsError } = await supabase.rpc(
+          // Use RPC to call the get_profile_views function with the correct type
+          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[]>(
             "get_profile_views",
             { 
               profile_id_param: id 
@@ -79,8 +80,8 @@ const ProfileViewComponent = () => {
             setProfileViews(viewsData || []);
           }
           
-          // Fetch hiring decisions for this candidate
-          const { data: decisionsData, error: decisionsError } = await supabase.rpc(
+          // Fetch hiring decisions for this candidate with the correct type
+          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[]>(
             "get_hiring_decisions",
             { 
               candidate_id_param: id 
@@ -132,7 +133,7 @@ const ProfileViewComponent = () => {
       });
       
       // Refresh hiring decisions list
-      const { data: updatedDecisions, error: fetchError } = await supabase.rpc(
+      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[]>(
         "get_hiring_decisions",
         { 
           candidate_id_param: profile.id 

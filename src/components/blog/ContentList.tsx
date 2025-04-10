@@ -24,7 +24,7 @@ interface BlogPost extends NewsItem {
   author?: {
     full_name: string;
     avatar_url: string;
-  };
+  } | null;
 }
 
 interface ContentListProps {
@@ -53,22 +53,37 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     }
   });
 
-  const { data: blogPosts = [], isLoading: blogLoading } = useQuery<BlogPost[]>({
+  const { data: blogPostsData = [], isLoading: blogLoading } = useQuery({
     queryKey: ['blog-posts'],
     queryFn: async () => {
+      // First fetch basic blog post data
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('*, author:author_id(full_name, avatar_url)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      return data.map(post => ({
-        ...post,
-        content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
-        tags: post.tags || [],
-        author: post.author || null
-      })) as BlogPost[];
+      // Process each blog post to add author info
+      const blogPosts: BlogPost[] = await Promise.all(
+        data.map(async (post) => {
+          // Get author info separately
+          const { data: authorData, error: authorError } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', post.author_id)
+            .single();
+          
+          return {
+            ...post,
+            content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
+            tags: post.tags || [],
+            author: authorError ? null : authorData
+          };
+        })
+      );
+      
+      return blogPosts;
     }
   });
 
@@ -79,7 +94,7 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
         (selectedTags.length === 0 || // No tags selected, show all
          (item.tags && selectedTags.some(tag => item.tags?.includes(tag))))
       )
-    : blogPosts?.filter(post =>
+    : blogPostsData?.filter(post =>
         (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (selectedTags.length === 0 || // No tags selected, show all
