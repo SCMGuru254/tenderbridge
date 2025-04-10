@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,25 +15,25 @@ import { useUser } from "@/hooks/useUser";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-type RecordProfileViewParams = {
+interface RecordProfileViewParams {
   profile_id_param: string;
   viewer_id_param: string;
-};
+}
 
-type GetProfileViewsParams = {
+interface GetProfileViewsParams {
   profile_id_param: string;
-};
+}
 
-type GetHiringDecisionsParams = {
+interface GetHiringDecisionsParams {
   candidate_id_param: string;
-};
+}
 
-type RecordHiringDecisionParams = {
+interface RecordHiringDecisionParams {
   employer_id_param: string;
   candidate_id_param: string;
   decision_date_param: string;
   notes_param: string;
-};
+}
 
 const ProfileViewComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +68,7 @@ const ProfileViewComponent = () => {
         setProfile(profileData);
         
         if (user && user.id !== id) {
-          const { error: viewError } = await supabase.rpc<null, RecordProfileViewParams>(
+          const { error: viewError } = await supabase.rpc<void, RecordProfileViewParams>(
             "record_profile_view",
             { 
               profile_id_param: id, 
@@ -127,7 +128,7 @@ const ProfileViewComponent = () => {
     if (!user || !profile) return;
     
     try {
-      const { error } = await supabase.rpc<null, RecordHiringDecisionParams>(
+      const { error } = await supabase.rpc<void, RecordHiringDecisionParams>(
         "record_hiring_decision",
         { 
           employer_id_param: user.id,
