@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
@@ -24,6 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Profile } from "@/types/profiles";
 
 // Define the form schema with validations
 const profileSchema = z.object({
@@ -61,50 +62,56 @@ export default function ProfileEdit() {
   });
   
   // Fetch user profile on component mount
-  const loadUserProfile = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.user) {
-        navigate("/auth");
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-      
-      if (error) throw error;
-      
-      if (data) {
-        form.reset({
-          full_name: data.full_name || "",
-          bio: data.bio || "",
-          position: data.position || "",
-          company: data.company || "",
-          linkedin_url: data.linkedin_url || "",
-          notify_on_view: data.notify_on_view !== false // default to true if not set
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session?.user) {
+          navigate("/auth");
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (error) throw error;
+        
+        const profile = data as Profile;
+        
+        if (profile) {
+          form.reset({
+            full_name: profile.full_name || "",
+            bio: profile.bio || "",
+            position: profile.position || "",
+            company: profile.company || "",
+            linkedin_url: profile.linkedin_url || "",
+            notify_on_view: profile.notify_on_view !== false // default to true if not set
+          });
+          
+          if (profile.avatar_url) {
+            setPhotoPreview(profile.avatar_url);
+          }
+          
+          if (profile.cv_filename) {
+            setCvFileName(profile.cv_filename);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load profile data."
         });
-        
-        if (data.avatar_url) {
-          setPhotoPreview(data.avatar_url);
-        }
-        
-        if (data.cv_filename) {
-          setCvFileName(data.cv_filename);
-        }
       }
-    } catch (error) {
-      console.error("Error loading profile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load profile data."
-      });
-    }
-  };
+    };
+    
+    loadUserProfile();
+  }, [navigate, toast, form]);
   
   // Handle photo upload
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { CalendarIcon, Download, Linkedin, Mail, FileText, Eye, MessageCircle, Calendar as CalendarIcon2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Profile, ProfileView as ProfileViewType, HiringDecision } from "@/types/profiles";
 
 export default function ProfileView() {
   const { id } = useParams();
@@ -32,46 +33,75 @@ export default function ProfileView() {
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ['profile', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .single();
-        
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        return data as Profile;
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
     }
   });
   
   // Fetch profile views
-  const { data: profileViews } = useQuery({
+  const { data: profileViews } = useQuery<ProfileViewType[]>({
     queryKey: ['profile-views', id],
     enabled: !!id && isCurrentUser,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profile_views')
-        .select('*, viewer:profiles(full_name, company, avatar_url)')
-        .eq('profile_id', id)
-        .order('viewed_at', { ascending: false });
-        
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('profile_views')
+          .select(`
+            id,
+            profile_id,
+            viewer_id,
+            viewed_at,
+            viewer:profiles(full_name, company, avatar_url)
+          `)
+          .eq('profile_id', id)
+          .order('viewed_at', { ascending: false });
+          
+        if (error) throw error;
+        return data as ProfileViewType[];
+      } catch (error) {
+        console.error("Error fetching profile views:", error);
+        throw error;
+      }
     }
   });
   
   // Fetch hiring decisions
-  const { data: decisions } = useQuery({
+  const { data: decisions } = useQuery<HiringDecision[]>({
     queryKey: ['hiring-decisions', id],
     enabled: !!id && isCurrentUser,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('hiring_decisions')
-        .select('*, employer:profiles(full_name, company, avatar_url)')
-        .eq('candidate_id', id)
-        .order('created_at', { ascending: false });
-        
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('hiring_decisions')
+          .select(`
+            id,
+            employer_id,
+            candidate_id,
+            decision_date,
+            notes,
+            created_at,
+            employer:profiles(full_name, company, avatar_url)
+          `)
+          .eq('candidate_id', id)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        return data as HiringDecision[];
+      } catch (error) {
+        console.error("Error fetching hiring decisions:", error);
+        throw error;
+      }
     }
   });
   
@@ -103,7 +133,10 @@ export default function ProfileView() {
             viewer_id: user.id
           });
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error recording profile view:", error);
+          return;
+        }
         
         // Update session storage
         sessionStorage.setItem(viewKey, Date.now().toString());
@@ -251,7 +284,7 @@ export default function ProfileView() {
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <Avatar className="w-24 h-24">
                 {profile.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                  <AvatarImage src={profile.avatar_url} alt={profile.full_name || ''} />
                 ) : (
                   <AvatarFallback>{profile.full_name?.charAt(0) || "U"}</AvatarFallback>
                 )}
@@ -436,9 +469,9 @@ export default function ProfileView() {
                       <div key={view.id} className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           {view.viewer.avatar_url ? (
-                            <AvatarImage src={view.viewer.avatar_url} alt={view.viewer.full_name} />
+                            <AvatarImage src={view.viewer.avatar_url} alt={view.viewer.full_name || ''} />
                           ) : (
-                            <AvatarFallback>{view.viewer.full_name?.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{view.viewer.full_name?.charAt(0) || '?'}</AvatarFallback>
                           )}
                         </Avatar>
                         <div className="flex-1 min-w-0">
@@ -478,9 +511,9 @@ export default function ProfileView() {
                         <div className="flex items-center gap-3 mb-2">
                           <Avatar className="h-8 w-8">
                             {decision.employer.avatar_url ? (
-                              <AvatarImage src={decision.employer.avatar_url} alt={decision.employer.full_name} />
+                              <AvatarImage src={decision.employer.avatar_url} alt={decision.employer.full_name || ''} />
                             ) : (
-                              <AvatarFallback>{decision.employer.full_name?.charAt(0)}</AvatarFallback>
+                              <AvatarFallback>{decision.employer.full_name?.charAt(0) || '?'}</AvatarFallback>
                             )}
                           </Avatar>
                           <div>

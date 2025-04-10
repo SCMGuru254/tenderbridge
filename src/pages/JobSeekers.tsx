@@ -10,6 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Briefcase, Search, Calendar, User } from "lucide-react";
+import { Profile } from "@/types/profiles";
 
 export default function JobSeekers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,7 +27,7 @@ export default function JobSeekers() {
         .not('full_name', 'is', null);
         
       if (error) throw error;
-      return data;
+      return data as Profile[];
     }
   });
   
@@ -109,7 +110,7 @@ export default function JobSeekers() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
                     {profile.avatar_url ? (
-                      <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                      <AvatarImage src={profile.avatar_url} alt={profile.full_name || ''} />
                     ) : (
                       <AvatarFallback>{profile.full_name?.charAt(0) || "U"}</AvatarFallback>
                     )}
