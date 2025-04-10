@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,8 @@ const ProfileViewComponent = () => {
         setProfile(profileData);
         
         if (user && user.id !== id) {
-          const { error: viewError } = await supabase.rpc<null, RecordProfileViewParams>(
+          // This RPC doesn't return data, so we don't need type params
+          const { error: viewError } = await supabase.rpc(
             "record_profile_view",
             { 
               profile_id_param: id, 
@@ -81,7 +83,8 @@ const ProfileViewComponent = () => {
         }
         
         if (user && user.id === id) {
-          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[], GetProfileViewsParams>(
+          // Properly type the RPC calls with return type and params type
+          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[]>(
             "get_profile_views",
             { 
               profile_id_param: id 
@@ -90,11 +93,11 @@ const ProfileViewComponent = () => {
           
           if (viewsError) {
             console.error("Error fetching profile views:", viewsError);
-          } else {
-            setProfileViews(viewsData || []);
+          } else if (viewsData) {
+            setProfileViews(viewsData);
           }
           
-          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
+          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[]>(
             "get_hiring_decisions",
             { 
               candidate_id_param: id 
@@ -103,8 +106,8 @@ const ProfileViewComponent = () => {
           
           if (decisionsError) {
             console.error("Error fetching hiring decisions:", decisionsError);
-          } else {
-            setHiringDecisions(decisionsData || []);
+          } else if (decisionsData) {
+            setHiringDecisions(decisionsData);
           }
         }
         
@@ -127,7 +130,8 @@ const ProfileViewComponent = () => {
     if (!user || !profile) return;
     
     try {
-      const { error } = await supabase.rpc<null, RecordHiringDecisionParams>(
+      // This RPC doesn't return data, so we don't need type params
+      const { error } = await supabase.rpc(
         "record_hiring_decision",
         { 
           employer_id_param: user.id,
@@ -144,7 +148,8 @@ const ProfileViewComponent = () => {
         description: "Your hiring decision has been recorded and the candidate will be notified.",
       });
       
-      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
+      // Properly type the RPC call
+      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[]>(
         "get_hiring_decisions",
         { 
           candidate_id_param: profile.id 
@@ -192,23 +197,23 @@ const ProfileViewComponent = () => {
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <Avatar className="h-20 w-20">
-              {profile.avatar_url ? (
+              {profile?.avatar_url ? (
                 <AvatarImage src={profile.avatar_url} alt={profile.full_name || "User"} />
               ) : (
                 <AvatarFallback className="text-2xl">
-                  {profile.full_name ? profile.full_name[0].toUpperCase() : <User />}
+                  {profile?.full_name ? profile.full_name[0].toUpperCase() : <User />}
                 </AvatarFallback>
               )}
             </Avatar>
             <div>
-              <CardTitle className="text-2xl">{profile.full_name || "Unnamed User"}</CardTitle>
+              <CardTitle className="text-2xl">{profile?.full_name || "Unnamed User"}</CardTitle>
               <CardDescription className="flex items-center gap-2 mt-1">
-                {profile.position && (
+                {profile?.position && (
                   <span className="flex items-center gap-1">
                     <Briefcase className="h-4 w-4" /> {profile.position}
                   </span>
                 )}
-                {profile.company && (
+                {profile?.company && (
                   <span className="flex items-center gap-1">
                     at {profile.company}
                   </span>
@@ -218,21 +223,21 @@ const ProfileViewComponent = () => {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {profile.cv_url && (
+            {profile?.cv_url && (
               <Button variant="outline" size="sm" asChild>
                 <a href={profile.cv_url} target="_blank" rel="noreferrer" download>
                   <Download className="h-4 w-4 mr-1" /> Download CV
                 </a>
               </Button>
             )}
-            {profile.linkedin_url && (
+            {profile?.linkedin_url && (
               <Button variant="outline" size="sm" asChild>
                 <a href={profile.linkedin_url} target="_blank" rel="noreferrer">
                   <Linkedin className="h-4 w-4 mr-1" /> LinkedIn
                 </a>
               </Button>
             )}
-            {profile.email && user && user.id !== profile.id && (
+            {profile?.email && user && user.id !== profile.id && (
               <Button variant="outline" size="sm" onClick={() => navigate(`/messages?to=${profile.id}`)}>
                 <Mail className="h-4 w-4 mr-1" /> Message
               </Button>
@@ -244,20 +249,20 @@ const ProfileViewComponent = () => {
           <Tabs defaultValue="about">
             <TabsList>
               <TabsTrigger value="about">About</TabsTrigger>
-              {user && user.id === profile.id && (
+              {user && user.id === profile?.id && (
                 <>
                   <TabsTrigger value="profile-views">Profile Views</TabsTrigger>
                   <TabsTrigger value="hiring-decisions">Hiring Decisions</TabsTrigger>
                 </>
               )}
-              {user && user.id !== profile.id && user.id && (
+              {user && user.id !== profile?.id && user.id && (
                 <TabsTrigger value="record-decision">Record Decision</TabsTrigger>
               )}
             </TabsList>
             
             <TabsContent value="about" className="mt-4">
               <div className="space-y-4">
-                {profile.bio && (
+                {profile?.bio && (
                   <div>
                     <h3 className="font-medium mb-2">Bio</h3>
                     <p className="text-sm text-gray-600">{profile.bio}</p>
@@ -265,7 +270,7 @@ const ProfileViewComponent = () => {
                 )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {profile.email && (
+                  {profile?.email && (
                     <div>
                       <h3 className="font-medium mb-1">Email</h3>
                       <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -273,7 +278,7 @@ const ProfileViewComponent = () => {
                       </p>
                     </div>
                   )}
-                  {profile.role && (
+                  {profile?.role && (
                     <div>
                       <h3 className="font-medium mb-1">Role</h3>
                       <p className="text-sm text-gray-600 capitalize">{profile.role.replace('_', ' ')}</p>
@@ -283,7 +288,7 @@ const ProfileViewComponent = () => {
               </div>
             </TabsContent>
             
-            {user && user.id === profile.id && (
+            {user && user.id === profile?.id && (
               <TabsContent value="profile-views" className="mt-4">
                 <h3 className="font-medium mb-4">People who viewed your profile</h3>
                 {profileViews.length === 0 ? (
@@ -322,7 +327,7 @@ const ProfileViewComponent = () => {
               </TabsContent>
             )}
             
-            {user && user.id === profile.id && (
+            {user && user.id === profile?.id && (
               <TabsContent value="hiring-decisions" className="mt-4">
                 <h3 className="font-medium mb-4">Hiring Decisions</h3>
                 {hiringDecisions.length === 0 ? (
@@ -366,7 +371,7 @@ const ProfileViewComponent = () => {
               </TabsContent>
             )}
             
-            {user && user.id !== profile.id && (
+            {user && user.id !== profile?.id && (
               <TabsContent value="record-decision" className="mt-4">
                 <div className="space-y-4">
                   <div>
