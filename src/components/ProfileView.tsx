@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +13,26 @@ import { Profile, ProfileView, HiringDecision } from "@/types/profiles";
 import { useUser } from "@/hooks/useUser";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+
+type RecordProfileViewParams = {
+  profile_id_param: string;
+  viewer_id_param: string;
+};
+
+type GetProfileViewsParams = {
+  profile_id_param: string;
+};
+
+type GetHiringDecisionsParams = {
+  candidate_id_param: string;
+};
+
+type RecordHiringDecisionParams = {
+  employer_id_param: string;
+  candidate_id_param: string;
+  decision_date_param: string;
+  notes_param: string;
+};
 
 const ProfileViewComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +56,6 @@ const ProfileViewComponent = () => {
       try {
         setLoading(true);
         
-        // Fetch the profile data
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -48,10 +66,8 @@ const ProfileViewComponent = () => {
         
         setProfile(profileData);
         
-        // Record a profile view if the viewer is not the profile owner
         if (user && user.id !== id) {
-          // Use RPC to call the record_profile_view function
-          const { error: viewError } = await supabase.rpc(
+          const { error: viewError } = await supabase.rpc<null, RecordProfileViewParams>(
             "record_profile_view",
             { 
               profile_id_param: id, 
@@ -64,10 +80,8 @@ const ProfileViewComponent = () => {
           }
         }
         
-        // Fetch profile views if the user is the profile owner
         if (user && user.id === id) {
-          // Use RPC to call the get_profile_views function with the correct type
-          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[]>(
+          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[], GetProfileViewsParams>(
             "get_profile_views",
             { 
               profile_id_param: id 
@@ -80,8 +94,7 @@ const ProfileViewComponent = () => {
             setProfileViews(viewsData || []);
           }
           
-          // Fetch hiring decisions for this candidate with the correct type
-          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[]>(
+          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
             "get_hiring_decisions",
             { 
               candidate_id_param: id 
@@ -114,8 +127,7 @@ const ProfileViewComponent = () => {
     if (!user || !profile) return;
     
     try {
-      // Use RPC to call the record_hiring_decision function
-      const { error } = await supabase.rpc(
+      const { error } = await supabase.rpc<null, RecordHiringDecisionParams>(
         "record_hiring_decision",
         { 
           employer_id_param: user.id,
@@ -132,8 +144,7 @@ const ProfileViewComponent = () => {
         description: "Your hiring decision has been recorded and the candidate will be notified.",
       });
       
-      // Refresh hiring decisions list
-      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[]>(
+      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
         "get_hiring_decisions",
         { 
           candidate_id_param: profile.id 
@@ -144,7 +155,6 @@ const ProfileViewComponent = () => {
         setHiringDecisions(updatedDecisions);
       }
       
-      // Reset form
       setNotes("");
     } catch (error) {
       console.error("Error recording decision:", error);
