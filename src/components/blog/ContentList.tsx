@@ -19,16 +19,9 @@ interface NewsItem {
   image_url?: string;
 }
 
-interface BlogPost {
-  id: string;
-  title: string;
-  content: string;
+interface BlogPost extends NewsItem {
   author_id: string;
-  created_at: string;
-  updated_at: string;
-  tags?: string[];
-  image_url?: string;
-  author: {
+  author?: {
     full_name: string;
     avatar_url: string;
   };
@@ -65,7 +58,7 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('*, profiles:author_id(full_name, avatar_url)')
+        .select('*, author:author_id(full_name, avatar_url)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -74,8 +67,8 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
         ...post,
         content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
         tags: post.tags || [],
-        author: post.profiles || null
-      })) as unknown as BlogPost[];
+        author: post.author || null
+      })) as BlogPost[];
     }
   });
 

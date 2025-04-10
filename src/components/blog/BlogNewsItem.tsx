@@ -6,19 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
-interface NewsItemProps {
-  item: {
-    id: string;
-    title: string;
-    content: string;
-    source_name?: string;
-    source_url?: string;
-    published_date?: string;
-    created_at: string;
-    updated_at: string;
-    tags?: string[];
-    image_url?: string;
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  source_name?: string;
+  source_url?: string;
+  published_date?: string;
+  created_at: string;
+  updated_at: string;
+  tags?: string[];
+  image_url?: string;
+}
+
+interface BlogPost extends NewsItem {
+  author_id: string;
+  author?: {
+    full_name: string;
+    avatar_url: string;
   };
+}
+
+interface NewsItemProps {
+  item: NewsItem | BlogPost;
   type: "news" | "blog";
   formatDate: (dateString: string) => string;
 }
@@ -28,6 +38,11 @@ export const BlogNewsItem = ({ item, type, formatDate }: NewsItemProps) => {
     return type === "news" 
       ? "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=800&q=80"
       : "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80";
+  };
+
+  // Check if item has author property (is a BlogPost type)
+  const isBlogPost = (post: NewsItem | BlogPost): post is BlogPost => {
+    return 'author' in post;
   };
 
   return (
@@ -48,15 +63,15 @@ export const BlogNewsItem = ({ item, type, formatDate }: NewsItemProps) => {
               <span>
                 {formatDate(type === "news" ? item.published_date : item.created_at)}
               </span>
-              {type === "blog" && item.author && (
+              {type === "blog" && isBlogPost(item) && item.author && (
                 <div className="flex items-center ml-4">
                   <Avatar className="h-6 w-6 mr-2">
-                    <AvatarImage src={item.author?.avatar_url || ''} />
+                    <AvatarImage src={item.author.avatar_url || ''} />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
                   </Avatar>
-                  <span>{item.author?.full_name || 'Anonymous'}</span>
+                  <span>{item.author.full_name || 'Anonymous'}</span>
                 </div>
               )}
             </div>

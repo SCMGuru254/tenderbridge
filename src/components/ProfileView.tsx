@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +52,10 @@ const ProfileViewComponent = () => {
           // Use RPC to call the record_profile_view function
           const { error: viewError } = await supabase.rpc(
             "record_profile_view",
-            { profile_id_param: id, viewer_id_param: user.id }
+            { 
+              profile_id_param: id, 
+              viewer_id_param: user.id 
+            }
           );
           
           if (viewError) {
@@ -66,25 +68,29 @@ const ProfileViewComponent = () => {
           // Use RPC to call the get_profile_views function
           const { data: viewsData, error: viewsError } = await supabase.rpc(
             "get_profile_views",
-            { profile_id_param: id }
+            { 
+              profile_id_param: id 
+            }
           );
           
           if (viewsError) {
             console.error("Error fetching profile views:", viewsError);
           } else {
-            setProfileViews(viewsData as ProfileView[]);
+            setProfileViews(viewsData || []);
           }
           
           // Fetch hiring decisions for this candidate
           const { data: decisionsData, error: decisionsError } = await supabase.rpc(
             "get_hiring_decisions",
-            { candidate_id_param: id }
+            { 
+              candidate_id_param: id 
+            }
           );
           
           if (decisionsError) {
             console.error("Error fetching hiring decisions:", decisionsError);
           } else {
-            setHiringDecisions(decisionsData as HiringDecision[]);
+            setHiringDecisions(decisionsData || []);
           }
         }
         
@@ -128,11 +134,13 @@ const ProfileViewComponent = () => {
       // Refresh hiring decisions list
       const { data: updatedDecisions, error: fetchError } = await supabase.rpc(
         "get_hiring_decisions",
-        { candidate_id_param: profile.id }
+        { 
+          candidate_id_param: profile.id 
+        }
       );
       
       if (!fetchError && updatedDecisions) {
-        setHiringDecisions(updatedDecisions as HiringDecision[]);
+        setHiringDecisions(updatedDecisions);
       }
       
       // Reset form
