@@ -49,58 +49,48 @@ export default function ProfileView() {
     }
   });
   
-  // Fetch profile views
+  // Fetch profile views with a more type-safe approach
   const { data: profileViews } = useQuery<ProfileViewType[]>({
     queryKey: ['profile-views', id],
     enabled: !!id && isCurrentUser,
     queryFn: async () => {
       try {
+        // Using a raw SQL query via RPC is more type-safe
         const { data, error } = await supabase
-          .from('profile_views')
-          .select(`
-            id,
-            profile_id,
-            viewer_id,
-            viewed_at,
-            viewer:profiles(full_name, company, avatar_url)
-          `)
-          .eq('profile_id', id)
-          .order('viewed_at', { ascending: false });
+          .rpc('get_profile_views', { profile_id_param: id })
+          .then(result => {
+            if (result.error) throw result.error;
+            return { data: result.data, error: null };
+          });
           
         if (error) throw error;
-        return data as ProfileViewType[];
+        return data as unknown as ProfileViewType[];
       } catch (error) {
         console.error("Error fetching profile views:", error);
-        throw error;
+        return [];
       }
     }
   });
   
-  // Fetch hiring decisions
+  // Fetch hiring decisions with a more type-safe approach
   const { data: decisions } = useQuery<HiringDecision[]>({
     queryKey: ['hiring-decisions', id],
     enabled: !!id && isCurrentUser,
     queryFn: async () => {
       try {
+        // Using a raw SQL query via RPC is more type-safe
         const { data, error } = await supabase
-          .from('hiring_decisions')
-          .select(`
-            id,
-            employer_id,
-            candidate_id,
-            decision_date,
-            notes,
-            created_at,
-            employer:profiles(full_name, company, avatar_url)
-          `)
-          .eq('candidate_id', id)
-          .order('created_at', { ascending: false });
+          .rpc('get_hiring_decisions', { candidate_id_param: id })
+          .then(result => {
+            if (result.error) throw result.error;
+            return { data: result.data, error: null };
+          });
           
         if (error) throw error;
-        return data as HiringDecision[];
+        return data as unknown as HiringDecision[];
       } catch (error) {
         console.error("Error fetching hiring decisions:", error);
-        throw error;
+        return [];
       }
     }
   });
@@ -125,12 +115,11 @@ export default function ProfileView() {
           if (timeDiff < 3600000) return;
         }
         
-        // Record the view
+        // Record the view using RPC
         const { error } = await supabase
-          .from('profile_views')
-          .insert({
-            profile_id: id,
-            viewer_id: user.id
+          .rpc('record_profile_view', { 
+            profile_id_param: id,
+            viewer_id_param: user.id
           });
           
         if (error) {
@@ -227,13 +216,13 @@ export default function ProfileView() {
         return;
       }
       
+      // Using RPC to handle the hiring decision
       const { error } = await supabase
-        .from('hiring_decisions')
-        .insert({
-          employer_id: user.id,
-          candidate_id: id,
-          decision_date: format(date, 'yyyy-MM-dd'),
-          notes: message
+        .rpc('record_hiring_decision', {
+          employer_id_param: user.id,
+          candidate_id_param: id,
+          decision_date_param: format(date, 'yyyy-MM-dd'),
+          notes_param: message
         });
         
       if (error) throw error;
