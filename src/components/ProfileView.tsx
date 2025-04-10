@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,7 +67,7 @@ const ProfileViewComponent = () => {
         setProfile(profileData);
         
         if (user && user.id !== id) {
-          const { error: viewError } = await supabase.rpc<void, RecordProfileViewParams>(
+          const { error: viewError } = await supabase.rpc(
             "record_profile_view",
             { 
               profile_id_param: id, 
@@ -82,7 +81,7 @@ const ProfileViewComponent = () => {
         }
         
         if (user && user.id === id) {
-          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[], GetProfileViewsParams>(
+          const { data: viewsData, error: viewsError } = await supabase.rpc<ProfileView[]>(
             "get_profile_views",
             { 
               profile_id_param: id 
@@ -95,7 +94,7 @@ const ProfileViewComponent = () => {
             setProfileViews(viewsData || []);
           }
           
-          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
+          const { data: decisionsData, error: decisionsError } = await supabase.rpc<HiringDecision[]>(
             "get_hiring_decisions",
             { 
               candidate_id_param: id 
@@ -128,7 +127,7 @@ const ProfileViewComponent = () => {
     if (!user || !profile) return;
     
     try {
-      const { error } = await supabase.rpc<void, RecordHiringDecisionParams>(
+      const { error } = await supabase.rpc(
         "record_hiring_decision",
         { 
           employer_id_param: user.id,
@@ -145,7 +144,7 @@ const ProfileViewComponent = () => {
         description: "Your hiring decision has been recorded and the candidate will be notified.",
       });
       
-      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
+      const { data: updatedDecisions, error: fetchError } = await supabase.rpc<HiringDecision[]>(
         "get_hiring_decisions",
         { 
           candidate_id_param: profile.id 
