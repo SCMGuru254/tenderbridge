@@ -36,7 +36,7 @@ export const fetchProfile = async (id: string): Promise<Profile | null> => {
 export const recordProfileView = async (
   params: RecordProfileViewParams
 ): Promise<void> => {
-  const { error } = await supabase.rpc("record_profile_view", {
+  const { error } = await supabase.rpc<void>("record_profile_view", {
     profile_id_param: params.profile_id_param,
     viewer_id_param: params.viewer_id_param
   });
@@ -46,7 +46,7 @@ export const recordProfileView = async (
 export const getProfileViews = async (
   params: GetProfileViewsParams
 ): Promise<ProfileView[]> => {
-  const { data, error } = await supabase.rpc("get_profile_views", {
+  const { data, error } = await supabase.rpc<ProfileView[]>("get_profile_views", {
     profile_id_param: params.profile_id_param
   });
   
@@ -57,7 +57,7 @@ export const getProfileViews = async (
 export const getHiringDecisions = async (
   params: GetHiringDecisionsParams
 ): Promise<HiringDecision[]> => {
-  const { data, error } = await supabase.rpc("get_hiring_decisions", {
+  const { data, error } = await supabase.rpc<HiringDecision[]>("get_hiring_decisions", {
     candidate_id_param: params.candidate_id_param
   });
   
@@ -68,7 +68,7 @@ export const getHiringDecisions = async (
 export const recordHiringDecision = async (
   params: RecordHiringDecisionParams
 ): Promise<void> => {
-  const { error } = await supabase.rpc("record_hiring_decision", {
+  const { error } = await supabase.rpc<void>("record_hiring_decision", {
     employer_id_param: params.employer_id_param,
     candidate_id_param: params.candidate_id_param,
     decision_date_param: params.decision_date_param,
