@@ -152,8 +152,8 @@ export default function Companies() {
                   )}
                   
                   {company.verification_status && (
-                    <Badge variant={company.verification_status === "verified" ? "success" : 
-                                     company.verification_status === "pending" ? "outline" : "secondary"}>
+                    <Badge variant={company.verification_status === "verified" ? "secondary" : 
+                                    company.verification_status === "pending" ? "outline" : "default"}>
                       {company.verification_status.charAt(0).toUpperCase() + company.verification_status.slice(1)}
                     </Badge>
                   )}
