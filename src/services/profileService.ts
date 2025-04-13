@@ -43,10 +43,7 @@ export const recordProfileView = async (
 export const getProfileViews = async (
   params: GetProfileViewsParams
 ): Promise<ProfileView[]> => {
-  const { data, error } = await supabase.rpc<ProfileView[], GetProfileViewsParams>(
-    "get_profile_views",
-    params
-  );
+  const { data, error } = await supabase.rpc<ProfileView[]>("get_profile_views", params);
   
   if (error) throw error;
   return data || [];
@@ -55,10 +52,7 @@ export const getProfileViews = async (
 export const getHiringDecisions = async (
   params: GetHiringDecisionsParams
 ): Promise<HiringDecision[]> => {
-  const { data, error } = await supabase.rpc<HiringDecision[], GetHiringDecisionsParams>(
-    "get_hiring_decisions",
-    params
-  );
+  const { data, error } = await supabase.rpc<HiringDecision[]>("get_hiring_decisions", params);
   
   if (error) throw error;
   return data || [];
