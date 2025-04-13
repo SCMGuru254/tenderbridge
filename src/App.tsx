@@ -21,6 +21,7 @@ import Faq from "./pages/Faq";
 import Security from "./pages/Security";
 import Profile from "./pages/Profile";
 import JobSeekers from "./pages/JobSeekers";
+import Companies from "./pages/Companies";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +61,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/profile/:id" element={<Profile />} />
                   <Route path="/job-seekers" element={<JobSeekers />} />
+                  <Route path="/companies" element={<Companies />} />
                 </Routes>
               </main>
             </div>
