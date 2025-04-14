@@ -38,10 +38,7 @@ export const recordProfileView = async (
 ): Promise<void> => {
   const { error } = await supabase.rpc(
     "record_profile_view", 
-    {
-      profile_id_param: params.profile_id_param,
-      viewer_id_param: params.viewer_id_param
-    }
+    params
   );
   if (error) throw error;
 };
@@ -51,9 +48,7 @@ export const getProfileViews = async (
 ): Promise<ProfileView[]> => {
   const { data, error } = await supabase.rpc(
     "get_profile_views", 
-    {
-      profile_id_param: params.profile_id_param
-    }
+    params
   );
   
   if (error) throw error;
@@ -65,9 +60,7 @@ export const getHiringDecisions = async (
 ): Promise<HiringDecision[]> => {
   const { data, error } = await supabase.rpc(
     "get_hiring_decisions", 
-    {
-      candidate_id_param: params.candidate_id_param
-    }
+    params
   );
   
   if (error) throw error;
@@ -79,12 +72,7 @@ export const recordHiringDecision = async (
 ): Promise<void> => {
   const { error } = await supabase.rpc(
     "record_hiring_decision", 
-    {
-      employer_id_param: params.employer_id_param,
-      candidate_id_param: params.candidate_id_param,
-      decision_date_param: params.decision_date_param,
-      notes_param: params.notes_param
-    }
+    params
   );
   if (error) throw error;
 };
