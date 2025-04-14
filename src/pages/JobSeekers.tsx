@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -70,7 +69,7 @@ export default function JobSeekers() {
               <SelectValue placeholder="Filter by position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All positions</SelectItem>
+              <SelectItem value="all">All positions</SelectItem>
               {positions.map(position => (
                 <SelectItem key={position} value={position}>{position}</SelectItem>
               ))}

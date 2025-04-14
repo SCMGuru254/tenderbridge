@@ -85,7 +85,7 @@ export default function Companies() {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
               {statuses.map(status => (
                 <SelectItem key={status} value={status}>
                   {status?.charAt(0).toUpperCase() + status?.slice(1)}
