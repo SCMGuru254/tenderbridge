@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, MessageSquare, Calendar, ArrowUpRight } from "lucide-react";
+import { Loader2, MessageSquare, Calendar, ArrowUpRight, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
