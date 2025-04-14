@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Search, Building, MapPin, Globe, ArrowUpRight } from "lucide-react";
+import { Search, Building, MapPin, Globe, ArrowUpRight, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -67,7 +67,12 @@ export default function Companies() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-2xl font-bold">Companies</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Companies</h1>
+          <p className="text-muted-foreground mt-1">
+            Discover supply chain companies and explore their profiles
+          </p>
+        </div>
         
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
           <div className="relative flex-1">
@@ -93,6 +98,20 @@ export default function Companies() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-500 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-blue-700">About the Companies Directory</h3>
+            <p className="text-sm text-blue-600">
+              Browse through verified supply chain companies. Connect with potential partners, 
+              find job opportunities, and stay updated with companies in the supply chain industry. 
+              Company profiles include contact information, location details, and verification status.
+            </p>
+          </div>
         </div>
       </div>
       
