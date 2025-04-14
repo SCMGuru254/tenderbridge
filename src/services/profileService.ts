@@ -36,9 +36,9 @@ export const fetchProfile = async (id: string): Promise<Profile | null> => {
 export const recordProfileView = async (
   params: RecordProfileViewParams
 ): Promise<void> => {
-  const { error } = await supabase.rpc(
+  const { error } = await supabase.functions.invoke(
     "record_profile_view", 
-    params
+    { body: params }
   );
   if (error) throw error;
 };
@@ -46,33 +46,33 @@ export const recordProfileView = async (
 export const getProfileViews = async (
   params: GetProfileViewsParams
 ): Promise<ProfileView[]> => {
-  const { data, error } = await supabase.rpc(
+  const { data, error } = await supabase.functions.invoke(
     "get_profile_views", 
-    params
+    { body: params }
   );
   
   if (error) throw error;
-  return data as ProfileView[] || [];
+  return (data as ProfileView[]) || [];
 };
 
 export const getHiringDecisions = async (
   params: GetHiringDecisionsParams
 ): Promise<HiringDecision[]> => {
-  const { data, error } = await supabase.rpc(
+  const { data, error } = await supabase.functions.invoke(
     "get_hiring_decisions", 
-    params
+    { body: params }
   );
   
   if (error) throw error;
-  return data as HiringDecision[] || [];
+  return (data as HiringDecision[]) || [];
 };
 
 export const recordHiringDecision = async (
   params: RecordHiringDecisionParams
 ): Promise<void> => {
-  const { error } = await supabase.rpc(
+  const { error } = await supabase.functions.invoke(
     "record_hiring_decision", 
-    params
+    { body: params }
   );
   if (error) throw error;
 };
