@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -17,6 +16,7 @@ const newsSources = [
   {
     name: "Supply Chain Digital",
     url: "https://www.supplychaindigital.com/articles",
+    type: "html",
     articleSelector: ".article-card",
     titleSelector: ".article-card__title",
     summarySelector: ".article-card__description",
@@ -26,6 +26,7 @@ const newsSources = [
   {
     name: "Supply Chain Brain",
     url: "https://www.supplychainbrain.com/articles/topic/1293-global",
+    type: "html",
     articleSelector: ".node-article",
     titleSelector: "h2",
     summarySelector: ".node-summary",
@@ -33,18 +34,30 @@ const newsSources = [
     linkSelector: "a",
   },
   {
+    name: "Supply Chain Brain RSS",
+    url: "https://www.supplychainbrain.com/rss/articles",
+    type: "rss",
+  },
+  {
+    name: "Supply Chain 247 RSS",
+    url: "https://www.supplychain247.com/rss",
+    type: "rss",
+  },
+  {
     name: "Logistics Management",
     url: "https://www.logisticsmgmt.com/topic/category/global_logistics",
+    type: "html",
     articleSelector: ".article",
     titleSelector: "h2",
     summarySelector: ".deck",
     imageSelector: ".thumbnail img",
     linkSelector: "a",
   },
-  // Adding African-focused supply chain news sources
+  // African-focused supply chain news sources
   {
     name: "How We Made It In Africa",
     url: "https://www.howwemadeitinafrica.com/category/sectors/logistics-supply-chain/",
+    type: "html",
     articleSelector: ".post",
     titleSelector: ".entry-title",
     summarySelector: ".entry-summary",
@@ -54,6 +67,7 @@ const newsSources = [
   {
     name: "African Business",
     url: "https://african.business/category/sectors/trade-logistics/",
+    type: "html",
     articleSelector: ".article-card",
     titleSelector: ".article-card__title",
     summarySelector: ".article-card__excerpt",
@@ -78,13 +92,105 @@ async function scrapeNews(source) {
     }
     
     const html = await response.text();
-    console.log(`Received HTML from ${source.name}, length: ${html.length} chars`);
+    console.log(`Received content from ${source.name}, length: ${html.length} chars`);
     
     if (html.length < 1000) {
-      console.warn(`Suspiciously short HTML from ${source.name}, might be blocked or rate-limited`);
+      console.warn(`Suspiciously short content from ${source.name}, might be blocked or rate-limited`);
     }
     
-    // Use regex with better article extraction
+    // Handle different content types
+    if (source.type === "rss") {
+      return parseRSSFeed(html, source.name);
+    } else {
+      return parseHTMLContent(html, source);
+    }
+  } catch (error) {
+    console.error(`Error scraping ${source.name}:`, error);
+    return [];
+  }
+}
+
+// Parse RSS feed content
+function parseRSSFeed(xmlContent, sourceName) {
+  try {
+    console.log(`Parsing RSS feed from ${sourceName}`);
+    const articles = [];
+    
+    // Extract items using regex for RSS feeds
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+    let count = 0;
+    const maxItems = 40; // Limit to 40 items as requested
+    
+    while ((match = itemRegex.exec(xmlContent)) !== null && count < maxItems) {
+      const itemContent = match[1];
+      
+      // Extract title
+      const titleMatch = /<title>(.*?)<\/title>/i.exec(itemContent);
+      const title = titleMatch ? cleanHtml(titleMatch[1]) : null;
+      
+      // Extract description/content
+      const descMatch = /<description>([\s\S]*?)<\/description>/i.exec(itemContent);
+      const content = descMatch ? cleanHtml(descMatch[1]) : null;
+      
+      // Extract link
+      const linkMatch = /<link>(.*?)<\/link>/i.exec(itemContent);
+      const articleUrl = linkMatch ? linkMatch[1].trim() : null;
+      
+      // Extract publication date
+      const pubDateMatch = /<pubDate>(.*?)<\/pubDate>/i.exec(itemContent);
+      let pubDate = pubDateMatch ? pubDateMatch[1].trim() : null;
+      
+      // Check if the news is within the last 3 days
+      if (pubDate) {
+        const pubDateTime = new Date(pubDate).getTime();
+        const threeDaysAgo = new Date().getTime() - (3 * 24 * 60 * 60 * 1000);
+        
+        if (pubDateTime < threeDaysAgo) {
+          console.log(`Skipping older news item: ${title}`);
+          continue; // Skip items older than 3 days
+        }
+      } else {
+        pubDate = new Date().toISOString();
+      }
+      
+      // Extract image URL
+      let imageUrl = null;
+      // Try to find image in content or media tags
+      const mediaMatch = /<media:content[^>]*url="([^"]*)"[^>]*>/i.exec(itemContent);
+      const imageMatch = /<img[^>]*src="([^"]*)"[^>]*>/i.exec(content || "");
+      if (mediaMatch) {
+        imageUrl = mediaMatch[1];
+      } else if (imageMatch) {
+        imageUrl = imageMatch[1];
+      }
+      
+      // Only add if we have at least a title
+      if (title && title.length > 3) {
+        articles.push({
+          title,
+          content: content || "No description available",
+          source_name: sourceName,
+          source_url: articleUrl,
+          published_date: pubDate,
+          image_url: imageUrl,
+          tags: extractTags(title + " " + (content || ""))
+        });
+        count++;
+      }
+    }
+    
+    console.log(`Parsed ${articles.length} articles from RSS feed ${sourceName}`);
+    return articles;
+  } catch (error) {
+    console.error(`Error parsing RSS feed from ${sourceName}:`, error);
+    return [];
+  }
+}
+
+// Parse HTML content from websites
+function parseHTMLContent(html, source) {
+  try {
     const articles = [];
     const regex = new RegExp(`<([^>]*)class=["']([^"']*)${source.articleSelector.replace(/\./g, "")}([^"']*)["']([^>]*)>`, 'g');
     
@@ -135,8 +241,9 @@ async function scrapeNews(source) {
     
     console.log(`Found ${articleMatches.length} article matches from ${source.name}`);
     
-    // Process only the first 5 articles to avoid overwhelming the system
-    for (let i = 0; i < Math.min(articleMatches.length, 5); i++) {
+    // Process only the first 40 articles for each source
+    const maxItems = 40;
+    for (let i = 0; i < Math.min(articleMatches.length, maxItems); i++) {
       const articleHtml = articleMatches[i];
       
       // Extract title
@@ -172,6 +279,9 @@ async function scrapeNews(source) {
         imageUrl = `${sourceUrl.protocol}//${sourceUrl.host}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
       }
       
+      // Set a default publication date (current time)
+      const pubDate = new Date().toISOString();
+      
       // Only add if we have at least a title and valid content
       if (title && title !== "No title available" && title.length > 3) {
         articles.push({
@@ -179,7 +289,7 @@ async function scrapeNews(source) {
           content: summary,
           source_name: source.name,
           source_url: articleUrl,
-          published_date: new Date().toISOString(),
+          published_date: pubDate,
           image_url: imageUrl,
           tags: extractTags(title + " " + summary)
         });
@@ -188,13 +298,15 @@ async function scrapeNews(source) {
     
     return articles;
   } catch (error) {
-    console.error(`Error scraping ${source.name}:`, error);
+    console.error(`Error parsing HTML from ${source.name}:`, error);
     return [];
   }
 }
 
 function cleanHtml(text) {
   return text
+    .replace(/<!\[CDATA\[/g, '') // Remove CDATA markers
+    .replace(/\]\]>/g, '')
     .replace(/<[^>]*>/g, '') // Remove HTML tags
     .replace(/&nbsp;/g, ' ') // Replace &nbsp; with spaces
     .replace(/&amp;/g, '&') // Replace &amp; with &
@@ -312,27 +424,44 @@ serve(async (req) => {
     }
 
     console.log(`Total scraped: ${allNews.length} news articles`);
+    
+    // Filter to keep only articles from the last 3 days
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const filteredNews = allNews.filter(article => {
+      try {
+        const pubDate = new Date(article.published_date);
+        return pubDate >= threeDaysAgo;
+      } catch (e) {
+        // If we can't parse the date, keep the article
+        return true;
+      }
+    });
+    
+    console.log(`Filtered to ${filteredNews.length} articles from the last 3 days`);
+
+    // Limit to 40 most recent articles
+    const limitedNews = filteredNews.sort((a, b) => {
+      return new Date(b.published_date).getTime() - new Date(a.published_date).getTime();
+    }).slice(0, 40);
+    
+    console.log(`Limited to ${limitedNews.length} most recent articles`);
+
+    // Clear existing news before inserting new ones
+    const { error: deleteError } = await supabase
+      .from("supply_chain_news")
+      .delete()
+      .neq("id", 0); // Delete all records
+      
+    if (deleteError) {
+      console.error("Error clearing existing news:", deleteError);
+    } else {
+      console.log("Successfully cleared existing news");
+    }
 
     // Store in database
     let successCount = 0;
-    for (const article of allNews) {
-      // Check if a similar article already exists to avoid duplicates
-      const { data: existingArticles, error: checkError } = await supabase
-        .from("supply_chain_news")
-        .select("id")
-        .eq("title", article.title)
-        .limit(1);
-        
-      if (checkError) {
-        console.error("Error checking for existing article:", checkError);
-        continue;
-      }
-      
-      if (existingArticles && existingArticles.length > 0) {
-        console.log(`Article "${article.title}" already exists, skipping`);
-        continue;
-      }
-      
+    for (const article of limitedNews) {
       const { error } = await supabase
         .from("supply_chain_news")
         .insert({
@@ -358,7 +487,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: `Successfully scraped and stored ${successCount} news articles`,
-        totalFound: allNews.length
+        totalFound: allNews.length,
+        totalFiltered: filteredNews.length,
+        totalStored: successCount
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

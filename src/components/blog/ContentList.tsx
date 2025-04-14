@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isAfter, subDays } from "date-fns";
 import { BlogNewsItem } from "./BlogNewsItem";
 
 interface NewsItem {
@@ -87,17 +87,37 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     }
   });
 
+  // Calculate date 3 days ago for filtering
+  const threeDaysAgo = subDays(new Date(), 3);
+
   const filteredContent = activeTab === "news" 
-    ? news?.filter(item =>
-        (item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedTags.length === 0 || // No tags selected, show all
-         (item.tags && selectedTags.some(tag => item.tags?.includes(tag))))
-      )
+    ? news?.filter(item => {
+        // Check if the item matches the search term and tags
+        const matchesSearch = !searchTerm || 
+          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.content.toLowerCase().includes(searchTerm.toLowerCase());
+          
+        const matchesTags = selectedTags.length === 0 || 
+          (item.tags && selectedTags.some(tag => item.tags?.includes(tag)));
+        
+        // Check if the item is from the last 3 days
+        let isRecent = true;
+        if (item.published_date) {
+          try {
+            const pubDate = parseISO(item.published_date);
+            isRecent = isAfter(pubDate, threeDaysAgo);
+          } catch (e) {
+            // If date parsing fails, include the item
+            console.error("Error parsing date:", e);
+          }
+        }
+        
+        return matchesSearch && matchesTags && isRecent;
+      })
     : blogPostsData?.filter(post =>
         (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedTags.length === 0 || // No tags selected, show all
+        (selectedTags.length === 0 || 
          (post.tags && selectedTags.some(tag => post.tags?.includes(tag))))
       );
 
