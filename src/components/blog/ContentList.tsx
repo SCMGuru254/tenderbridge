@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, MessageSquare, InfoCircle } from "lucide-react";
+import { Loader2, MessageSquare, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, isAfter, subDays, differenceInDays, addMonths } from "date-fns";
 import { BlogNewsItem } from "./BlogNewsItem";
@@ -53,7 +53,7 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
       })) as NewsItem[];
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    cacheTime: 1000 * 60 * 15 // Keep in cache for 15 minutes
+    gcTime: 1000 * 60 * 15 // Keep in cache for 15 minutes (replacing cacheTime)
   });
 
   const { data: blogPostsData = [], isLoading: blogLoading } = useQuery({
@@ -198,7 +198,7 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     <div className="grid gap-6">
       {activeTab === "blog" && (
         <Alert variant="default" className="bg-amber-50 border-amber-200">
-          <InfoCircle className="h-4 w-4 text-amber-600" />
+          <Info className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-700">
             Community posts are available for 30 days from the date of posting and will be automatically removed afterward.
           </AlertDescription>
