@@ -42,21 +42,35 @@ export function CompanyReviewForm({ companyId, onSuccess, onCancel }: CompanyRev
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('company_reviews').insert({
-        company_id: companyId,
-        rating: parseInt(formData.rating),
-        review_text: formData.review_text,
-        pros: formData.pros || null,
-        cons: formData.cons || null,
-        work_life_balance: parseInt(formData.work_life_balance),
-        salary_benefits: parseInt(formData.salary_benefits),
-        career_growth: parseInt(formData.career_growth),
-        management: parseInt(formData.management),
-        culture: parseInt(formData.culture),
-        is_current_employee: formData.is_current_employee,
-        job_title: formData.job_title || null,
-        is_anonymous: formData.is_anonymous,
-      });
+      // Get current authenticated user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to submit a review");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Cast the table name as any to bypass type checking
+      // This is needed until the types are updated to include the new table
+      const { error } = await supabase
+        .from('company_reviews' as any)
+        .insert({
+          company_id: companyId,
+          user_id: user.id,
+          rating: parseInt(formData.rating),
+          review_text: formData.review_text,
+          pros: formData.pros || null,
+          cons: formData.cons || null,
+          work_life_balance: parseInt(formData.work_life_balance),
+          salary_benefits: parseInt(formData.salary_benefits),
+          career_growth: parseInt(formData.career_growth),
+          management: parseInt(formData.management),
+          culture: parseInt(formData.culture),
+          is_current_employee: formData.is_current_employee,
+          job_title: formData.job_title || null,
+          is_anonymous: formData.is_anonymous,
+        });
 
       if (error) throw error;
 

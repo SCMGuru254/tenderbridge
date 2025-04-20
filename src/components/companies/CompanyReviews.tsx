@@ -13,20 +13,22 @@ import {
 } from "@/components/ui/dialog";
 import { CompanyReviewForm } from "./CompanyReviewForm";
 
+// Define the interface for company reviews
 interface CompanyReview {
   id: string;
   company_id: string;
+  user_id: string;
   rating: number;
   review_text: string;
-  pros?: string;
-  cons?: string;
+  pros?: string | null;
+  cons?: string | null;
   work_life_balance: number;
   salary_benefits: number;
   career_growth: number;
   management: number;
   culture: number;
   is_current_employee: boolean;
-  job_title?: string;
+  job_title?: string | null;
   created_at: string;
   is_anonymous: boolean;
 }
@@ -39,8 +41,10 @@ export function CompanyReviews({ companyId }: CompanyReviewsProps) {
   const { data: reviews, refetch } = useQuery({
     queryKey: ['company-reviews', companyId],
     queryFn: async () => {
+      // Cast the table name as any to bypass type checking
+      // This is needed until the types are updated to include the new table
       const { data, error } = await supabase
-        .from('company_reviews')
+        .from('company_reviews' as any)
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
