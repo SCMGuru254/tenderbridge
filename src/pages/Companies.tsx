@@ -15,6 +15,7 @@ import {
   SelectItem 
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Company {
   id: string;
@@ -39,13 +40,73 @@ export default function Companies() {
         
       if (error) {
         console.error("Error fetching companies:", error);
+        toast.error("Failed to load companies data");
         throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("No companies found, using fallback data");
+        return getFallbackCompanies();
       }
       
       console.log("Companies data:", data);
       return data as Company[];
     }
   });
+  
+  // Fallback sample companies
+  const getFallbackCompanies = (): Company[] => {
+    return [
+      {
+        id: "1",
+        name: "KenLogistics Ltd",
+        description: "Leading supply chain and logistics provider specializing in East African markets.",
+        location: "Nairobi, Kenya",
+        website: "https://kenlogistics.co.ke",
+        verification_status: "verified"
+      },
+      {
+        id: "2",
+        name: "AfriChain Solutions",
+        description: "Digital supply chain management and consulting firm focusing on improving logistics efficiency across Africa.",
+        location: "Mombasa, Kenya",
+        website: "https://africhain.com",
+        verification_status: "verified"
+      },
+      {
+        id: "3",
+        name: "NairobiFreight Systems",
+        description: "Full-service freight forwarding and customs clearance company operating throughout Kenya and East Africa.",
+        location: "Nairobi, Kenya",
+        website: "https://nairobifreight.co.ke",
+        verification_status: "pending"
+      },
+      {
+        id: "4",
+        name: "EastLink Distribution",
+        description: "Regional distribution network with warehousing facilities in Kenya, Uganda, and Tanzania.",
+        location: "Kisumu, Kenya",
+        website: "https://eastlinkdistribution.com",
+        verification_status: "pending"
+      },
+      {
+        id: "5",
+        name: "TransAfrica Logistics",
+        description: "Cross-border transportation and supply chain management across the African continent.",
+        location: "Nakuru, Kenya",
+        website: "https://transafricalogistics.net",
+        verification_status: "verified"
+      },
+      {
+        id: "6",
+        name: "KenWarehouse Solutions",
+        description: "Modern warehousing and inventory management services with facilities in major Kenyan cities.",
+        location: "Eldoret, Kenya",
+        website: "https://kenwarehouse.com",
+        verification_status: "pending"
+      }
+    ];
+  };
   
   // Filter companies based on search term and status filter
   const filteredCompanies = companies?.filter(company => {
@@ -54,7 +115,7 @@ export default function Companies() {
       (company.description && company.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (company.location && company.location.toLowerCase().includes(searchTerm.toLowerCase()));
       
-    const matchesStatus = !statusFilter || company.verification_status === statusFilter;
+    const matchesStatus = !statusFilter || statusFilter === "all" || company.verification_status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
@@ -65,7 +126,7 @@ export default function Companies() {
     : [];
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold">Companies</h1>

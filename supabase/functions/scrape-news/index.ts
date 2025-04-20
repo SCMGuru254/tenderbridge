@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -91,18 +92,18 @@ async function scrapeNews(source) {
       return [];
     }
     
-    const html = await response.text();
-    console.log(`Received content from ${source.name}, length: ${html.length} chars`);
+    const content = await response.text();
+    console.log(`Received content from ${source.name}, length: ${content.length} chars`);
     
-    if (html.length < 1000) {
+    if (content.length < 1000) {
       console.warn(`Suspiciously short content from ${source.name}, might be blocked or rate-limited`);
     }
     
     // Handle different content types
     if (source.type === "rss") {
-      return parseRSSFeed(html, source.name);
+      return parseRSSFeed(content, source.name);
     } else {
-      return parseHTMLContent(html, source);
+      return parseHTMLContent(content, source);
     }
   } catch (error) {
     console.error(`Error scraping ${source.name}:`, error);
@@ -110,7 +111,7 @@ async function scrapeNews(source) {
   }
 }
 
-// Parse RSS feed content
+// Parse RSS feed content without external libraries
 function parseRSSFeed(xmlContent, sourceName) {
   try {
     console.log(`Parsing RSS feed from ${sourceName}`);
@@ -120,7 +121,7 @@ function parseRSSFeed(xmlContent, sourceName) {
     const itemRegex = /<item>([\s\S]*?)<\/item>/g;
     let match;
     let count = 0;
-    const maxItems = 40; // Limit to 40 items as requested
+    const maxItems = 40; // Limit to 40 items
     
     while ((match = itemRegex.exec(xmlContent)) !== null && count < maxItems) {
       const itemContent = match[1];
@@ -139,28 +140,40 @@ function parseRSSFeed(xmlContent, sourceName) {
       
       // Extract publication date
       const pubDateMatch = /<pubDate>(.*?)<\/pubDate>/i.exec(itemContent);
-      let pubDate = pubDateMatch ? pubDateMatch[1].trim() : null;
+      let pubDate = pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString();
+      
+      // Try to parse the date
+      try {
+        const date = new Date(pubDate);
+        if (!isNaN(date.getTime())) {
+          pubDate = date.toISOString();
+        } else {
+          pubDate = new Date().toISOString();
+        }
+      } catch (e) {
+        pubDate = new Date().toISOString();
+      }
       
       // Check if the news is within the last 3 days
-      if (pubDate) {
-        const pubDateTime = new Date(pubDate).getTime();
-        const threeDaysAgo = new Date().getTime() - (3 * 24 * 60 * 60 * 1000);
-        
-        if (pubDateTime < threeDaysAgo) {
-          console.log(`Skipping older news item: ${title}`);
-          continue; // Skip items older than 3 days
-        }
-      } else {
-        pubDate = new Date().toISOString();
+      const pubDateTime = new Date(pubDate).getTime();
+      const threeDaysAgo = new Date().getTime() - (3 * 24 * 60 * 60 * 1000);
+      
+      if (pubDateTime < threeDaysAgo) {
+        console.log(`Skipping older news item: ${title}`);
+        continue; // Skip items older than 3 days
       }
       
       // Extract image URL
       let imageUrl = null;
       // Try to find image in content or media tags
-      const mediaMatch = /<media:content[^>]*url="([^"]*)"[^>]*>/i.exec(itemContent);
+      const mediaContentMatch = /<media:content[^>]*url="([^"]*)"[^>]*>/i.exec(itemContent);
+      const enclosureMatch = /<enclosure[^>]*url="([^"]*)"[^>]*>/i.exec(itemContent);
       const imageMatch = /<img[^>]*src="([^"]*)"[^>]*>/i.exec(content || "");
-      if (mediaMatch) {
-        imageUrl = mediaMatch[1];
+      
+      if (mediaContentMatch) {
+        imageUrl = mediaContentMatch[1];
+      } else if (enclosureMatch) {
+        imageUrl = enclosureMatch[1];
       } else if (imageMatch) {
         imageUrl = imageMatch[1];
       }
@@ -279,7 +292,7 @@ function parseHTMLContent(html, source) {
         imageUrl = `${sourceUrl.protocol}//${sourceUrl.host}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
       }
       
-      // Set a default publication date (current time)
+      // Set the publication date
       const pubDate = new Date().toISOString();
       
       // Only add if we have at least a title and valid content
@@ -304,6 +317,7 @@ function parseHTMLContent(html, source) {
 }
 
 function cleanHtml(text) {
+  if (!text) return "";
   return text
     .replace(/<!\[CDATA\[/g, '') // Remove CDATA markers
     .replace(/\]\]>/g, '')
@@ -391,6 +405,20 @@ async function getFallbackNews() {
       tags: ["Trade", "East Africa", "Policy", "Resilience", "Supply Chain"]
     },
   ];
+}
+
+// Create a cron job configuration for the project
+async function setupCronJob() {
+  try {
+    const { data, error } = await supabase.rpc('setup_news_refresh_cron');
+    if (error) {
+      console.error("Failed to setup cron job:", error);
+    } else {
+      console.log("Successfully setup cron job:", data);
+    }
+  } catch (e) {
+    console.error("Error setting up cron job:", e);
+  }
 }
 
 serve(async (req) => {
@@ -482,6 +510,9 @@ serve(async (req) => {
         console.error("Error storing article:", error);
       }
     }
+
+    // Try to setup the cron job to run daily
+    await setupCronJob();
 
     return new Response(
       JSON.stringify({

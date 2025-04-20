@@ -13,6 +13,7 @@ import { ContentList } from "@/components/blog/ContentList";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { CreatePostDialog } from "@/components/blog/CreatePostDialog";
 import { TenderzvilleNewsList } from "@/components/blog/TenderzvilleNewsList";
+import { CronJobSetup } from "@/components/blog/CronJobSetup";
 
 const supplyChainTags = [
   "Logistics", "Procurement", "Inventory", "Warehousing", "Transportation",
@@ -61,6 +62,9 @@ const Blog = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 animate-fade-in">
+      {/* Invisible component to setup cron jobs */}
+      <CronJobSetup />
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Supply Chain Insights</h1>

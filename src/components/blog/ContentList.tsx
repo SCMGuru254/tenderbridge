@@ -1,10 +1,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare, InfoCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format, parseISO, isAfter, subDays } from "date-fns";
+import { format, parseISO, isAfter, subDays, differenceInDays, addMonths } from "date-fns";
 import { BlogNewsItem } from "./BlogNewsItem";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface NewsItem {
   id: string;
@@ -50,7 +51,9 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
         content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
         tags: item.tags || []
       })) as NewsItem[];
-    }
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 15 // Keep in cache for 15 minutes
   });
 
   const { data: blogPostsData = [], isLoading: blogLoading } = useQuery({
@@ -87,8 +90,9 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     }
   });
 
-  // Calculate date 3 days ago for filtering
-  const threeDaysAgo = subDays(new Date(), 3);
+  // Calculate date thresholds
+  const threeDaysAgo = subDays(new Date(), 3); // For news
+  const oneMonthAgo = subDays(new Date(), 30); // For blog posts
 
   const filteredContent = activeTab === "news" 
     ? news?.filter(item => {
@@ -100,26 +104,32 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
         const matchesTags = selectedTags.length === 0 || 
           (item.tags && selectedTags.some(tag => item.tags?.includes(tag)));
         
-        // Check if the item is from the last 3 days
-        let isRecent = true;
+        // Only include items from the last 3 days
+        let isRecent = false;
         if (item.published_date) {
           try {
             const pubDate = parseISO(item.published_date);
             isRecent = isAfter(pubDate, threeDaysAgo);
           } catch (e) {
-            // If date parsing fails, include the item
             console.error("Error parsing date:", e);
           }
         }
         
         return matchesSearch && matchesTags && isRecent;
       })
-    : blogPostsData?.filter(post =>
-        (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedTags.length === 0 || 
-         (post.tags && selectedTags.some(tag => post.tags?.includes(tag))))
-      );
+    : blogPostsData?.filter(post => {
+        const matchesSearch = 
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.content.toLowerCase().includes(searchTerm.toLowerCase());
+          
+        const matchesTags = selectedTags.length === 0 || 
+          (post.tags && selectedTags.some(tag => post.tags?.includes(tag)));
+        
+        // Check if the post is less than a month old
+        const isWithinMonth = isAfter(parseISO(post.created_at), oneMonthAgo);
+        
+        return matchesSearch && matchesTags && isWithinMonth;
+      });
 
   const formatDate = (dateString) => {
     try {
@@ -130,6 +140,27 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
     } catch (error) {
       console.error('Error formatting date:', error, dateString);
       return 'Invalid date';
+    }
+  };
+
+  const getExpiryDate = (createdAt) => {
+    try {
+      const date = parseISO(createdAt);
+      const expiryDate = addMonths(date, 1);
+      return format(expiryDate, 'MMMM d, yyyy');
+    } catch (error) {
+      return 'Unknown';
+    }
+  };
+
+  const getDaysRemaining = (createdAt) => {
+    try {
+      const date = parseISO(createdAt);
+      const expiryDate = addMonths(date, 1);
+      const daysLeft = differenceInDays(expiryDate, new Date());
+      return daysLeft > 0 ? daysLeft : 0;
+    } catch (error) {
+      return 0;
     }
   };
 
@@ -146,14 +177,18 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
       <div className="text-center text-gray-500 py-12 bg-gray-50 rounded-lg">
         <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
         <h3 className="text-xl font-medium mb-2">No content found</h3>
-        <p className="mb-6">Be the first to contribute to our community knowledge base</p>
-        {activeTab === "blog" && (
-          <Button 
-            onClick={handleCreatePost}
-            className="bg-primary hover:bg-primary/90"
-          >
-            Write a Blog Post
-          </Button>
+        {activeTab === "news" ? (
+          <p className="mb-6">Supply chain news are updated daily and only show items from the last 3 days</p>
+        ) : (
+          <>
+            <p className="mb-6">Be the first to contribute to our community knowledge base</p>
+            <Button 
+              onClick={handleCreatePost}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Write a Blog Post
+            </Button>
+          </>
         )}
       </div>
     );
@@ -161,13 +196,28 @@ export const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreateP
 
   return (
     <div className="grid gap-6">
+      {activeTab === "blog" && (
+        <Alert variant="default" className="bg-amber-50 border-amber-200">
+          <InfoCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-700">
+            Community posts are available for 30 days from the date of posting and will be automatically removed afterward.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {filteredContent?.map((item) => (
-        <BlogNewsItem 
-          key={item.id}
-          item={item}
-          type={activeTab as "news" | "blog"}
-          formatDate={formatDate}
-        />
+        <div key={item.id} className="relative">
+          {activeTab === "blog" && (
+            <div className="absolute top-2 right-2 z-10 bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">
+              {getDaysRemaining(item.created_at)} days left
+            </div>
+          )}
+          <BlogNewsItem 
+            item={item}
+            type={activeTab as "news" | "blog"}
+            formatDate={formatDate}
+          />
+        </div>
       ))}
     </div>
   );
