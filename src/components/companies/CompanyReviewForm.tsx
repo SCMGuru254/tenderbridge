@@ -33,7 +33,6 @@ export function CompanyReviewForm({ companyId, onSuccess, onCancel }: CompanyRev
     management: "",
     culture: "",
     is_current_employee: false,
-    employment_status: "",
     job_title: "",
     is_anonymous: false,
   });
@@ -44,14 +43,19 @@ export function CompanyReviewForm({ companyId, onSuccess, onCancel }: CompanyRev
 
     try {
       const { error } = await supabase.from('company_reviews').insert({
-        ...formData,
         company_id: companyId,
         rating: parseInt(formData.rating),
+        review_text: formData.review_text,
+        pros: formData.pros || null,
+        cons: formData.cons || null,
         work_life_balance: parseInt(formData.work_life_balance),
         salary_benefits: parseInt(formData.salary_benefits),
         career_growth: parseInt(formData.career_growth),
         management: parseInt(formData.management),
         culture: parseInt(formData.culture),
+        is_current_employee: formData.is_current_employee,
+        job_title: formData.job_title || null,
+        is_anonymous: formData.is_anonymous,
       });
 
       if (error) throw error;

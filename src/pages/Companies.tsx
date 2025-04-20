@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CompanyCard } from "@/components/companies/CompanyCard";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export interface Company {
   id: string;
