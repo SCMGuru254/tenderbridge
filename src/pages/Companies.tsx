@@ -30,7 +30,7 @@ export default function Companies() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   
-  const { data: companies, isLoading } = useQuery({
+  const { data: companies, isLoading, error } = useQuery({
     queryKey: ['companies'],
     queryFn: async () => {
       console.log("Fetching companies...");
@@ -44,69 +44,10 @@ export default function Companies() {
         throw error;
       }
       
-      if (!data || data.length === 0) {
-        console.log("No companies found, using fallback data");
-        return getFallbackCompanies();
-      }
-      
       console.log("Companies data:", data);
       return data as Company[];
     }
   });
-  
-  // Fallback sample companies
-  const getFallbackCompanies = (): Company[] => {
-    return [
-      {
-        id: "1",
-        name: "KenLogistics Ltd",
-        description: "Leading supply chain and logistics provider specializing in East African markets.",
-        location: "Nairobi, Kenya",
-        website: "https://kenlogistics.co.ke",
-        verification_status: "verified"
-      },
-      {
-        id: "2",
-        name: "AfriChain Solutions",
-        description: "Digital supply chain management and consulting firm focusing on improving logistics efficiency across Africa.",
-        location: "Mombasa, Kenya",
-        website: "https://africhain.com",
-        verification_status: "verified"
-      },
-      {
-        id: "3",
-        name: "NairobiFreight Systems",
-        description: "Full-service freight forwarding and customs clearance company operating throughout Kenya and East Africa.",
-        location: "Nairobi, Kenya",
-        website: "https://nairobifreight.co.ke",
-        verification_status: "pending"
-      },
-      {
-        id: "4",
-        name: "EastLink Distribution",
-        description: "Regional distribution network with warehousing facilities in Kenya, Uganda, and Tanzania.",
-        location: "Kisumu, Kenya",
-        website: "https://eastlinkdistribution.com",
-        verification_status: "pending"
-      },
-      {
-        id: "5",
-        name: "TransAfrica Logistics",
-        description: "Cross-border transportation and supply chain management across the African continent.",
-        location: "Nakuru, Kenya",
-        website: "https://transafricalogistics.net",
-        verification_status: "verified"
-      },
-      {
-        id: "6",
-        name: "KenWarehouse Solutions",
-        description: "Modern warehousing and inventory management services with facilities in major Kenyan cities.",
-        location: "Eldoret, Kenya",
-        website: "https://kenwarehouse.com",
-        verification_status: "pending"
-      }
-    ];
-  };
   
   // Filter companies based on search term and status filter
   const filteredCompanies = companies?.filter(company => {
@@ -170,7 +111,7 @@ export default function Companies() {
             <p className="text-sm text-blue-600">
               Browse through verified supply chain companies. Connect with potential partners, 
               find job opportunities, and stay updated with companies in the supply chain industry. 
-              Company profiles include contact information, location details, and verification status.
+              Company profiles include contact information, location details, and reviews from current and former employees.
             </p>
           </div>
         </div>
@@ -196,6 +137,21 @@ export default function Companies() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+          <h3 className="mt-4 text-lg font-medium">Error loading companies</h3>
+          <p className="text-muted-foreground mt-2">
+            We couldn't load the companies data. Please try again later.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline" 
+            className="mt-4"
+          >
+            Refresh
+          </Button>
         </div>
       ) : filteredCompanies?.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -16,12 +16,22 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting cron job setup process");
+    
     // Get the Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing Supabase credentials. Please check your environment variables.");
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    console.log("Supabase client initialized successfully");
 
     // Setup SQL function for cron job refresh
+    console.log("Setting up news refresh function...");
     const { data: functionData, error: functionError } = await supabase.rpc('setup_news_refresh_function');
     
     if (functionError) {
@@ -32,6 +42,7 @@ serve(async (req) => {
     console.log("Created news refresh function:", functionData);
 
     // Setup cron job to run daily at midnight
+    console.log("Setting up news refresh cron job...");
     const { data: cronData, error: cronError } = await supabase.rpc('setup_news_refresh_cron');
     
     if (cronError) {
@@ -42,6 +53,7 @@ serve(async (req) => {
     console.log("Set up news refresh cron job:", cronData);
 
     // Setup blog posts cleanup function and cron
+    console.log("Setting up blog cleanup function...");
     const { data: blogCleanupFunctionData, error: blogCleanupFunctionError } = 
       await supabase.rpc('setup_blog_cleanup_function');
     
@@ -53,6 +65,7 @@ serve(async (req) => {
     console.log("Created blog cleanup function:", blogCleanupFunctionData);
 
     // Setup cron job to run daily at 1 AM
+    console.log("Setting up blog cleanup cron job...");
     const { data: blogCleanupCronData, error: blogCleanupCronError } = 
       await supabase.rpc('setup_blog_cleanup_cron');
     
@@ -62,6 +75,7 @@ serve(async (req) => {
     }
     
     console.log("Set up blog cleanup cron job:", blogCleanupCronData);
+    console.log("All cron jobs set up successfully!");
 
     return new Response(
       JSON.stringify({
@@ -81,7 +95,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error.message || "An unknown error occurred",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
