@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import Security from "./pages/Security";
 import Profile from "./pages/Profile";
 import JobSeekers from "./pages/JobSeekers";
 import Companies from "./pages/Companies";
+import CompanyProfile from "./pages/CompanyProfile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +62,7 @@ function App() {
                   <Route path="/profile/:id" element={<Profile />} />
                   <Route path="/job-seekers" element={<JobSeekers />} />
                   <Route path="/companies" element={<Companies />} />
+                  <Route path="/companies/:id" element={<CompanyProfile />} />
                 </Routes>
               </main>
             </div>

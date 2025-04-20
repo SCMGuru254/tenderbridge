@@ -2,11 +2,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
-import { Search, Building, MapPin, Globe, ArrowUpRight, Info, AlertCircle } from "lucide-react";
+import { Search, Building, Info, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { 
   Select, 
   SelectTrigger, 
@@ -14,10 +12,10 @@ import {
   SelectContent, 
   SelectItem 
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { CompanyCard } from "@/components/companies/CompanyCard";
 
-interface Company {
+export interface Company {
   id: string;
   name: string;
   description: string | null;
@@ -72,7 +70,7 @@ export default function Companies() {
         <div>
           <h1 className="text-2xl font-bold">Companies</h1>
           <p className="text-muted-foreground mt-1">
-            Discover supply chain companies and explore their profiles
+            Browse through verified supply chain companies, read reviews, and connect with potential partners
           </p>
         </div>
         
@@ -109,9 +107,9 @@ export default function Companies() {
           <div>
             <h3 className="font-medium text-blue-700">About the Companies Directory</h3>
             <p className="text-sm text-blue-600">
-              Browse through verified supply chain companies. Connect with potential partners, 
-              find job opportunities, and stay updated with companies in the supply chain industry. 
-              Company profiles include contact information, location details, and reviews from current and former employees.
+              Browse through verified supply chain companies. Read reviews from current and former employees, 
+              connect with potential partners, and find job opportunities. Company profiles include 
+              detailed information about work culture, benefits, and employee experiences.
             </p>
           </div>
         </div>
@@ -156,52 +154,7 @@ export default function Companies() {
       ) : filteredCompanies?.length ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCompanies.map(company => (
-            <Card key={company.id} className="flex flex-col h-full">
-              <CardContent className="pt-6 flex flex-col h-full">
-                <h3 className="font-semibold text-lg mb-2">{company.name}</h3>
-                
-                {company.description ? (
-                  <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                    {company.description}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic mb-4">No description available</p>
-                )}
-                
-                <div className="mt-auto space-y-2">
-                  {company.location && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{company.location}</span>
-                    </div>
-                  )}
-                  
-                  {company.website && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Globe className="h-4 w-4" />
-                      <a href={company.website} target="_blank" rel="noopener noreferrer" 
-                         className="text-blue-600 hover:underline flex items-center">
-                        {company.website.replace(/^https?:\/\//, '').split('/')[0]}
-                        <ArrowUpRight className="h-3 w-3 ml-1" />
-                      </a>
-                    </div>
-                  )}
-                  
-                  {company.verification_status && (
-                    <Badge variant={company.verification_status === "verified" ? "secondary" : 
-                                    company.verification_status === "pending" ? "outline" : "default"}>
-                      {company.verification_status.charAt(0).toUpperCase() + company.verification_status.slice(1)}
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-              
-              <CardFooter className="border-t pt-4">
-                <Button asChild variant="outline" className="w-full">
-                  <Link to={`/companies/${company.id}`}>View Profile</Link>
-                </Button>
-              </CardFooter>
-            </Card>
+            <CompanyCard key={company.id} company={company} />
           ))}
         </div>
       ) : (
