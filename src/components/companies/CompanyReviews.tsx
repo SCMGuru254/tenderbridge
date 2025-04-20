@@ -50,7 +50,8 @@ export function CompanyReviews({ companyId }: CompanyReviewsProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as CompanyReview[];
+      // Explicitly cast the data to the CompanyReview[] type to fix the TypeScript error
+      return (data as unknown) as CompanyReview[];
     },
   });
 
