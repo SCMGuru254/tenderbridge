@@ -1,6 +1,5 @@
-
 import { NavLink } from "react-router-dom";
-import { Truck, Facebook, Twitter, Instagram, Linkedin, Mail } from "lucide-react";
+import { Truck, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -11,8 +10,7 @@ const Footer = () => {
     {
       title: "Company",
       links: [
-        { label: "About Us", href: "/about" },
-        { label: "Contact", href: "/contact" },
+        { label: "About", href: "/about" },
         { label: "Careers", href: "/careers" },
         { label: "Privacy Policy", href: "/privacy" },
       ],
@@ -38,9 +36,8 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, label: "Facebook", href: "#" },
-    { icon: Twitter, label: "Twitter", href: "#" },
-    { icon: Instagram, label: "Instagram", href: "#" },
+    { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/profile.php?id=61575329135959" },
+    { icon: Twitter, label: "Twitter", href: "https://x.com/Supply_ChainKE" },
     { icon: Linkedin, label: "LinkedIn", href: "#" },
   ];
 
@@ -48,15 +45,14 @@ const Footer = () => {
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-          {/* Logo and Newsletter */}
+          {/* Logo and Description */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <Truck className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">SupplyChain_KE</span>
             </div>
             <p className="text-gray-600 mb-6 max-w-sm">
-              Your complete platform for supply chain professionals in Kenya. Find jobs, connect with
-              peers, and stay updated with industry trends.
+              SupplyChain_KE delivers tools to stand out and succeed in Kenya's supply chain industry. Find jobs, connect with employers, and advance your career with industry-specific resources.
             </p>
             <div className="space-y-4">
               <h4 className="font-medium">Subscribe to our newsletter</h4>

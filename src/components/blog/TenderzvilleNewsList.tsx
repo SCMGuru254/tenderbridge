@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,64 +32,61 @@ export const TenderzvilleNewsList = ({ searchTerm, selectedTags }: TenderzvilleN
     setError(null);
     
     try {
-      // Since direct scraping can be blocked by CORS, we'll use fallback data
-      // In a production environment, this would be replaced with a proper backend API call
       const fallbackPosts: TenderzvillePost[] = [
         {
           id: 1,
-          title: "New Procurement Opportunities in Kenya's Public Sector",
-          excerpt: "The Kenyan government has announced several new tenders for supply chain infrastructure projects in 2025.",
-          content: "The Kenyan government has announced several new tenders for supply chain infrastructure projects set to commence in 2025. These projects aim to enhance logistics networks across the country, with a focus on improving last-mile delivery to rural areas.",
+          title: "Kenya's Supply Chain Industry Growth in 2025",
+          excerpt: "Analysis of emerging opportunities and challenges in Kenya's supply chain sector.",
+          content: "Kenya's supply chain industry is experiencing significant growth with new infrastructure projects and digital transformation initiatives creating diverse opportunities for professionals.",
           date: new Date().toISOString(),
-          link: "https://tenderzville-portal.co.ke/procurement-opportunities-2025",
-          tags: ["Kenya", "Procurement", "Government", "Tenders"]
+          link: "https://tenderzville-portal.co.ke/industry-growth-2025",
+          tags: ["Kenya", "Industry Growth", "Supply Chain"]
         },
         {
           id: 2,
-          title: "Digital Transformation in Supply Chain Management",
-          excerpt: "Learn how Kenyan businesses are embracing digital technologies to revolutionize their supply chains.",
-          content: "Kenyan businesses across various sectors are rapidly adopting digital technologies to streamline their supply chain operations. From blockchain for traceability to AI-powered demand forecasting, these innovations are helping companies reduce costs and improve efficiency.",
+          title: "E-commerce Impact on Logistics in East Africa",
+          excerpt: "How the rise of e-commerce is reshaping logistics operations in East Africa.",
+          content: "The rapid growth of e-commerce in East Africa is driving innovation in last-mile delivery and warehouse management, creating new job opportunities in the logistics sector.",
           date: new Date().toISOString(),
-          link: "https://tenderzville-portal.co.ke/digital-transformation",
-          tags: ["Digital", "Technology", "Supply Chain", "Kenya"]
+          link: "https://tenderzville-portal.co.ke/ecommerce-logistics",
+          tags: ["E-commerce", "Logistics", "East Africa"]
         },
         {
           id: 3,
-          title: "Tender Compliance Guidelines for 2025",
-          excerpt: "Updated compliance requirements for government procurement tenders in Kenya.",
-          content: "The Public Procurement Regulatory Authority has released updated compliance guidelines for government tenders in 2025. These new regulations aim to increase transparency and reduce corruption in the procurement process.",
+          title: "Green Supply Chain Initiatives in Kenya",
+          excerpt: "Sustainable practices gaining momentum in Kenyan supply chains.",
+          content: "Companies in Kenya are increasingly adopting sustainable supply chain practices, from renewable energy in warehouses to eco-friendly packaging solutions.",
           date: new Date().toISOString(),
-          link: "https://tenderzville-portal.co.ke/compliance-guidelines",
-          tags: ["Compliance", "Government", "Procurement", "Kenya"]
+          link: "https://tenderzville-portal.co.ke/green-initiatives",
+          tags: ["Sustainability", "Kenya", "Supply Chain"]
         },
         {
           id: 4,
-          title: "Sustainable Supply Chain Practices in East Africa",
-          excerpt: "How Kenyan companies are implementing sustainable practices in their supply chains.",
-          content: "Companies across East Africa are increasingly focusing on sustainability in their supply chain operations. From reducing carbon emissions to implementing ethical sourcing practices, these initiatives are helping businesses meet both regulatory requirements and consumer expectations.",
+          title: "Digital Transformation in Procurement",
+          excerpt: "How technology is revolutionizing procurement processes in Kenya.",
+          content: "The adoption of digital procurement solutions is streamlining operations and improving transparency in Kenya's supply chain sector.",
           date: new Date().toISOString(),
-          link: "https://tenderzville-portal.co.ke/sustainable-supply-chains",
-          tags: ["Sustainability", "Kenya", "Supply Chain", "East Africa"]
+          link: "https://tenderzville-portal.co.ke/digital-procurement",
+          tags: ["Technology", "Procurement", "Digital"]
         },
         {
           id: 5,
-          title: "Upcoming Procurement Training Workshops",
-          excerpt: "Register for Tenderzville's upcoming training sessions on procurement best practices.",
-          content: "Tenderzville will be hosting a series of virtual and in-person training workshops on procurement best practices throughout 2025. These sessions will cover topics including tender preparation, bid evaluation, and contract management.",
+          title: "Supply Chain Career Development Trends",
+          excerpt: "Key skills and qualifications in demand for supply chain professionals.",
+          content: "Analysis of the most sought-after skills and qualifications in Kenya's evolving supply chain job market.",
           date: new Date().toISOString(),
-          link: "https://tenderzville-portal.co.ke/training-workshops",
-          tags: ["Training", "Procurement", "Kenya", "Education"]
+          link: "https://tenderzville-portal.co.ke/career-trends",
+          tags: ["Careers", "Skills", "Professional Development"]
         }
       ];
       
       setPosts(fallbackPosts);
-      toast.success("Tenderzville blog posts loaded successfully");
+      toast.success("Industry news loaded successfully");
     } catch (err) {
       console.error("Error fetching Tenderzville posts:", err);
       setError("Failed to load blog posts. Please try again later.");
       toast.error("Failed to load Tenderzville blog posts");
       
-      // Fallback to empty array
       setPosts([]);
     } finally {
       setIsLoading(false);
@@ -101,7 +97,6 @@ export const TenderzvilleNewsList = ({ searchTerm, selectedTags }: TenderzvilleN
     fetchTenderzvillePosts();
   }, []);
 
-  // Filter posts based on search term and selected tags
   const filteredPosts = posts.filter(post => {
     const matchesSearch = !searchTerm || 
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

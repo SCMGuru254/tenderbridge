@@ -6,15 +6,15 @@ const Faq = () => {
   const faqs = [
     {
       question: "What is SupplyChain_KE?",
-      answer: "SupplyChain_KE is a specialized job platform connecting supply chain professionals with relevant job opportunities across Kenya. We aggregate jobs from multiple sources and provide industry-specific resources to help advance your career in supply chain, logistics, procurement, and related fields."
+      answer: "SupplyChain_KE is Kenya's specialized platform connecting supply chain professionals with relevant opportunities. The platform aggregates jobs and provides industry-specific resources to help advance careers in supply chain, logistics, procurement, and related fields."
     },
     {
       question: "How do I apply for jobs on SupplyChain_KE?",
-      answer: "When you find a job you're interested in, simply click the 'Apply Now' button. For jobs posted directly on our platform, you'll complete the application process here. For jobs aggregated from external sources, you'll be redirected to the original job posting where you can complete your application."
+      answer: "When you find a job you're interested in, click the 'Apply Now' button. For jobs posted directly on our platform, you'll complete the application process here. For aggregated jobs from external sources, you'll be redirected to the original posting to complete your application."
     },
     {
-      question: "Are all jobs on SupplyChain_KE verified?",
-      answer: "We display jobs from two main sources: 1) Jobs posted directly on our platform, which undergo review by our team, and 2) Jobs aggregated from trusted external sources like LinkedIn, BrighterMonday, and others. While we make efforts to ensure quality, we recommend conducting your own due diligence for externally sourced positions."
+      question: "Are there any fees to use SupplyChain_KE?",
+      answer: "Job seekers can browse jobs, set up job alerts, and access basic resources completely free of charge. We also offer premium services and features for career advancement."
     },
     {
       question: "How often are new jobs added?",
@@ -29,12 +29,12 @@ const Faq = () => {
       answer: "We focus exclusively on supply chain, logistics, procurement, and related fields in Kenya. This specialization means we offer more relevant job opportunities, industry-specific resources, and a community of professionals in your field."
     },
     {
-      question: "Is SupplyChain_KE free to use for job seekers?",
-      answer: "Yes, job seekers can browse jobs, set up job alerts, and access basic resources completely free of charge. We also offer premium services and features for career advancement."
+      question: "I found concerning content. What should I do?",
+      answer: "If you encounter content that appears inappropriate or concerning, please use the 'Report' feature. Our team will investigate all reports to maintain the quality and safety of our platform."
     },
     {
-      question: "I found a job that seems suspicious. What should I do?",
-      answer: "If you encounter a job posting that appears fraudulent or suspicious, please report it immediately using the 'Report Job' feature. Our team will investigate and take appropriate action to maintain the quality of our job listings."
+      question: "How can I make my profile stand out to employers?",
+      answer: "Complete your professional profile with a detailed CV, professional photo, and LinkedIn profile. Regularly update your skills and experience, and engage with our community through discussions and company reviews to increase visibility."
     }
   ];
 
