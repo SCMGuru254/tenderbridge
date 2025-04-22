@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Loader2, Download, FileText, User, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -100,37 +98,33 @@ export default function DocumentGenerator() {
     try {
       setIsGenerating(true);
       
-      // For demonstration, we'll simulate an API call
-      // In a real implementation, this would call the AI document generation function
-      
-      // Mock generation delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Mock document URL
-      // In a real implementation, this would be a URL to the generated document
-      setGeneratedDocUrl(`https://example.com/generated-${activeTab}-${Date.now()}.pdf`);
-      
-      // In a real implementation, save document info to database with expiration date
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + 1); // 24 hours from now
-      
-      if (user?.id) {
-        try {
-          await supabase.from('generated_documents').insert({
-            user_id: user.id,
-            document_type: activeTab,
-            document_url: generatedDocUrl,
-            expiration_date: expirationDate.toISOString(),
-            language: selectedLanguage,
-            template_id: templateId
-          });
-        } catch (error) {
-          console.error("Error saving document info:", error);
-          // Non-critical error, so continue
+      // For demonstration, we'll simulate an API call to the edge function
+      const response = await supabase.functions.invoke('document-generator', {
+        body: {
+          documentType: activeTab,
+          language: selectedLanguage,
+          templateId,
+          jobTitle,
+          experience,
+          skills,
+          jobDescription: jobDescription || ""
         }
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to generate document");
       }
       
-      toast.success(`Your ${activeTab.toUpperCase()} has been generated!`);
+      // Set the document URL from the response
+      if (response.data && response.data.documentUrl) {
+        setGeneratedDocUrl(response.data.documentUrl);
+        toast.success(`Your ${activeTab.toUpperCase()} has been generated!`);
+      } else {
+        throw new Error("No document URL in response");
+      }
+      
+      // No need to save document info to database since we don't have the table yet
+      
     } catch (error) {
       console.error("Error generating document:", error);
       toast.error("Failed to generate document");
