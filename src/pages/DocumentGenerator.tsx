@@ -29,7 +29,6 @@ export default function DocumentGenerator() {
   const [jobDescription, setJobDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Fetch user profile for pre-filling data if available
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -47,7 +46,6 @@ export default function DocumentGenerator() {
     enabled: !!user?.id,
   });
   
-  // Pre-fill form with profile data when available
   useEffect(() => {
     if (profile) {
       if (profile.position) setJobTitle(profile.position);
@@ -55,12 +53,10 @@ export default function DocumentGenerator() {
     }
   }, [profile]);
   
-  // Handle file upload for existing CV/cover letter
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    // Only accept PDF, DOCX, or TXT files
     const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Only PDF, DOCX, or TXT files are accepted");
@@ -70,13 +66,8 @@ export default function DocumentGenerator() {
     try {
       setIsGenerating(true);
       
-      // In a real implementation, this would extract text from the document
-      // using a document parsing API, then use that for AI enhancement
-      
-      // Mock document parsing delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Set a mock URL for demonstration purposes
       setGeneratedDocUrl(URL.createObjectURL(file));
       
       toast.success("Document uploaded and ready for enhancement");
@@ -88,7 +79,6 @@ export default function DocumentGenerator() {
     }
   };
   
-  // Generate document using AI
   const handleGenerateDocument = async () => {
     if (!jobTitle || !experience || !skills) {
       toast.error("Please fill in all required fields");
@@ -98,7 +88,6 @@ export default function DocumentGenerator() {
     try {
       setIsGenerating(true);
       
-      // For demonstration, we'll simulate an API call to the edge function
       const response = await supabase.functions.invoke('document-generator', {
         body: {
           documentType: activeTab,
@@ -115,15 +104,12 @@ export default function DocumentGenerator() {
         throw new Error(response.error.message || "Failed to generate document");
       }
       
-      // Set the document URL from the response
       if (response.data && response.data.documentUrl) {
         setGeneratedDocUrl(response.data.documentUrl);
         toast.success(`Your ${activeTab.toUpperCase()} has been generated!`);
       } else {
         throw new Error("No document URL in response");
       }
-      
-      // No need to save document info to database since we don't have the table yet
       
     } catch (error) {
       console.error("Error generating document:", error);
@@ -133,7 +119,6 @@ export default function DocumentGenerator() {
     }
   };
   
-  // Language selection handler
   const handleLanguageChange = (value: string) => {
     setSelectedLanguage(value);
   };
