@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { 
   Briefcase, Home, MessageSquare, BookOpen, 
-  LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield
+  LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield, FileText
 } from "lucide-react";
 
 const Navigation = () => {
@@ -14,12 +13,11 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(!isMobile);
   const { user, loading, signOut } = useUser();
 
-  // Close sidebar on route change on mobile
   useEffect(() => {
     if (isMobile) {
       setIsOpen(false);
     } else {
-      setIsOpen(true); // Always open on desktop
+      setIsOpen(true);
     }
   }, [window.location.pathname, isMobile]);
 
@@ -34,6 +32,11 @@ const Navigation = () => {
     { to: "/blog", icon: <BookOpen size={18} />, label: "Blog" },
     { to: "/interview-prep", icon: <BookOpenCheck size={18} />, label: "Interview Prep" },
     { to: "/faq", icon: <HelpCircle size={18} />, label: "FAQ" },
+    {
+      label: "Document Generator",
+      href: "/document-generator",
+      icon: <FileText className="h-4 w-4" />,
+    },
   ];
 
   const accountItems = [
@@ -44,7 +47,6 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Mobile toggle button outside of sidebar */}
       <Button 
         variant="ghost" 
         size="icon" 
@@ -139,7 +141,6 @@ const Navigation = () => {
         </div>
       </div>
       
-      {/* Overlay to close sidebar on mobile when clicked outside */}
       {isOpen && isMobile && (
         <div 
           className="fixed inset-0 bg-black/20 z-30 md:hidden" 
@@ -147,7 +148,6 @@ const Navigation = () => {
         />
       )}
       
-      {/* Add padding to main content when sidebar is open */}
       <div className={`${isOpen && !isMobile ? "ml-64" : "ml-0"} transition-all duration-300`}>
         {/* This is where the App content will be rendered */}
       </div>

@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import JobSeekers from "./pages/JobSeekers";
 import Companies from "./pages/Companies";
 import CompanyProfile from "./pages/CompanyProfile";
+import DocumentGenerator from "./pages/DocumentGenerator";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,7 @@ function App() {
                   <Route path="/job-seekers" element={<JobSeekers />} />
                   <Route path="/companies" element={<Companies />} />
                   <Route path="/companies/:id" element={<CompanyProfile />} />
+                  <Route path="/document-generator" element={<DocumentGenerator />} />
                 </Routes>
               </main>
             </div>

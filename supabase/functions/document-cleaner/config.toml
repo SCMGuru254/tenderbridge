@@ -1,0 +1,5 @@
+
+project_id = "dqlfolsngrspnlpzzthv"
+
+[functions.document-cleaner]
+verify_jwt = false
