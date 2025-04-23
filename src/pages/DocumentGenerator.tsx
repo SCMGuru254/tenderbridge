@@ -2,14 +2,17 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import DocumentPreview from "@/components/document-generator/DocumentPreview";
-import DocumentForm from "@/components/document-generator/DocumentForm";
+import DocumentGeneratorForm from "@/components/document-generator/DocumentGeneratorForm";
+import DocumentPreviewSection from "@/components/document-generator/DocumentPreviewSection";
+import TemplateSelector from "@/components/document-generator/TemplateSelector";
 import FileUpload from "@/components/document-generator/FileUpload";
 
 export default function DocumentGenerator() {
   const [generatedDocUrl, setGeneratedDocUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
+  // These will be used in DocumentGeneratorForm
   const handleDocumentGenerated = (url: string) => {
     setGeneratedDocUrl(url);
   };
@@ -36,7 +39,16 @@ export default function DocumentGenerator() {
             </CardHeader>
             
             <CardContent>
-              <DocumentForm onDocumentGenerated={handleDocumentGenerated} />
+              <TemplateSelector 
+                selectedTemplate={selectedTemplate}
+                setSelectedTemplate={setSelectedTemplate}
+              />
+              <DocumentGeneratorForm 
+                onDocumentGenerated={handleDocumentGenerated}
+                isGenerating={isGenerating}
+                setIsGenerating={setIsGenerating}
+                selectedTemplate={selectedTemplate}
+              />
             </CardContent>
             
             <CardFooter className="flex-col space-y-4">
@@ -57,10 +69,10 @@ export default function DocumentGenerator() {
         </div>
         
         <div className="lg:col-span-7">
-          <DocumentPreview 
+          <DocumentPreviewSection 
             documentUrl={generatedDocUrl} 
-            documentType="cv"
             isLoading={isGenerating}
+            documentType={selectedTemplate || "cv"}
           />
         </div>
       </div>

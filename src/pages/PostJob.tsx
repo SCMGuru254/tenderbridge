@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -7,9 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 
 type JobType = "full_time" | "part_time" | "contract" | "internship";
+const HIRING_TIMELINES = [
+  { label: "Immediate", value: "immediate" },
+  { label: "A week", value: "one_week" },
+  { label: "Custom...", value: "custom" }
+];
 
 const PostJob = () => {
   const navigate = useNavigate();
@@ -23,6 +30,9 @@ const PostJob = () => {
     job_type: "" as JobType,
     requirements: "",
     responsibilities: "",
+    hiring_timeline: "",
+    hiring_timeline_custom: "",
+    notify_applicants: false
   });
 
   const { data: session } = useQuery({
@@ -70,6 +80,11 @@ const PostJob = () => {
       return;
     }
 
+    const hiringTimelineValue = 
+      formData.hiring_timeline === "custom"
+        ? formData.hiring_timeline_custom
+        : formData.hiring_timeline || null;
+
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from('jobs').insert({
@@ -82,6 +97,8 @@ const PostJob = () => {
         responsibilities: formData.responsibilities.split('\n').filter(Boolean),
         company_id: company?.id,
         posted_by: session.user.id,
+        hiring_timeline: hiringTimelineValue,
+        notify_applicants: formData.notify_applicants
       });
 
       if (error) throw error;
@@ -157,6 +174,48 @@ const PostJob = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Hiring Timeline */}
+            <div>
+              <label className="block mb-1 text-sm font-medium">Expected Time to Fill Position</label>
+              <Select
+                value={formData.hiring_timeline}
+                onValueChange={(val) => setFormData({ ...formData, hiring_timeline: val, hiring_timeline_custom: "" })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select hiring timeline" />
+                </SelectTrigger>
+                <SelectContent>
+                  {HIRING_TIMELINES.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.hiring_timeline === "custom" && (
+                <Input
+                  placeholder="Custom timeline (e.g. 2 weeks, 3 days, etc)"
+                  className="mt-2"
+                  value={formData.hiring_timeline_custom}
+                  onChange={e =>
+                    setFormData({ ...formData, hiring_timeline_custom: e.target.value })
+                  }
+                  required
+                />
+              )}
+            </div>
+
+            {/* Notify Applicants */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={formData.notify_applicants}
+                onCheckedChange={(checked) => setFormData({ ...formData, notify_applicants: !!checked })}
+                id="notify-applicants"
+              />
+              <label htmlFor="notify-applicants" className="cursor-pointer">
+                Notify applicants of application stages (recommended)
+              </label>
+            </div>
+
             <div>
               <Textarea
                 placeholder="Requirements (one per line)"

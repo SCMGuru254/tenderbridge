@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      application_notifications: {
+        Row: {
+          applicant_id: string | null
+          created_at: string
+          id: string
+          job_id: string | null
+          message: string
+          notification_type: string
+          read: boolean
+        }
+        Insert: {
+          applicant_id?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          message: string
+          notification_type: string
+          read?: boolean
+        }
+        Update: {
+          applicant_id?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          message?: string
+          notification_type?: string
+          read?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -358,10 +396,12 @@ export type Database = {
           company_id: string | null
           created_at: string
           description: string
+          hiring_timeline: string | null
           id: string
           is_active: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
+          notify_applicants: boolean | null
           posted_by: string
           requirements: string[] | null
           responsibilities: string[] | null
@@ -373,10 +413,12 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           description: string
+          hiring_timeline?: string | null
           id?: string
           is_active?: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
+          notify_applicants?: boolean | null
           posted_by: string
           requirements?: string[] | null
           responsibilities?: string[] | null
@@ -388,10 +430,12 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           description?: string
+          hiring_timeline?: string | null
           id?: string
           is_active?: boolean | null
           job_type?: Database["public"]["Enums"]["job_type"]
           location?: string
+          notify_applicants?: boolean | null
           posted_by?: string
           requirements?: string[] | null
           responsibilities?: string[] | null
