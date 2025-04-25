@@ -1,10 +1,50 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Supply chain interview topics and best practices
+const SUPPLY_CHAIN_TOPICS = {
+  "inventory management": [
+    "ABC analysis",
+    "EOQ (Economic Order Quantity)",
+    "Safety stock calculations",
+    "JIT (Just-in-Time)",
+    "Inventory turnover metrics"
+  ],
+  "logistics": [
+    "Transportation modes",
+    "Route optimization",
+    "3PL management",
+    "Cross-docking",
+    "Last-mile delivery"
+  ],
+  "procurement": [
+    "Strategic sourcing",
+    "Vendor management",
+    "Contract negotiation",
+    "Cost analysis",
+    "Supplier relationship management"
+  ],
+  "supply chain technology": [
+    "ERP systems",
+    "WMS (Warehouse Management Systems)",
+    "TMS (Transportation Management Systems)",
+    "Supply chain visibility platforms",
+    "Blockchain in supply chain"
+  ]
+};
+
+const INTERVIEW_BEST_PRACTICES = [
+  "Use the STAR method (Situation, Task, Action, Result)",
+  "Provide specific metrics and KPIs",
+  "Demonstrate problem-solving skills",
+  "Show cross-functional collaboration",
+  "Highlight process improvement initiatives",
+  "Discuss risk management strategies"
+];
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,95 +55,74 @@ serve(async (req) => {
   try {
     const { question } = await req.json();
     
-    // We're using a simple approach here with predefined responses
-    // For a production app, you'd connect to a real model API
-    
-    const responses = {
-      default: `Here's how you might approach this question in an interview:
+    // Identify relevant topics from the question
+    const relevantTopics = Object.entries(SUPPLY_CHAIN_TOPICS)
+      .filter(([topic]) => question.toLowerCase().includes(topic))
+      .map(([_, concepts]) => concepts)
+      .flat();
 
-1. Start by briefly introducing your background relevant to this question.
-2. Use the STAR method (Situation, Task, Action, Result) to structure your answer.
-3. Be specific about your contributions and quantify results if possible.
-4. Keep your answer concise but detailed enough to demonstrate your skills.
+    // Use Hugging Face API for open-source model inference
+    const response = await fetch("https://api-inference.huggingface.co/models/bigscience/bloomz-560m", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${Deno.env.get("HUGGINGFACE_API_KEY")}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: `As a supply chain professional, provide a detailed answer to this interview question: ${question}
 
-Practice this answer out loud a few times to make it sound natural!`,
-      
-      "Describe a time when you improved a supply chain process": 
-      `For this supply chain improvement question:
+Consider these relevant concepts: ${relevantTopics.join(", ")}
 
-1. Choose a specific example where you identified and solved a problem.
-2. Explain the situation and what inefficiency you noticed.
-3. Describe your approach: How did you analyze the problem? Who did you collaborate with?
-4. Detail the specific changes you implemented.
-5. Quantify the results: reduced costs, improved delivery times, etc.
+Best practices to include:
+${INTERVIEW_BEST_PRACTICES.join("\n")}
 
-Example structure: "At [Company], I noticed [problem]. I analyzed [data/process] and identified [cause]. By implementing [solution], we achieved [specific measurable results]."`,
-      
-      "How do you handle supply chain disruptions?":
-      `When discussing supply chain disruptions:
+Format the answer professionally and include specific examples.
 
-1. Emphasize your proactive approach to risk management.
-2. Explain your methodology for identifying potential disruptions before they occur.
-3. Describe your communication strategy across departments and with external partners.
-4. Provide a specific example where you successfully navigated a disruption.
-5. Highlight your ability to create backup plans and alternative sourcing strategies.
-
-Remember to mention how you balance cost considerations with supply chain resilience.`,
-      
-      "What supply chain software are you familiar with?":
-      `When discussing supply chain software experience:
-
-1. List the specific systems you've used (SAP, Oracle SCM, JDA, etc.) and your proficiency level.
-2. Describe how you've used these systems to solve real business problems.
-3. Explain your role in implementation or optimization if applicable.
-4. Highlight your adaptability to learn new systems quickly.
-5. Mention any relevant certifications.
-
-Be honest about your experience level with each system rather than overselling your expertise.`
-    };
-
-    // Find the best matching response based on the question
-    let bestResponse = responses.default;
-    let bestMatchScore = 0;
-    
-    console.log(`Processing question: "${question}"`);
-    
-    // Very simple matching algorithm - for production you'd use a real NLP approach
-    for (const [key, response] of Object.entries(responses)) {
-      if (key === 'default') continue;
-      
-      // Simple word matching - count how many words from the key are in the question
-      const keyWords = key.toLowerCase().split(' ');
-      const questionLower = question.toLowerCase();
-      
-      let matchScore = 0;
-      keyWords.forEach(word => {
-        if (word.length > 3 && questionLower.includes(word)) {
-          matchScore++;
+Answer:`,
+        parameters: {
+          max_length: 500,
+          temperature: 0.7,
+          top_p: 0.9,
+          do_sample: true
         }
-      });
-      
-      console.log(`Key "${key}" matched with score: ${matchScore}`);
-      
-      // If this is a better match than what we have, use it
-      if (matchScore > bestMatchScore) {
-        bestMatchScore = matchScore;
-        bestResponse = response;
-      }
+      }),
+    });
+
+    const result = await response.json();
+    
+    // Post-process the model output
+    let answer = result[0]?.generated_text || "";
+    
+    // Ensure the answer follows STAR method if it's an experience question
+    if (question.toLowerCase().includes("tell me about a time") || 
+        question.toLowerCase().includes("describe a situation")) {
+      answer = `Let me structure this using the STAR method:
+
+${answer}
+
+Key Takeaways:
+${INTERVIEW_BEST_PRACTICES.slice(0, 3).map(practice => `- ${practice}`).join("\n")}`;
     }
 
-    console.log(`Final match score: ${bestMatchScore}, returning response`);
-    
-    // For a real implementation, you would call an AI API here
-    // For example, you could use OpenAI API or a custom AI service
+    // Add relevant supply chain terminology if missing
+    if (relevantTopics.length > 0) {
+      answer += "\n\nRelevant Supply Chain Concepts:\n" +
+        relevantTopics.slice(0, 5).map(topic => `- ${topic}`).join("\n");
+    }
+
     return new Response(JSON.stringify({ 
-      answer: bestResponse 
+      answer,
+      topics: relevantTopics
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in interview-ai function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      fallback: "I apologize, but I'm having trouble connecting to the AI service. " +
+                "Please remember to structure your answer using the STAR method and include specific examples from your experience."
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
