@@ -1,0 +1,10 @@
+{
+  "appId": "com.supplychain_ke.app",
+  "appName": "SupplyChain_KE",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}
