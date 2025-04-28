@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import axios from 'axios';
 import { parseRSS } from '@/utils/rssParser';
+import { newsAnalyzer } from './aiAgents';
 
 export interface SupplyChainNews {
   id: string;
@@ -10,6 +11,11 @@ export interface SupplyChainNews {
   source_name: string;
   published_at: string;
   created_at: string;
+  analysis?: {
+    summary: string;
+    impact: string;
+    opportunities: string[];
+  };
 }
 
 const NEWS_SOURCES = [
@@ -25,7 +31,7 @@ const NEWS_SOURCES = [
   },
   {
     name: 'TenderZville Blog',
-    url: process.env.VITE_TENDERZVILLE_BLOG_URL,
+    url: import.meta.env.VITE_TENDERZVILLE_BLOG_URL,
     type: 'blog'
   }
 ];
@@ -65,7 +71,6 @@ export const newsService = {
                 created_at: new Date().toISOString()
               }));
             } else if (source.type === 'blog') {
-              // Parse blog HTML and extract posts
               const posts = await this.parseTenderzvilleBlog(response.data);
               return posts.map(post => ({
                 title: post.title,
@@ -84,10 +89,21 @@ export const newsService = {
         })
       );
 
-      // Flatten and store news items
+      // Flatten and analyze news items
       const flattenedNews = newsItems.flat();
       if (flattenedNews.length > 0) {
-        await supabase.from('supply_chain_news').insert(flattenedNews);
+        // Get AI analysis for news items
+        const analyzedNews = await Promise.all(
+          flattenedNews.map(async (news) => {
+            const analysis = await newsAnalyzer.processNews([news]);
+            return {
+              ...news,
+              analysis: analysis || null
+            };
+          })
+        );
+
+        await supabase.from('supply_chain_news').insert(analyzedNews);
       }
 
       // Log the fetch
@@ -124,13 +140,31 @@ export const newsService = {
     return news;
   },
 
-  async parseTenderzvilleBlog(html: string) {
-    // Implement blog parsing logic here
-    // This should extract blog posts from the HTML content
-    // Return array of { title, excerpt, url, date }
-    // You'll need to adjust this based on the actual blog structure
-    const posts = [];
-    // ... parsing implementation
-    return posts;
+  async parseTenderzvilleBlog(html: string): Promise<Array<{ title: string; excerpt: string; url: string; date: string }>> {
+    try {
+      // Create a temporary DOM parser
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Extract blog posts
+      const posts = Array.from(doc.querySelectorAll('.blog-post')).map(post => {
+        const title = post.querySelector('h2')?.textContent?.trim() || '';
+        const excerpt = post.querySelector('.excerpt')?.textContent?.trim() || '';
+        const url = post.querySelector('a')?.href || '';
+        const date = post.querySelector('.date')?.textContent?.trim() || new Date().toISOString();
+
+        return {
+          title,
+          excerpt,
+          url,
+          date
+        };
+      });
+
+      return posts;
+    } catch (error) {
+      console.error('Error parsing Tenderzville blog:', error);
+      return [];
+    }
   }
 }; 

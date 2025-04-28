@@ -1,78 +1,148 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navigation from "./components/Navigation";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import Index from "./pages/Index";
-import Jobs from "./pages/Jobs";
-import PostJob from "./pages/PostJob";
-import Discussions from "./pages/Discussions";
-import Blog from "./pages/Blog";
-import Auth from "./pages/Auth";
-import Onboarding from "./pages/Onboarding";
-import JobDetails from "@/pages/JobDetails";
-import InterviewPrep from "@/pages/InterviewPrep";
-import Messages from "./pages/Messages";
-import Faq from "./pages/Faq";
-import Security from "./pages/Security";
-import Profile from "./pages/Profile";
-import JobSeekers from "./pages/JobSeekers";
-import Companies from "./pages/Companies";
-import CompanyProfile from "./pages/CompanyProfile";
-import DocumentGenerator from "./pages/DocumentGenerator";
+import { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { useMediaQuery } from '@mui/material';
+import { newsService } from './services/newsService';
+import { jobService } from './services/jobService';
+import { careerAdvisor } from './services/aiAgents';
+import ResponsiveAppBar from './components/ResponsiveAppBar';
+import NewsFeed from './components/NewsFeed';
+import JobBoard from './components/JobBoard';
+import CareerPath from './components/CareerPath';
+import Footer from './components/Footer';
+import LoadingScreen from './components/LoadingScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
+// Create responsive theme
+const createResponsiveTheme = (prefersDarkMode: boolean) => createTheme({
+  palette: {
+    mode: prefersDarkMode ? 'dark' : 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontSize: '2.5rem',
+      '@media (max-width:600px)': {
+        fontSize: '2rem',
+      },
+    },
+    h2: {
+      fontSize: '2rem',
+      '@media (max-width:600px)': {
+        fontSize: '1.75rem',
+      },
+    },
+    h3: {
+      fontSize: '1.75rem',
+      '@media (max-width:600px)': {
+        fontSize: '1.5rem',
+      },
+    },
+  },
+  components: {
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          padding: '16px',
+          '@media (max-width:600px)': {
+            padding: '8px',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          margin: '16px 0',
+          '@media (max-width:600px)': {
+            margin: '8px 0',
+          },
+        },
+      },
     },
   },
 });
 
 function App() {
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Initialize services
+        await Promise.all([
+          newsService.fetchAndStoreNews(),
+          jobService.fetchAndStoreJobs()
+        ]);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setIsLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (error) {
+    return (
+      <ErrorBoundary>
+        <div style={{ 
+          padding: '20px', 
+          textAlign: 'center',
+          color: prefersDarkMode ? '#fff' : '#000'
+        }}>
+          <h1>Error</h1>
+          <p>{error}</p>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="flex flex-col min-h-screen bg-gray-50">
-            <Header />
-            <div className="flex flex-1 pt-16">
-              <Navigation />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/jobs" element={<Jobs />} />
-                  <Route path="/jobs/details/:id" element={<JobDetails />} />
-                  <Route path="/post-job" element={<PostJob />} />
-                  <Route path="/discussions" element={<Discussions />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/interview-prep" element={<InterviewPrep />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/faq" element={<Faq />} />
-                  <Route path="/security" element={<Security />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/profile/:id" element={<Profile />} />
-                  <Route path="/job-seekers" element={<JobSeekers />} />
-                  <Route path="/companies" element={<Companies />} />
-                  <Route path="/companies/:id" element={<CompanyProfile />} />
-                  <Route path="/document-generator" element={<DocumentGenerator />} />
-                </Routes>
-              </main>
-            </div>
+    <ErrorBoundary>
+      <ThemeProvider theme={createResponsiveTheme(prefersDarkMode)}>
+        <CssBaseline />
+        <Router>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh',
+            maxWidth: '100vw',
+            overflowX: 'hidden'
+          }}>
+            <ResponsiveAppBar />
+            <main style={{ 
+              flex: 1, 
+              padding: '20px',
+              '@media (max-width:600px)': {
+                padding: '10px',
+              }
+            }}>
+              <Routes>
+                <Route path="/" element={<NewsFeed />} />
+                <Route path="/jobs" element={<JobBoard />} />
+                <Route path="/career" element={<CareerPath />} />
+              </Routes>
+            </main>
             <Footer />
           </div>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+        </Router>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
