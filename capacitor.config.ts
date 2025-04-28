@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tenderbridge.app',
-  appName: 'TenderBridge',
+  appId: 'ke.co.tenderzvilleportal.supplychain_ke',
+  appName: 'SupplyChain_Ke',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
