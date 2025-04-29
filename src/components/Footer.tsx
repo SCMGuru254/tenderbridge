@@ -36,9 +36,26 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/profile.php?id=61575329135959" },
-    { icon: Twitter, label: "Twitter", href: "https://x.com/Supply_ChainKE" },
-    { icon: Linkedin, label: "LinkedIn", href: "#" },
+    { 
+      icon: Facebook, 
+      label: "Facebook", 
+      href: "https://www.facebook.com/profile.php?id=61575329135959" 
+    },
+    { 
+      icon: Instagram, 
+      label: "Instagram", 
+      href: "https://www.instagram.com/supplychain_ke" 
+    },
+    { 
+      icon: Twitter, 
+      label: "Twitter", 
+      href: "https://x.com/Supply_ChainKE" 
+    },
+    { 
+      icon: Linkedin, 
+      label: "LinkedIn", 
+      href: "https://www.linkedin.com/company/supplychain-ke" 
+    }
   ];
 
   return (

@@ -1,9 +1,36 @@
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
 
-/**
- * A simple in-memory rate limiter to prevent brute force attacks
- * In production, this should be replaced with a Redis-based limiter
- */
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_URL || '',
+  token: process.env.UPSTASH_REDIS_TOKEN || ''
+});
 
+// Different rate limiters for different purposes
+export const rateLimiters = {
+  api: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "api",
+    limiter: Ratelimit.slidingWindow(100, "1 h") // 100 requests per hour
+  }),
+  
+  socialMedia: new Ratelimit({
+    redis,
+    analytics: true,
+    prefix: "social",
+    limiter: Ratelimit.slidingWindow(30, "1 h") // 30 posts per hour
+  }),
+
+  // Keep existing login rate limiting
+  auth: {
+    MAX_ATTEMPTS: 5,
+    TIME_WINDOW: 5 * 60 * 1000, // 5 minutes
+    BLOCK_DURATION: 15 * 60 * 1000, // 15 minutes
+  }
+};
+
+// Existing auth rate limiting code stays the same
 interface AttemptRecord {
   count: number;
   firstAttempt: number;
@@ -12,11 +39,6 @@ interface AttemptRecord {
 }
 
 const attempts: Map<string, AttemptRecord> = new Map();
-
-// Settings
-const MAX_ATTEMPTS = 5; // Maximum attempts within time window
-const TIME_WINDOW = 5 * 60 * 1000; // 5 minutes in milliseconds
-const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes block after too many attempts
 
 /**
  * Check if an action from a specific identifier should be rate limited
@@ -38,7 +60,7 @@ export function checkRateLimit(identifier: string): {
       firstAttempt: now,
       blocked: false
     });
-    return { blocked: false, attemptsLeft: MAX_ATTEMPTS - 1 };
+    return { blocked: false, attemptsLeft: rateLimiters.auth.MAX_ATTEMPTS - 1 };
   }
   
   // Check if currently blocked
@@ -50,7 +72,7 @@ export function checkRateLimit(identifier: string): {
         firstAttempt: now,
         blocked: false 
       });
-      return { blocked: false, attemptsLeft: MAX_ATTEMPTS - 1 };
+      return { blocked: false, attemptsLeft: rateLimiters.auth.MAX_ATTEMPTS - 1 };
     }
     
     // Still blocked
@@ -62,21 +84,21 @@ export function checkRateLimit(identifier: string): {
   }
   
   // Check if we should reset the window (time window expired)
-  if (now - record.firstAttempt > TIME_WINDOW) {
+  if (now - record.firstAttempt > rateLimiters.auth.TIME_WINDOW) {
     attempts.set(identifier, { 
       count: 1, 
       firstAttempt: now,
       blocked: false 
     });
-    return { blocked: false, attemptsLeft: MAX_ATTEMPTS - 1 };
+    return { blocked: false, attemptsLeft: rateLimiters.auth.MAX_ATTEMPTS - 1 };
   }
   
   // Increment attempt count
   const newCount = record.count + 1;
   
   // Check if we've exceeded max attempts
-  if (newCount > MAX_ATTEMPTS) {
-    const blockExpires = now + BLOCK_DURATION;
+  if (newCount > rateLimiters.auth.MAX_ATTEMPTS) {
+    const blockExpires = now + rateLimiters.auth.BLOCK_DURATION;
     attempts.set(identifier, { 
       ...record, 
       count: newCount,
@@ -99,7 +121,7 @@ export function checkRateLimit(identifier: string): {
   
   return { 
     blocked: false, 
-    attemptsLeft: MAX_ATTEMPTS - newCount
+    attemptsLeft: rateLimiters.auth.MAX_ATTEMPTS - newCount
   };
 }
 
@@ -122,7 +144,7 @@ export function cleanupExpiredRateLimits(): void {
       attempts.delete(key);
     }
     // Remove expired time windows
-    else if (!record.blocked && now - record.firstAttempt > TIME_WINDOW) {
+    else if (!record.blocked && now - record.firstAttempt > rateLimiters.auth.TIME_WINDOW) {
       attempts.delete(key);
     }
   }
