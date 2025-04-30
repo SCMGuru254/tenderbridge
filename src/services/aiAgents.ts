@@ -40,13 +40,15 @@ export const AGENT_ROLES = {
     description: "Handles social media content generation and posting",
     model: "facebook/bart-large-cnn"
   }
-};
+} as const;
+
+type AgentRole = typeof AGENT_ROLES[keyof typeof AGENT_ROLES];
 
 export class AIAgent {
-  private role: typeof AGENT_ROLES[keyof typeof AGENT_ROLES];
+  private role: AgentRole;
   private messageQueue: Message[] = [];
 
-  constructor(role: typeof AGENT_ROLES[keyof typeof AGENT_ROLES]) {
+  constructor(role: AgentRole) {
     this.role = role;
     this.setupMessageHandling();
   }
@@ -183,7 +185,7 @@ export class AIAgent {
       return [];
     }
 
-    return await this.makeAPICall('generate-social', async () => {
+    return await this.makeAPICall(async () => {
       const posts: SocialPost[] = [];
 
       for (const platform of platforms) {
@@ -212,6 +214,103 @@ export class AIAgent {
 
       return posts;
     }) || [];
+  }
+
+  async generateProfessionalComment(post: any, platform: 'twitter' | 'linkedin' | 'facebook' | 'instagram'): Promise<string> {
+    if (!hf || this.role.name !== "Social Media Agent") {
+      return '';
+    }
+
+    return await this.makeAPICall(async () => {
+      const prompt = `Generate a professional and engaging comment for this ${platform} post: ${JSON.stringify(post)}. 
+                     The comment should be insightful, add value to the conversation, and maintain a professional tone.`;
+
+      const generated = await hf.textGeneration({
+        model: this.role.model,
+        inputs: prompt,
+        parameters: {
+          max_length: platform === 'twitter' ? 140 : 500,
+          temperature: 0.7
+        }
+      });
+
+      return generated?.generated_text?.trim() || '';
+    }) || '';
+  }
+
+  async analyzePostPerformance(post: SocialPost, metrics: any): Promise<{
+    engagementRate: number;
+    reach: number;
+    recommendations: string[];
+  }> {
+    if (!hf || this.role.name !== "Social Media Agent") {
+      return { engagementRate: 0, reach: 0, recommendations: [] };
+    }
+
+    return await this.makeAPICall(async () => {
+      const prompt = `Analyze the performance of this social media post: ${JSON.stringify(post)} 
+                     with metrics: ${JSON.stringify(metrics)}. 
+                     Calculate engagement rate and reach, and provide specific recommendations 
+                     for improving future posts.`;
+
+      const generated = await hf.textGeneration({
+        model: this.role.model,
+        inputs: prompt,
+        parameters: {
+          max_length: 1000,
+          temperature: 0.7
+        }
+      });
+
+      if (!generated?.generated_text) {
+        return { engagementRate: 0, reach: 0, recommendations: [] };
+      }
+
+      // Parse the AI response to extract metrics and recommendations
+      const analysis = JSON.parse(generated.generated_text);
+      return {
+        engagementRate: analysis.engagementRate || 0,
+        reach: analysis.reach || 0,
+        recommendations: analysis.recommendations || []
+      };
+    }) || { engagementRate: 0, reach: 0, recommendations: [] };
+  }
+
+  async generateGrowthStrategy(platform: 'twitter' | 'linkedin' | 'facebook' | 'instagram', 
+                             currentMetrics: any): Promise<{
+    strategy: string;
+    actionItems: string[];
+    timeline: string;
+  }> {
+    if (!hf || this.role.name !== "Social Media Agent") {
+      return { strategy: '', actionItems: [], timeline: '' };
+    }
+
+    return await this.makeAPICall(async () => {
+      const prompt = `Create a growth strategy for ${platform} based on current metrics: ${JSON.stringify(currentMetrics)}. 
+                     Include specific action items and a realistic timeline for implementation.`;
+
+      const generated = await hf.textGeneration({
+        model: this.role.model,
+        inputs: prompt,
+        parameters: {
+          max_length: 1000,
+          temperature: 0.7
+        }
+      });
+
+      if (!generated?.generated_text) {
+        return { strategy: '', actionItems: [], timeline: '' };
+      }
+
+      // Parse the AI response to extract strategy components
+      const strategy = JSON.parse(generated.generated_text);
+      return {
+        strategy: strategy.strategy || '',
+        actionItems: strategy.actionItems || [],
+        timeline: strategy.timeline || ''
+      };
+    }) || { strategy: '', actionItems: [], timeline: '' };
   }
 
   async shareToSocialMedia(posts: SocialPost[]): Promise<{ success: boolean; errors: string[] }> {
