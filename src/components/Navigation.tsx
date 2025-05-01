@@ -7,6 +7,8 @@ import {
   Briefcase, Home, MessageSquare, BookOpen, 
   LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield, FileText
 } from "lucide-react";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink } from "@radix-ui/react-navigation-menu";
+import { Link } from "react-router-dom";
 
 const Navigation = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -152,6 +154,62 @@ const Navigation = () => {
         {/* This is where the App content will be rendered */}
       </div>
     </>
+  );
+};
+
+const NavigationItems = () => {
+  return (
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Jobs</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <NavigationMenuLink asChild>
+              <Link to="/jobs">All Jobs</Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link to="/job-seekers">Job Seekers</Link>
+            </NavigationMenuLink>
+            <NavigationMenuLink asChild>
+              <Link to="/post-job">Post a Job</Link>
+            </NavigationMenuLink>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Companies</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <NavigationMenuLink asChild>
+              <Link to="/companies">All Companies</Link>
+            </NavigationMenuLink>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/discussions">Discussions</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/blog">Blog</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/document-generator">Document Generator</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/interview-prep">Interview Prep</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <Link to="/ai-agents">AI Agents</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 };
 

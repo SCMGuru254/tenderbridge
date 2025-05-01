@@ -1,43 +1,40 @@
-
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import App from './App'
 import './index.css'
-import SecurityMiddleware from './components/SecurityMiddleware.tsx'
-
-// Enhanced CSP using meta tag (would be better as HTTP header in production)
-const cspMeta = document.createElement('meta');
-cspMeta.httpEquiv = 'Content-Security-Policy';
-cspMeta.content = "default-src 'self'; script-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'none';";
-document.head.appendChild(cspMeta);
-
-// XSS protection using meta tag
-const xssMeta = document.createElement('meta');
-xssMeta.httpEquiv = 'X-XSS-Protection';
-xssMeta.content = '1; mode=block';
-document.head.appendChild(xssMeta);
-
-// X-Content-Type-Options to prevent MIME type sniffing
-const contentTypeMeta = document.createElement('meta');
-contentTypeMeta.httpEquiv = 'X-Content-Type-Options';
-contentTypeMeta.content = 'nosniff';
-document.head.appendChild(contentTypeMeta);
-
-// Referrer-Policy header to control referrer information
-const referrerMeta = document.createElement('meta');
-referrerMeta.httpEquiv = 'Referrer-Policy';
-referrerMeta.content = 'strict-origin-when-cross-origin';
-document.head.appendChild(referrerMeta);
-
-// Permissions-Policy to limit features
-const permissionsMeta = document.createElement('meta');
-permissionsMeta.httpEquiv = 'Permissions-Policy';
-permissionsMeta.content = 'camera=(), microphone=(), geolocation=()';
-document.head.appendChild(permissionsMeta);
+import { ThemeProvider } from "@/components/theme-provider"
+import { BrowserRouter } from 'react-router-dom'
+import { SecurityMiddleware } from './middleware/SecurityMiddleware'
+import { Toaster } from "@/components/ui/toaster"
+import Header from './components/Header'
+import Footer from './components/Footer'
+import Index from './pages/Index'
+import Auth from './pages/Auth'
+import Profile from './pages/Profile'
+import Jobs from './pages/Jobs'
+import JobDetails from './pages/JobDetails'
+import JobSeekers from './pages/JobSeekers'
+import InterviewPrep from './pages/InterviewPrep'
+import Companies from './pages/Companies'
+import CompanyProfile from './pages/CompanyProfile'
+import Faq from './pages/Faq'
+import Discussions from './pages/Discussions'
+import PostJob from './pages/PostJob'
+import Blog from './pages/Blog'
+import Onboarding from './pages/Onboarding'
+import DocumentGenerator from './pages/DocumentGenerator'
+import Messages from './pages/Messages'
+import SupplyChainInsights from './pages/SupplyChainInsights'
+import Security from './pages/Security'
+import AIAgents from "./pages/AIAgents";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <SecurityMiddleware />
-    <App />
+    <ThemeProvider
+      defaultTheme="system"
+      storageKey="vite-react-theme"
+    >
+      <App />
+    </ThemeProvider>
   </React.StrictMode>,
 )
