@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
@@ -34,38 +35,36 @@ function App() {
 
   return (
     <div className={theme === "dark" ? "dark" : ""}>
-      <Router>
-        <div className="min-h-screen bg-background">
-          <SecurityMiddleware>
-            <Header />
-            <main className="pb-8">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/job-details/:id" element={<JobDetails />} />
-                <Route path="/job-seekers" element={<JobSeekers />} />
-                <Route path="/interview-prep" element={<InterviewPrep />} />
-                <Route path="/companies" element={<Companies />} />
-                <Route path="/companies/:id" element={<CompanyProfile />} />
-                <Route path="/faq" element={<Faq />} />
-                <Route path="/discussions" element={<Discussions />} />
-                <Route path="/post-job" element={<PostJob />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="/document-generator" element={<DocumentGenerator />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/supply-chain-insights" element={<SupplyChainInsights />} />
-                <Route path="/security" element={<Security />} />
-                <Route path="/ai-agents" element={<AIAgents />} />
-              </Routes>
-            </main>
-            <Footer />
-            <Toaster />
-          </SecurityMiddleware>
-        </div>
-      </Router>
+      <div className="min-h-screen bg-background">
+        <SecurityMiddleware>
+          <Header />
+          <main className="pb-8">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/job-details/:id" element={<JobDetails />} />
+              <Route path="/job-seekers" element={<JobSeekers />} />
+              <Route path="/interview-prep" element={<InterviewPrep />} />
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/companies/:id" element={<CompanyProfile />} />
+              <Route path="/faq" element={<Faq />} />
+              <Route path="/discussions" element={<Discussions />} />
+              <Route path="/post-job" element={<PostJob />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/document-generator" element={<DocumentGenerator />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/supply-chain-insights" element={<SupplyChainInsights />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/ai-agents" element={<AIAgents />} />
+            </Routes>
+          </main>
+          <Footer />
+          <Toaster />
+        </SecurityMiddleware>
+      </div>
     </div>
   );
 }
