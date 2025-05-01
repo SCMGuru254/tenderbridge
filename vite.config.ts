@@ -23,11 +23,21 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   },
   optimizeDeps: {
     esbuildOptions: {
+      // Using a string literal to ensure proper parsing
       tsconfigRaw: JSON.stringify({
         compilerOptions: {
-          preserveSymlinks: true
+          preserveSymlinks: true,
+          composite: false
         }
       })
     }
+  },
+  // Skip loading tsconfig.node.json to avoid the emit error
+  build: {
+    target: "esnext",
+    sourcemap: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
   }
 }));
