@@ -1,5 +1,5 @@
 import { initializeServices } from '@/config/security';
-import { BrowserEventEmitter } from '@/utils/BrowserEventEmitter';
+import { EventEmitter } from 'events';
 import { socialMediaService, type SocialPost } from './socialMediaService';
 
 // Initialize services with validated API keys
@@ -9,7 +9,7 @@ if (!isInitialized) {
   console.error('AI services failed to initialize. Some features may not work.');
 }
 
-export const agentEventBus = new BrowserEventEmitter();
+export const agentEventBus = new EventEmitter();
 
 interface Message {
   from: string;
@@ -47,7 +47,6 @@ type AgentRole = typeof AGENT_ROLES[keyof typeof AGENT_ROLES];
 export class AIAgent {
   private role: AgentRole;
   private messageQueue: Message[] = [];
-  private isDev = import.meta.env.DEV;
 
   constructor(role: AgentRole) {
     this.role = role;
@@ -87,13 +86,7 @@ export class AIAgent {
   }
 
   async processNews(content: any): Promise<any> {
-    if (!hf) {
-      // In development, provide mock data
-      if (this.isDev) {
-        return "This is simulated news analysis in development mode. In production, this would analyze supply chain news using Hugging Face models.";
-      }
-      return null;
-    }
+    if (!hf) return null;
     
     const response = await hf.textGeneration({
       model: this.role.model,
@@ -171,27 +164,6 @@ export class AIAgent {
   }
 
   private async processRequest(message: Message) {
-    // In development without Hugging Face API, provide mock responses
-    if (!hf && this.isDev) {
-      switch (this.role.name) {
-        case 'News Analyzer':
-          return "Mock news analysis in development mode";
-        case 'Job Matcher':
-          return message.content.jobs.map((job: any) => ({ 
-            job, score: Math.random() 
-          }));
-        case 'Career Advisor':
-          return "Mock career guidance in development mode";
-        case 'Social Media Agent':
-          if (message.content.platforms) {
-            return this.generateMockSocialPost(message.content, message.content.platforms);
-          }
-          return null;
-        default:
-          return null;
-      }
-    }
-    
     if (!hf) return null;
 
     switch (this.role.name) {
@@ -208,19 +180,8 @@ export class AIAgent {
     }
   }
 
-  // Generate mock social posts for dev mode
-  private generateMockSocialPost(content: any, platforms: ('twitter' | 'linkedin' | 'facebook' | 'instagram')[]): SocialPost[] {
-    return platforms.map(platform => ({
-      platform,
-      content: `[DEV MODE] Mock ${platform} post about: ${JSON.stringify(content.topic || content)}`
-    }));
-  }
-
   async generateSocialPost(content: any, platforms: ('twitter' | 'linkedin' | 'facebook' | 'instagram')[]): Promise<SocialPost[]> {
     if (!hf || this.role.name !== "Social Media Agent") {
-      if (this.isDev) {
-        return this.generateMockSocialPost(content, platforms);
-      }
       return [];
     }
 
@@ -356,12 +317,6 @@ export class AIAgent {
     if (this.role.name !== "Social Media Agent") {
       return { success: false, errors: ['Invalid agent role'] };
     }
-    
-    // In dev mode, mock successful sharing
-    if (this.isDev) {
-      console.log('DEV MODE: Mocking social media sharing for', posts);
-      return { success: true, errors: [] };
-    }
 
     const results = await Promise.all(
       posts.map(post => socialMediaService.post(post))
@@ -380,4 +335,6 @@ export class AIAgent {
 }
 
 export const socialMediaAgent = new AIAgent(AGENT_ROLES.SOCIAL_MEDIA_AGENT);
+export const jobMatcher = new AIAgent(AGENT_ROLES.JOB_MATCHER);
 export const newsAnalyzer = new AIAgent(AGENT_ROLES.NEWS_ANALYZER);
+export const careerAdvisor = new AIAgent(AGENT_ROLES.CAREER_ADVISOR);

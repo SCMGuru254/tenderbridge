@@ -1,0 +1,25 @@
+{
+  "android": {
+    "icon": {
+      "background": "#FFFFFF",
+      "foreground": "#000000",
+      "adaptiveIcons": true
+    },
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "cover",
+      "splashFullScreen": true,
+      "splashImmersive": true
+    }
+  },
+  "ios": {
+    "icon": {
+      "background": "#FFFFFF"
+    },
+    "splash": {
+      "backgroundColor": "#FFFFFF",
+      "resizeMode": "cover",
+      "image": "resources/splash.png"
+    }
+  }
+} 
