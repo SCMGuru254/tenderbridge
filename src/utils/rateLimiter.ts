@@ -1,29 +1,22 @@
-import { Redis } from '@upstash/redis';
-import { Ratelimit } from '@upstash/ratelimit';
-
-// Import Redis and Ratelimit, but handle the case where we're in development mode
-let Redis, Ratelimit;
-try {
-  Redis = require('@upstash/redis').Redis;
-  Ratelimit = require('@upstash/ratelimit').Ratelimit;
-} catch (error) {
-  console.warn('Upstash dependencies not available, using fallback rate limiter');
-}
-
 // Create a fallback in-memory rate limiter for development
 class InMemoryRateLimiter {
-  constructor(options) {
+  private prefix: string;
+  private limit: number;
+  private window: string;
+  private records: Map<string, { count: number; resetAt: number }>;
+
+  constructor(options: any) {
     this.prefix = options.prefix || '';
     this.limit = options.limiter?.limit || 100;
     this.window = options.limiter?.window || '1 h';
     this.records = new Map();
   }
 
-  static slidingWindow(limit, window) {
+  static slidingWindow(limit: number, window: string) {
     return { limit, window };
   }
 
-  async limit(identifier) {
+  async limit(identifier: string) {
     const now = Date.now();
     const key = `${this.prefix}:${identifier}`;
     const record = this.records.get(key) || { count: 0, resetAt: now + this.parseWindow(this.window) };
@@ -44,7 +37,7 @@ class InMemoryRateLimiter {
     };
   }
 
-  parseWindow(window) {
+  parseWindow(window: string) {
     const [amount, unit] = window.split(' ');
     switch (unit) {
       case 's': return parseInt(amount) * 1000;
@@ -56,42 +49,87 @@ class InMemoryRateLimiter {
   }
 }
 
-// Initialize Redis client if credentials are available, otherwise use in-memory implementation
-let redis;
-const RateLimitClass = Ratelimit || InMemoryRateLimiter;
+// Define types for our dynamic imports
+type RedisClientType = any;
+type RatelimitType = any;
 
-if (Redis && (process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN)) {
-  redis = new Redis({
-    url: process.env.UPSTASH_REDIS_URL,
-    token: process.env.UPSTASH_REDIS_TOKEN
-  });
-}
+// Variables to store the dynamically imported classes
+let RedisClient: RedisClientType | null = null;
+let RatelimitClass: RatelimitType | InMemoryRateLimiter = InMemoryRateLimiter;
+
+// Try to dynamically import the libraries without using static imports
+const loadDependencies = async () => {
+  try {
+    // Dynamic imports to avoid the reassignment error
+    const redisModule = await import('@upstash/redis');
+    const ratelimitModule = await import('@upstash/ratelimit');
+    
+    RedisClient = redisModule.Redis;
+    RatelimitClass = ratelimitModule.Ratelimit;
+    return true;
+  } catch (error) {
+    console.warn('Upstash dependencies not available, using fallback rate limiter');
+    return false;
+  }
+};
+
+// Try to load dependencies immediately but don't block execution
+loadDependencies();
+
+// Initialize Redis client if credentials are available, otherwise use in-memory implementation
+let redis: any = null;
+
+// Setup function that can be called after dependencies are loaded
+export const setupRateLimiters = async () => {
+  if (!RedisClient && await loadDependencies() && RedisClient) {
+    if (process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN) {
+      try {
+        redis = new RedisClient({
+          url: process.env.UPSTASH_REDIS_URL,
+          token: process.env.UPSTASH_REDIS_TOKEN
+        });
+      } catch (error) {
+        console.error('Failed to initialize Redis client:', error);
+      }
+    }
+  }
+};
 
 // Different rate limiters for different purposes
 export const rateLimiters = {
-  api: redis 
-    ? new RateLimitClass({
-        redis,
-        analytics: true,
-        prefix: "api",
-        limiter: RateLimitClass.slidingWindow(100, "1 h") // 100 requests per hour
-      })
-    : new InMemoryRateLimiter({
-        prefix: "api",
-        limiter: InMemoryRateLimiter.slidingWindow(100, "1 h")
-      }),
+  api: {
+    async getInstance() {
+      await setupRateLimiters();
+      return redis 
+        ? new RatelimitClass({
+            redis,
+            analytics: true,
+            prefix: "api",
+            limiter: RatelimitClass.slidingWindow(100, "1 h") // 100 requests per hour
+          })
+        : new InMemoryRateLimiter({
+            prefix: "api",
+            limiter: InMemoryRateLimiter.slidingWindow(100, "1 h")
+          });
+    }
+  },
   
-  socialMedia: redis
-    ? new RateLimitClass({
-        redis,
-        analytics: true,
-        prefix: "social",
-        limiter: RateLimitClass.slidingWindow(30, "1 h") // 30 posts per hour
-      })
-    : new InMemoryRateLimiter({
-        prefix: "social",
-        limiter: InMemoryRateLimiter.slidingWindow(30, "1 h")
-      }),
+  socialMedia: {
+    async getInstance() {
+      await setupRateLimiters();
+      return redis
+        ? new RatelimitClass({
+            redis,
+            analytics: true,
+            prefix: "social",
+            limiter: RatelimitClass.slidingWindow(30, "1 h") // 30 posts per hour
+          })
+        : new InMemoryRateLimiter({
+            prefix: "social",
+            limiter: InMemoryRateLimiter.slidingWindow(30, "1 h")
+          });
+    }
+  },
 
   // Keep existing login rate limiting
   auth: {

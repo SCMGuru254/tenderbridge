@@ -1,9 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { rateLimiters } from '@/utils/rateLimiter';
 
 // Conditionally import TwitterApi to handle cases where it's not available
-let TwitterApi;
+let TwitterApi: any;
 try {
   TwitterApi = require('twitter-api-v2').TwitterApi;
 } catch (error) {
@@ -19,51 +20,6 @@ export interface SocialPost {
 // Define type aliases for better readability
 type SocialCredentials = Database['public']['Tables']['social_credentials']['Row'];
 type SocialPlatform = SocialCredentials['platform'];
-
-// Simple rate limiter for social media posts
-class SocialMediaRateLimiter {
-  private limits: Record<string, { count: number, resetAt: number }> = {};
-  
-  async limit(identifier: string): Promise<{ success: boolean; error?: string }> {
-    const now = Date.now();
-    const hourInMs = 60 * 60 * 1000;
-    const maxPostsPerHour = 30;
-    
-    if (!this.limits[identifier]) {
-      this.limits[identifier] = { 
-        count: 1, 
-        resetAt: now + hourInMs 
-      };
-      return { success: true };
-    }
-    
-    const limit = this.limits[identifier];
-    
-    // Reset if expired
-    if (now > limit.resetAt) {
-      this.limits[identifier] = {
-        count: 1,
-        resetAt: now + hourInMs
-      };
-      return { success: true };
-    }
-    
-    // Check if limit exceeded
-    if (limit.count >= maxPostsPerHour) {
-      return { 
-        success: false, 
-        error: 'Rate limit exceeded. Try again later.' 
-      };
-    }
-    
-    // Increment count
-    this.limits[identifier].count++;
-    return { success: true };
-  }
-}
-
-// Create instance of the rate limiter
-const socialMediaRateLimiter = new SocialMediaRateLimiter();
 
 class SocialMediaService {
   private twitter?: any;
@@ -103,12 +59,15 @@ class SocialMediaService {
     }
 
     try {
-      const { success, error } = await socialMediaRateLimiter.limit(
-        `${this.userId}-${post.platform}`
-      );
+      // Get the rate limiter instance
+      const socialRateLimiter = await rateLimiters.socialMedia.getInstance();
+      const rateLimit = await socialRateLimiter.limit(`${this.userId}-${post.platform}`);
       
-      if (!success) {
-        return { success: false, error: error || 'Rate limit exceeded' };
+      if (!rateLimit.success) {
+        return { 
+          success: false, 
+          error: `Rate limit exceeded. Try again after ${new Date(rateLimit.reset).toLocaleTimeString()}` 
+        };
       }
 
       switch (post.platform) {
