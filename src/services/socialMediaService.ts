@@ -6,9 +6,12 @@ import { rateLimiters } from '@/utils/rateLimiter';
 // Conditionally import TwitterApi to handle cases where it's not available
 let TwitterApi: any;
 try {
-  TwitterApi = require('twitter-api-v2').TwitterApi;
+  TwitterApi = require('twitter-api-v2')?.TwitterApi;
+  if (!TwitterApi) {
+    console.warn('Twitter API client imported but undefined');
+  }
 } catch (error) {
-  console.warn('Twitter API client not available');
+  console.warn('Twitter API client not available - this is expected in development mode');
 }
 
 export interface SocialPost {
@@ -24,6 +27,7 @@ type SocialPlatform = SocialCredentials['platform'];
 class SocialMediaService {
   private twitter?: any;
   private userId?: string;
+  private isDev = import.meta.env.DEV;
 
   async initialize(userId: string) {
     this.userId = userId;
@@ -49,7 +53,11 @@ class SocialMediaService {
         });
       }
     } catch (error) {
-      console.error('Failed to load social media credentials:', error);
+      if (!this.isDev) {
+        console.error('Failed to load social media credentials:', error);
+      } else {
+        console.warn('Failed to load social media credentials in dev mode (expected)');
+      }
     }
   }
 
@@ -73,6 +81,11 @@ class SocialMediaService {
       switch (post.platform) {
         case 'twitter':
           if (!this.twitter) {
+            if (this.isDev) {
+              console.warn('Twitter not configured (development mode)');
+              // Mock success in development
+              return { success: true };
+            }
             return { success: false, error: 'Twitter not configured' };
           }
           await this.twitter.v2.tweet(post.content);

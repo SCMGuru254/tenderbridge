@@ -24,13 +24,13 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   optimizeDeps: {
     esbuildOptions: {
       // Using a string literal to ensure proper parsing
-      tsconfigRaw: JSON.stringify({
-        compilerOptions: {
-          preserveSymlinks: true,
-          composite: false,
-          skipLibCheck: true
+      tsconfigRaw: `{
+        "compilerOptions": {
+          "preserveSymlinks": true,
+          "composite": false,
+          "skipLibCheck": true
         }
-      })
+      }`
     }
   },
   build: {
