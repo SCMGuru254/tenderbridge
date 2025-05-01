@@ -27,17 +27,19 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       tsconfigRaw: JSON.stringify({
         compilerOptions: {
           preserveSymlinks: true,
-          composite: false
+          composite: false,
+          skipLibCheck: true
         }
       })
     }
   },
-  // Skip loading tsconfig.node.json to avoid the emit error
   build: {
     target: "esnext",
     sourcemap: true,
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    // Skip tsconfig.node.json completely
+    skipTypeCheck: true
   }
 }));
