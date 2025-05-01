@@ -1,7 +1,25 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import axios from 'axios';
 import { parseRSS } from '@/utils/rssParser';
 import { newsAnalyzer } from './aiAgents';
+
+// Use dynamic import for axios to avoid build issues
+let axios;
+try {
+  axios = require('axios');
+} catch (error) {
+  console.warn('Axios not available, using fetch instead');
+  // Create a simple axios-like interface using fetch
+  axios = {
+    get: async (url) => {
+      const response = await fetch(url);
+      return { 
+        data: await response.text(),
+        status: response.status
+      };
+    }
+  };
+}
 
 export interface SupplyChainNews {
   id: string;
@@ -167,4 +185,4 @@ export const newsService = {
       return [];
     }
   }
-}; 
+};

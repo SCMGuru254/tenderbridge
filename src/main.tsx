@@ -13,7 +13,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       defaultTheme="system"
       storageKey="vite-react-theme"
     >
-      <App />
+      <BrowserRouter>
+        <App />
+        <Toaster />
+      </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>,
 )

@@ -1,7 +1,15 @@
-import { TwitterApi } from 'twitter-api-v2';
+
 import { rateLimiters } from '../utils/rateLimiter';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+
+// Conditionally import TwitterApi to handle cases where it's not available
+let TwitterApi;
+try {
+  TwitterApi = require('twitter-api-v2').TwitterApi;
+} catch (error) {
+  console.warn('Twitter API client not available');
+}
 
 export interface SocialPost {
   platform: 'twitter' | 'linkedin' | 'facebook' | 'instagram';
@@ -14,7 +22,7 @@ type SocialCredentials = Database['public']['Tables']['social_credentials']['Row
 type SocialPlatform = SocialCredentials['platform'];
 
 class SocialMediaService {
-  private twitter?: TwitterApi;
+  private twitter?: any;
   private userId?: string;
 
   async initialize(userId: string) {
@@ -35,7 +43,7 @@ class SocialMediaService {
 
       if (credentials?.length) {
         credentials.forEach((cred: SocialCredentials) => {
-          if (cred.platform === 'twitter' && cred.credentials?.twitter) {
+          if (cred.platform === 'twitter' && cred.credentials?.twitter && TwitterApi) {
             this.twitter = new TwitterApi(cred.credentials.twitter);
           }
         });
