@@ -3,23 +3,64 @@ class MobileRateLimiter {
   private prefix: string;
   private maxRequests: number;
   private window: number; // in milliseconds
+  private isStorageAvailable: boolean;
 
   constructor(options: { prefix: string; limit: number; window: number }) {
     this.prefix = options.prefix;
     this.maxRequests = options.limit;
     this.window = options.window;
+    // Check if storage is available
+    this.isStorageAvailable = this.checkStorageAvailability();
+  }
+
+  private checkStorageAvailability(): boolean {
+    try {
+      const testKey = '__storage_test__';
+      localStorage.setItem(testKey, testKey);
+      localStorage.removeItem(testKey);
+      return true;
+    } catch (e) {
+      console.warn('localStorage not available, using in-memory rate limiting');
+      return false;
+    }
   }
 
   private getStorageKey(identifier: string): string {
     return `${this.prefix}:${identifier}`;
   }
 
+  // In-memory fallback storage
+  private static memoryStore: Record<string, string> = {};
+
+  private getStoredItem(key: string): string | null {
+    if (this.isStorageAvailable) {
+      return localStorage.getItem(key);
+    }
+    return MobileRateLimiter.memoryStore[key] || null;
+  }
+
+  private setStoredItem(key: string, value: string): void {
+    if (this.isStorageAvailable) {
+      localStorage.setItem(key, value);
+    } else {
+      MobileRateLimiter.memoryStore[key] = value;
+    }
+  }
+
+  private removeStoredItem(key: string): void {
+    if (this.isStorageAvailable) {
+      localStorage.removeItem(key);
+    } else {
+      delete MobileRateLimiter.memoryStore[key];
+    }
+  }
+
   async limit(identifier: string) {
     const key = this.getStorageKey(identifier);
     const now = Date.now();
     
-    // Get existing record from local storage
-    const stored = localStorage.getItem(key);
+    // Get existing record from storage
+    const stored = this.getStoredItem(key);
     let record = stored ? JSON.parse(stored) : { count: 0, resetAt: now + this.window };
     
     // Reset if window has passed
@@ -29,7 +70,7 @@ class MobileRateLimiter {
 
     // Increment count
     record.count++;
-    localStorage.setItem(key, JSON.stringify(record));
+    this.setStoredItem(key, JSON.stringify(record));
 
     return {
       success: record.count <= this.maxRequests,

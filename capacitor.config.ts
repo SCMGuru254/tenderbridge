@@ -1,3 +1,4 @@
+
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -6,7 +7,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    cleartext: true
+    cleartext: true,
+    // Add URL for live preview
+    url: 'https://58a11674-f67e-4727-b58a-1c6e2834f792.lovableproject.com?forceHideBadge=true'
   },
   plugins: {
     SplashScreen: {
