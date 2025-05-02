@@ -31,6 +31,23 @@ const Blog = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
+  useEffect(() => {
+    // Fetch news when component mounts
+    const refreshNews = async () => {
+      try {
+        // Call the newsService to fetch and store news
+        const result = await fetch('/api/refresh-news');
+        if (!result.ok) {
+          console.error('Failed to refresh news');
+        }
+      } catch (error) {
+        console.error('Error refreshing news:', error);
+      }
+    };
+
+    refreshNews();
+  }, []);
+
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter(t => t !== tag));
@@ -61,7 +78,7 @@ const Blog = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 animate-fade-in">
+    <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
       {/* Invisible component to setup cron jobs */}
       <CronJobSetup />
       
@@ -99,8 +116,8 @@ const Blog = () => {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6 mb-8">
-        <div className="w-full md:w-3/4">
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        <div className="w-full lg:w-3/4">
           <FilterControls 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -127,7 +144,7 @@ const Blog = () => {
           )}
         </div>
         
-        <div className="w-full md:w-1/4">
+        <div className="w-full lg:w-1/4 mt-6 lg:mt-0">
           <BlogSidebar 
             selectedTags={selectedTags}
             toggleTag={toggleTag}
@@ -143,6 +160,6 @@ const Blog = () => {
       />
     </div>
   );
-};
+}
 
 export default Blog;

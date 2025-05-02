@@ -21,11 +21,12 @@ import SupplyChainInsights from './pages/SupplyChainInsights';
 import Security from './pages/Security';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import { useTheme } from './hooks/use-theme';
 import SecurityMiddleware from './components/SecurityMiddleware';
 import AIAgents from "./pages/AIAgents";
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import Careers from './pages/Careers';
 
 function App() {
@@ -40,7 +41,7 @@ function App() {
       <div className="min-h-screen bg-background">
         <SecurityMiddleware>
           <Header />
-          <main className="pb-8">
+          <main className="pb-8 pt-20">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -62,6 +63,7 @@ function App() {
               <Route path="/security" element={<Security />} />
               <Route path="/ai-agents" element={<AIAgents />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="/careers" element={<Careers />} />
             </Routes>
           </main>

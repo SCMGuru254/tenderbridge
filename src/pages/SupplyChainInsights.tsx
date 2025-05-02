@@ -73,7 +73,7 @@ export default function SupplyChainInsights() {
     : news;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-12 mt-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Supply Chain Insights</h1>
@@ -101,22 +101,24 @@ export default function SupplyChainInsights() {
       )}
 
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="all" onClick={() => setActiveSource(null)}>
-            All Sources
-          </TabsTrigger>
-          {sources.map(source => (
-            <TabsTrigger 
-              key={source} 
-              value={source}
-              onClick={() => setActiveSource(source)}
-            >
-              {source}
+        <ScrollArea className="w-full">
+          <TabsList className="mb-4 flex flex-nowrap overflow-x-auto pb-2">
+            <TabsTrigger value="all" onClick={() => setActiveSource(null)}>
+              All Sources
             </TabsTrigger>
-          ))}
-        </TabsList>
+            {sources.map(source => (
+              <TabsTrigger 
+                key={source} 
+                value={source}
+                onClick={() => setActiveSource(source)}
+              >
+                {source}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </ScrollArea>
 
-        <TabsContent value="all" className="mt-0">
+        <TabsContent value="all" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               Array(6).fill(0).map((_, i) => (

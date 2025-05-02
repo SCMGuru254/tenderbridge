@@ -117,7 +117,7 @@ const Discussions = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-12 mt-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Supply Chain Discussions</h1>
         
@@ -142,8 +142,8 @@ const Discussions = () => {
         </Dialog>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6 mb-8">
-        <div className="w-full md:w-3/4">
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        <div className="w-full lg:w-3/4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <Tabs 
               defaultValue="latest" 
@@ -231,7 +231,7 @@ const Discussions = () => {
           )}
         </div>
         
-        <div className="w-full md:w-1/4">
+        <div className="w-full lg:w-1/4 mt-6 lg:mt-0">
           <Card className="p-4">
             <h3 className="font-semibold text-lg mb-4">Community Guidelines</h3>
             <ul className="space-y-2 text-sm">

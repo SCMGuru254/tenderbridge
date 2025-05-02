@@ -33,20 +33,22 @@ const Jobs = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 animate-fade-in">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Supply Chain Jobs in Kenya</h1>
+    <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <h1 className="text-3xl font-bold mb-4 md:mb-0">Supply Chain Jobs in Kenya</h1>
         <JobRefreshButton onRefreshComplete={handleRefreshComplete} />
       </div>
       
       {/* Main tabs for the entire page */}
       <Tabs defaultValue="jobs" className="mb-8" value={mainTab} onValueChange={setMainTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="jobs">Job Listings</TabsTrigger>
-          <TabsTrigger value="chat">Job Matching</TabsTrigger>
-          <TabsTrigger value="salary">Salary Analyzer</TabsTrigger>
-          <TabsTrigger value="mentorship">Mentorship</TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full mb-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="jobs">Job Listings</TabsTrigger>
+            <TabsTrigger value="chat">Job Matching</TabsTrigger>
+            <TabsTrigger value="salary">Salary Analyzer</TabsTrigger>
+            <TabsTrigger value="mentorship">Mentorship</TabsTrigger>
+          </TabsList>
+        </ScrollArea>
         
         {/* Job Listings Content */}
         <TabsContent value="jobs" className="mt-4">
@@ -88,3 +90,6 @@ const Jobs = () => {
 };
 
 export default Jobs;
+
+// Add ScrollArea component to handle tab overflow on mobile
+import { ScrollArea } from "@/components/ui/scroll-area";

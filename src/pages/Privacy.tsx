@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function Privacy() {
   return (
-    <div className="container mx-auto px-4 py-8 animate-fade-in">
+    <div className="container mx-auto px-4 py-12 mt-16 animate-fade-in">
       <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
       <p className="text-muted-foreground mb-8">
         Last updated: May 2, 2025
@@ -127,21 +127,6 @@ export default function Privacy() {
             <li>Request transfer of your personal information</li>
             <li>Withdraw consent</li>
           </ul>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Contact Us</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:
-          </p>
-          <p className="mt-4">
-            <strong>Email:</strong> privacy@supplychain-ke.com<br />
-            <strong>Address:</strong> SupplyChain_KE Headquarters, Nairobi, Kenya
-          </p>
         </CardContent>
       </Card>
     </div>
