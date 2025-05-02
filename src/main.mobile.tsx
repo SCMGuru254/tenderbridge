@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -8,6 +9,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Capacitor } from '@capacitor/core';
 import { StatusBar } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Initialize mobile-specific features
 const initializeMobile = async () => {
@@ -27,15 +39,17 @@ const initializeMobile = async () => {
 initializeMobile().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <ThemeProvider
-        defaultTheme="system"
-        storageKey="vite-react-theme"
-      >
-        <BrowserRouter>
-          <App />
-          <Toaster />
-        </BrowserRouter>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          defaultTheme="system"
+          storageKey="vite-react-theme"
+        >
+          <BrowserRouter>
+            <App />
+            <Toaster />
+          </BrowserRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
     </React.StrictMode>,
   );
 }); 
