@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AIAgent, AGENT_ROLES, socialMediaAgent } from "@/services/aiAgents";
+import { AIAgent, AGENT_ROLES, socialMediaAgent } from "@/services/agents"; // Fixed import path
 import { useToast } from "@/hooks/use-toast";
 import type { SocialPost } from "@/services/socialMediaService";
 

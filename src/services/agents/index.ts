@@ -1,7 +1,7 @@
 
 import { AIAgent } from './AIAgent';
 import { AGENT_ROLES } from './agentRoles';
-import { agentEventBus } from './eventBus';
+import { agentEventBus, sendMessage } from './eventBus';
 
 // Create and export agent instances
 export const socialMediaAgent = new AIAgent(AGENT_ROLES.SOCIAL_MEDIA_AGENT);

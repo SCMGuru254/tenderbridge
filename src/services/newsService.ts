@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { AIAgent } from "./agents"; // Fix the import path
-import { AGENT_ROLES } from "./agents/agentRoles";
+import { AIAgent } from "./agents/AIAgent"; // Fixed import path
+import { AGENT_ROLES } from "./agents/agentRoles"; // Fixed import path
 
 export interface SupplyChainNews {
   id: string;

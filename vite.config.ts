@@ -23,8 +23,14 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   },
   optimizeDeps: {
     esbuildOptions: {
-      // Ensure tsconfig is simplified
-      tsconfigRaw: '{"compilerOptions":{"preserveSymlinks":true,"composite":false,"skipLibCheck":true,"incremental":false,"tsBuildInfoFile":null}}',
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis',
+      },
+      // Enable esbuild polyfill plugins
+      plugins: [],
+      // Simplified tsconfig
+      tsconfigRaw: '{"compilerOptions":{"target":"es2020","useDefineForClassFields":true,"lib":["ES2020","DOM","DOM.Iterable"],"module":"ESNext","skipLibCheck":true,"moduleResolution":"bundler","allowImportingTsExtensions":true,"resolveJsonModule":true,"isolatedModules":true,"noEmit":true,"jsx":"react-jsx","strict":true,"noUnusedLocals":true,"noUnusedParameters":true,"noFallthroughCasesInSwitch":true}}'
     }
   },
   build: {
