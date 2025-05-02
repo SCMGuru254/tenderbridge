@@ -1,129 +1,117 @@
-import { NavLink } from "react-router-dom";
-import { Truck, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
-  const footerLinks = [
-    {
-      title: "Company",
-      links: [
-        { label: "About", href: "/about" },
-        { label: "Careers", href: "/careers" },
-        { label: "Privacy Policy", href: "/privacy" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { label: "Blog", href: "/blog" },
-        { label: "Discussions", href: "/discussions" },
-        { label: "Interview Prep", href: "/interview-prep" },
-        { label: "FAQ", href: "/faq" },
-      ],
-    },
-    {
-      title: "Services",
-      links: [
-        { label: "Find Jobs", href: "/jobs" },
-        { label: "Post Jobs", href: "/post-job" },
-        { label: "Companies", href: "/companies" },
-        { label: "Messaging", href: "/messages" },
-      ],
-    },
-  ];
-
-  const socialLinks = [
-    { 
-      icon: Facebook, 
-      label: "Facebook", 
-      href: "https://www.facebook.com/profile.php?id=61575329135959" 
-    },
-    { 
-      icon: Instagram, 
-      label: "Instagram", 
-      href: "https://www.instagram.com/supplychain_ke" 
-    },
-    { 
-      icon: Twitter, 
-      label: "Twitter", 
-      href: "https://x.com/Supply_ChainKE" 
-    },
-    { 
-      icon: Linkedin, 
-      label: "LinkedIn", 
-      href: "https://www.linkedin.com/company/supplychain-ke" 
-    }
-  ];
-
+  
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
+    <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-          {/* Logo and Description */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <Truck className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">SupplyChain_KE</span>
-            </div>
-            <p className="text-gray-600 mb-6 max-w-sm">
-              SupplyChain_KE delivers tools to stand out and succeed in Kenya's supply chain industry. Find jobs, connect with employers, and advance your career with industry-specific resources.
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="col-span-1 md:col-span-1">
+            <h3 className="font-bold text-gray-700 mb-4">SupplyChain_KE</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Connecting supply chain professionals in Kenya with opportunities and insights.
             </p>
-            <div className="space-y-4">
-              <h4 className="font-medium">Subscribe to our newsletter</h4>
-              <div className="flex gap-2">
-                <Input placeholder="Your email" type="email" className="max-w-xs" />
-                <Button>Subscribe</Button>
-              </div>
+            <div className="flex space-x-3">
+              <a href="#" className="text-gray-400 hover:text-gray-700">
+                <span className="sr-only">Twitter</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                </svg>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-gray-700">
+                <span className="sr-only">LinkedIn</span>
+                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+              </a>
             </div>
           </div>
-
-          {/* Navigation Links */}
-          {footerLinks.map((column) => (
-            <div key={column.title}>
-              <h4 className="font-medium text-gray-900 mb-4">{column.title}</h4>
-              <ul className="space-y-3">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <NavLink
-                      to={link.href}
-                      className="text-gray-600 hover:text-primary transition-colors"
-                    >
-                      {link.label}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          
+          <div>
+            <h3 className="font-bold text-gray-700 mb-4">Platform</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/jobs" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Jobs
+                </Link>
+              </li>
+              <li>
+                <Link to="/companies" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Companies
+                </Link>
+              </li>
+              <li>
+                <Link to="/discussions" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Discussions
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="font-bold text-gray-700 mb-4">Resources</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/interview-prep" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Interview Prep
+                </Link>
+              </li>
+              <li>
+                <Link to="/document-generator" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Document Generator
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/careers" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Careers at SupplyChain_KE
+                </Link>
+              </li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="font-bold text-gray-700 mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/privacy" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/security" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Security
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:info@supplychain-ke.com" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Contact Us
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
-
-        {/* Social Links and Copyright */}
-        <div className="pt-8 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-600 text-sm order-2 md:order-1 mt-4 md:mt-0">
-              &copy; {currentYear} SupplyChain_KE. All rights reserved.
-            </p>
-            <div className="flex space-x-4 order-1 md:order-2">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-primary transition-colors"
-                    aria-label={social.label}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+        
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <p className="text-center text-sm text-gray-500">
+            &copy; {currentYear} SupplyChain_KE. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

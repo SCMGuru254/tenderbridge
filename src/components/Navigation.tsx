@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { 
   Briefcase, Home, MessageSquare, BookOpen, 
-  LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield, FileText
+  LogIn, User, BookOpenCheck, HelpCircle, Menu, Shield, FileText,
+  Building, UserCheck, Lock
 } from "lucide-react";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink } from "@radix-ui/react-navigation-menu";
-import { Link } from "react-router-dom";
 
 const Navigation = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -32,12 +31,18 @@ const Navigation = () => {
     { to: "/jobs", icon: <Briefcase size={18} />, label: "Jobs" },
     { to: "/discussions", icon: <MessageSquare size={18} />, label: "Discussions" },
     { to: "/blog", icon: <BookOpen size={18} />, label: "Blog" },
+    { to: "/supply-chain-insights", icon: <BookOpen size={18} />, label: "Insights" },
     { to: "/interview-prep", icon: <BookOpenCheck size={18} />, label: "Interview Prep" },
     { to: "/faq", icon: <HelpCircle size={18} />, label: "FAQ" },
     {
-      label: "Document Generator",
-      href: "/document-generator",
-      icon: <FileText className="h-4 w-4" />,
+      to: "/document-generator", 
+      icon: <FileText size={18} />, 
+      label: "Document Generator"
+    },
+    {
+      to: "/careers",
+      icon: <Building size={18} />,
+      label: "Careers"
     },
   ];
 
@@ -45,6 +50,7 @@ const Navigation = () => {
     { to: "/post-job", icon: <Briefcase size={18} />, label: "Post a Job", authRequired: false },
     { to: "/messages", icon: <MessageSquare size={18} />, label: "Messages", authRequired: true },
     { to: "/security", icon: <Shield size={18} />, label: "Security", authRequired: true },
+    { to: "/privacy", icon: <Lock size={18} />, label: "Privacy Policy", authRequired: false },
   ];
 
   return (
