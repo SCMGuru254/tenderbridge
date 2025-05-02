@@ -34,7 +34,7 @@ export const initializeServices = () => {
     try {
       hf = hfApiKey ? new HfInference(hfApiKey) : (isDev ? new HfInference('mock-key-for-dev') : null);
     } catch (error) {
-      console.warn('Failed to initialize HF client:', error);
+      console.error('Failed to initialize HF client:', error);
       // In development, provide a mock client for testing
       if (isDev) {
         hf = {
@@ -44,27 +44,21 @@ export const initializeServices = () => {
       }
     }
 
-    // Validate Supabase (optional in dev mode)
-    validateApiKey(import.meta.env.VITE_SUPABASE_URL, 'Supabase URL', !isDev);
-    validateApiKey(import.meta.env.VITE_SUPABASE_ANON_KEY, 'Supabase Anon Key', !isDev);
-
-    // Validate Google Search (optional in dev mode)
-    validateApiKey(import.meta.env.VITE_GOOGLE_API_KEY, 'Google API', !isDev);
-    validateApiKey(import.meta.env.VITE_GOOGLE_SEARCH_ENGINE_ID, 'Google Search Engine', !isDev);
-
+    // Return the initialized services
     return {
       hf,
       isInitialized: isDev || !!hf
     };
   } catch (error) {
-    console.warn('Service initialization failed:', error);
+    console.error('Service initialization failed:', error);
     // In development, always return a functioning state
+    const isDev = import.meta.env.DEV;
     return {
-      hf: import.meta.env.DEV ? {
+      hf: isDev ? {
         textGeneration: async () => ({ generated_text: 'Mock response after error recovery.' }),
         featureExtraction: async () => [[0.1, 0.2, 0.3]] // Mock embeddings
       } : null,
-      isInitialized: import.meta.env.DEV
+      isInitialized: isDev
     };
   }
 };

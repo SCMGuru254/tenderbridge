@@ -8,8 +8,8 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
     cleartext: true,
-    // Add URL for live preview
-    url: 'https://58a11674-f67e-4727-b58a-1c6e2834f792.lovableproject.com?forceHideBadge=true'
+    // Don't hardcode preview URL
+    allowNavigation: ['*']
   },
   plugins: {
     SplashScreen: {

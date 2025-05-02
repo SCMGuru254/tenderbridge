@@ -1,3 +1,4 @@
+
 import { initializeServices } from '@/config/security';
 import { BrowserEventEmitter } from '@/utils/BrowserEventEmitter';
 import { socialMediaService, type SocialPost } from './socialMediaService';
@@ -180,6 +181,7 @@ export class AIAgent {
     }
   }
 
+  // Social media agent methods
   async generateSocialPost(content: any, platforms: ('twitter' | 'linkedin' | 'facebook' | 'instagram')[]): Promise<SocialPost[]> {
     if (!hf || this.role.name !== "Social Media Agent") {
       return [];

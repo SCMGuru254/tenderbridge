@@ -23,14 +23,10 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   },
   optimizeDeps: {
     esbuildOptions: {
-      // Using a string literal to ensure proper parsing
-      tsconfigRaw: `{
-        "compilerOptions": {
-          "preserveSymlinks": true,
-          "composite": false,
-          "skipLibCheck": true
-        }
-      }`
+      // Ensure tsconfig is simplified
+      tsconfigRaw: '{"compilerOptions":{"preserveSymlinks":true,"composite":false,"skipLibCheck":true}}',
+      // Exclude Node modules
+      external: ['events']
     },
     exclude: ['events']
   },
@@ -40,7 +36,7 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    // Skip tsconfig.node.json completely
+    // Completely skip TypeScript checking during build
     skipTypeCheck: true,
     rollupOptions: {
       // Explicitly handle Node.js built-in modules
