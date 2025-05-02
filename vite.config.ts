@@ -31,7 +31,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
           "skipLibCheck": true
         }
       }`
-    }
+    },
+    exclude: ['events']
   },
   build: {
     target: "esnext",
@@ -40,6 +41,10 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       transformMixedEsModules: true,
     },
     // Skip tsconfig.node.json completely
-    skipTypeCheck: true
+    skipTypeCheck: true,
+    rollupOptions: {
+      // Explicitly handle Node.js built-in modules
+      external: ['events']
+    }
   }
 }));

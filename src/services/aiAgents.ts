@@ -1,5 +1,5 @@
 import { initializeServices } from '@/config/security';
-import { EventEmitter } from 'events';
+import { BrowserEventEmitter } from '@/utils/BrowserEventEmitter';
 import { socialMediaService, type SocialPost } from './socialMediaService';
 
 // Initialize services with validated API keys
@@ -9,7 +9,7 @@ if (!isInitialized) {
   console.error('AI services failed to initialize. Some features may not work.');
 }
 
-export const agentEventBus = new EventEmitter();
+export const agentEventBus = new BrowserEventEmitter();
 
 interface Message {
   from: string;
