@@ -1,4 +1,5 @@
-import { AIAgent, AGENT_ROLES, agentEventBus } from '../services/aiAgents';
+
+import { AIAgent, AGENT_ROLES, agentEventBus } from '../services/agents';
 
 async function testAIAgents() {
   // Initialize agents

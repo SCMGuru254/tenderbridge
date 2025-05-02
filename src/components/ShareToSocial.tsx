@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { socialMediaAgent } from '../services/aiAgents';
+import { socialMediaAgent } from '../services/agents';
 import { Button } from './ui/button';
 import { toast } from '../hooks/use-toast';
 

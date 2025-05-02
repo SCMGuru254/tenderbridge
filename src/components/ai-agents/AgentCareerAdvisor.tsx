@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AIAgent, AGENT_ROLES } from "@/services/aiAgents";
+import { AIAgent, AGENT_ROLES } from "@/services/agents";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AgentCareerAdvisor() {

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { AIAgent, AGENT_ROLES } from "@/services/aiAgents";
+import { AIAgent, AGENT_ROLES } from "@/services/agents";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AgentNewsAnalyzer() {

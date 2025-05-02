@@ -24,11 +24,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   optimizeDeps: {
     esbuildOptions: {
       // Ensure tsconfig is simplified
-      tsconfigRaw: '{"compilerOptions":{"preserveSymlinks":true,"composite":false,"skipLibCheck":true}}',
-      // Exclude Node modules
-      external: ['events']
-    },
-    exclude: ['events']
+      tsconfigRaw: '{"compilerOptions":{"preserveSymlinks":true,"composite":false,"skipLibCheck":true,"incremental":false,"tsBuildInfoFile":null}}',
+    }
   },
   build: {
     target: "esnext",
@@ -38,9 +35,5 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     },
     // Completely skip TypeScript checking during build
     skipTypeCheck: true,
-    rollupOptions: {
-      // Explicitly handle Node.js built-in modules
-      external: ['events']
-    }
   }
 }));
