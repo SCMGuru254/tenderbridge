@@ -29,8 +29,6 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       },
       // Enable esbuild polyfill plugins
       plugins: [],
-      // Simplified tsconfig
-      tsconfigRaw: '{"compilerOptions":{"target":"es2020","useDefineForClassFields":true,"lib":["ES2020","DOM","DOM.Iterable"],"module":"ESNext","skipLibCheck":true,"moduleResolution":"bundler","allowImportingTsExtensions":true,"resolveJsonModule":true,"isolatedModules":true,"noEmit":true,"jsx":"react-jsx","strict":true,"noUnusedLocals":true,"noUnusedParameters":true,"noFallthroughCasesInSwitch":true}}'
     }
   },
   build: {
@@ -39,7 +37,7 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    // Completely skip TypeScript checking during build
+    // Skip TypeScript checking during build to avoid tsconfig issues
     skipTypeCheck: true,
   }
 }));

@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { AIAgent } from "./agents/AIAgent"; // Fixed import path
-import { AGENT_ROLES } from "./agents/agentRoles"; // Fixed import path
+import { AIAgent } from "./agents/AIAgent";
+import { AGENT_ROLES } from "./agents/agentRoles";
 import { parseRSS } from "@/utils/rssParser";
 import { toast } from "sonner";
 
