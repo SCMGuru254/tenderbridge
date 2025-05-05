@@ -27,8 +27,6 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       define: {
         global: 'globalThis',
       },
-      // Enable esbuild polyfill plugins
-      plugins: [],
     }
   },
   build: {

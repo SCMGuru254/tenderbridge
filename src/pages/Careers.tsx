@@ -18,7 +18,7 @@ export default function Careers() {
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-100 rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-orange-800 mb-4">We're Building Something Different</h2>
           <p className="text-orange-700 mb-4">
-            SupplyChain_KE is a startup at the beginning of its journey. We're not looking for conventional employees - we're looking for visionaries and builders who deliver on their promises.
+            SupplyChain_KE is a platform focused on connecting supply chain professionals in Kenya with opportunities. We're looking for passionate individuals who want to make a difference in the industry.
           </p>
           <div className="flex flex-wrap gap-3 mb-4">
             <Badge variant="outline" className="border-orange-300 text-orange-800 bg-orange-50">Authenticity</Badge>
@@ -69,24 +69,6 @@ export default function Careers() {
                 </p>
               </div>
             </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="prose prose-stone max-w-none">
-              <blockquote className="italic border-l-4 border-orange-400 pl-4 py-1">
-                "The role is demanding. The expectations are clear: leading our multi-city procurement, inventory, logistics, and partner management strategy, designing frameworks that prevent stockouts and wastage, management of vendor relations to last-mile delivery - and this would be done with limited resources, and a lot of hustle—in the beginning."
-              </blockquote>
-            </div>
-            
-            <div className="prose prose-stone max-w-none">
-              <blockquote className="italic border-l-4 border-orange-400 pl-4 py-1">
-                "We're offering a structure that leans on value. You won't be walking into a plush seat. The first months will be an immersive co-leadership phase with stipend. After that, it transitions into full managerial role, plus other benefits tied to your office, milestones and impact."
-              </blockquote>
-            </div>
-            
-            <div className="mt-2">
-              <p className="font-semibold">This isn't for everyone. But for the one who gets it, this is a rocketship ride into the future of supply chain in Africa.</p>
-            </div>
           </CardContent>
         </Card>
 
@@ -122,7 +104,7 @@ export default function Careers() {
                 </div>
                 
                 <p className="mt-4 text-muted-foreground">
-                  Leading our multi-city procurement, inventory, logistics, and partner management strategy. Designing frameworks that prevent stockouts and manage vendor relations to last-mile delivery.
+                  Responsible for developing and implementing efficient supply chain strategies and operations.
                 </p>
               </div>
               
@@ -149,7 +131,7 @@ export default function Careers() {
                 </div>
                 
                 <p className="mt-4 text-muted-foreground">
-                  Spearheading our market expansion strategy. Building relationships with key supply chain stakeholders across Kenya and developing innovative partnership models.
+                  Spearheading our market expansion strategy. Building relationships with key supply chain stakeholders across Kenya.
                 </p>
               </div>
               
@@ -176,7 +158,7 @@ export default function Careers() {
                 </div>
                 
                 <p className="mt-4 text-muted-foreground">
-                  Implementing innovative tech solutions to streamline supply chain operations. Developing systems to improve visibility, traceability and efficiency across the entire supply chain.
+                  Implementing innovative tech solutions to streamline supply chain operations.
                 </p>
               </div>
             </div>
@@ -200,13 +182,13 @@ export default function Careers() {
             <ScrollArea className="h-[200px]">
               <div className="space-y-4">
                 <p>
-                  Our vision for SupplyChain_KE encapsulates reimagining how Kenyans access and manage supply chains—from port to customer, warehouse to doorstep, and procurement to delivery.
+                  Our vision for SupplyChain_KE is to become Kenya's premier platform for supply chain professionals, connecting talent with opportunities and providing industry-specific resources.
                 </p>
                 <p>
-                  We're building the next era of distribution in Kenya - together with visionary professionals who understand both the challenges and opportunities in our market.
+                  We're building a community where supply chain professionals can find jobs, share knowledge, and advance their careers.
                 </p>
                 <p className="font-medium">
-                  Let's build the next era of distribution - together.
+                  Join us in shaping the future of supply chain in Kenya.
                 </p>
               </div>
             </ScrollArea>

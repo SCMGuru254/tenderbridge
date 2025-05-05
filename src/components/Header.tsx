@@ -14,8 +14,7 @@ const navItems = [
   { label: 'Interview Prep', href: '/interview-prep' },
   { label: 'Discussions', href: '/discussions' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Post a Job', href: '/post-job' },
-  { label: 'AI Agents', href: '/ai-agents' }
+  { label: 'Post a Job', href: '/post-job' }
 ];
 
 const Header = () => {

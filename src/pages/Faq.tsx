@@ -14,7 +14,7 @@ const Faq = () => {
     },
     {
       question: "Are there any fees to use SupplyChain_KE?",
-      answer: "Job seekers can browse jobs, set up job alerts, and access basic resources completely free of charge. We also offer premium services and features for career advancement."
+      answer: "Job seekers can browse jobs, set up job alerts, and access basic resources completely free of charge. For employers, posting jobs and assessing candidates is free. Companies need to pay a one-time fee of Ksh 1,000 to access and respond to company reviews. Service providers can join for free but need to pay a one-time fee of Ksh 100 to respond to reviews. All payments are processed via M-Pesa for your convenience."
     },
     {
       question: "How often are new jobs added?",
@@ -22,7 +22,7 @@ const Faq = () => {
     },
     {
       question: "How can I post a job on SupplyChain_KE?",
-      answer: "Employers can post jobs directly on our platform by creating an account and navigating to the 'Post a Job' section. We offer various packages to help your job posting reach qualified supply chain professionals across Kenya."
+      answer: "Employers can post jobs directly on our platform by creating an account and navigating to the 'Post a Job' section. Job posting is completely free for all employers."
     },
     {
       question: "What makes SupplyChain_KE different from general job boards?",
@@ -35,6 +35,18 @@ const Faq = () => {
     {
       question: "How can I make my profile stand out to employers?",
       answer: "Complete your professional profile with a detailed CV, professional photo, and LinkedIn profile. Regularly update your skills and experience, and engage with our community through discussions and company reviews to increase visibility."
+    },
+    {
+      question: "How do I pay for premium features?",
+      answer: "All payments on SupplyChain_KE are processed via M-Pesa. When you select a premium feature, you'll be prompted to enter your phone number, and you'll receive an M-Pesa payment request."
+    },
+    {
+      question: "What are the pricing packages for employers?",
+      answer: "Posting jobs and assessing candidates is completely free for employers. Companies need to pay a one-time lifetime fee of Ksh 1,000 to access and respond to company reviews."
+    },
+    {
+      question: "What are the pricing packages for service providers?",
+      answer: "Service providers can join and offer their services for free. However, they need to pay a one-time fee of Ksh 100 to respond to reviews about their services."
     }
   ];
 

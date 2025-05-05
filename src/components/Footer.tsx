@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import { Facebook } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -14,6 +15,10 @@ const Footer = () => {
               Connecting supply chain professionals in Kenya with opportunities and insights.
             </p>
             <div className="flex space-x-3">
+              <a href="https://www.facebook.com/SupplyChainKE" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                <span className="sr-only">Facebook</span>
+                <Facebook className="h-6 w-6" />
+              </a>
               <a href="#" className="text-gray-400 hover:text-gray-700">
                 <span className="sr-only">Twitter</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
