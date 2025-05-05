@@ -14,7 +14,7 @@ export const Logo = () => {
         <span className="font-bold text-lg md:text-xl whitespace-nowrap">SupplyChain_KE</span>
       </Link>
       <a 
-        href="https://www.facebook.com/SupplyChainKE" 
+        href="https://www.facebook.com/people/SupplyChain-Ke/61575329135959/" 
         target="_blank" 
         rel="noopener noreferrer"
         className="hidden md:flex text-gray-400 hover:text-gray-700 transition-colors"

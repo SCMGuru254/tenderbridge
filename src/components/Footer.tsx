@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Facebook } from "lucide-react";
 
@@ -15,7 +14,7 @@ const Footer = () => {
               Connecting supply chain professionals in Kenya with opportunities and insights.
             </p>
             <div className="flex space-x-3">
-              <a href="https://www.facebook.com/SupplyChainKE" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+              <a href="https://www.facebook.com/people/SupplyChain-Ke/61575329135959/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
                 <span className="sr-only">Facebook</span>
                 <Facebook className="h-6 w-6" />
               </a>
