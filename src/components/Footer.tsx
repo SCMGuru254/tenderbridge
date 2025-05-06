@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Facebook } from "lucide-react";
 
@@ -102,11 +103,6 @@ const Footer = () => {
                 <Link to="/security" className="text-sm text-gray-600 hover:text-primary transition-colors">
                   Security
                 </Link>
-              </li>
-              <li>
-                <a href="mailto:info@supplychain-ke.com" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                  Contact Us
-                </a>
               </li>
             </ul>
           </div>

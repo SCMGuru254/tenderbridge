@@ -24,10 +24,10 @@ import Footer from './components/Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { useTheme } from './hooks/use-theme';
 import SecurityMiddleware from './components/SecurityMiddleware';
-import AIAgents from "./pages/AIAgents";
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Careers from './pages/Careers';
+import Forms from './pages/Forms';
 
 function App() {
   const { theme } = useTheme();
@@ -61,10 +61,10 @@ function App() {
               <Route path="/messages" element={<Messages />} />
               <Route path="/supply-chain-insights" element={<SupplyChainInsights />} />
               <Route path="/security" element={<Security />} />
-              <Route path="/ai-agents" element={<AIAgents />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/careers" element={<Careers />} />
+              <Route path="/forms" element={<Forms />} />
             </Routes>
           </main>
           <Footer />
