@@ -741,6 +741,41 @@ export type Database = {
         }
         Relationships: []
       }
+      social_credentials: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          platform: string
+          credentials: Json
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          platform: string
+          credentials: Json
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          platform?: string
+          credentials?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_credentials_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "auth.users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
