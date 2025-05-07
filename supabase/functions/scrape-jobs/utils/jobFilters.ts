@@ -15,6 +15,8 @@ export function hasSupplyChainKeywords(text: string): boolean {
     'shipping',
     'distribution',
     'scm',
+    'supply management',
+    'materials management'
   ];
   
   // Check for primary keywords
@@ -38,7 +40,10 @@ export function hasSupplyChainKeywords(text: string): boolean {
     'material',
     'import',
     'export',
-    'customs'
+    'customs',
+    'stock',
+    'fulfillment',
+    'replenishment'
   ];
   
   // Count how many secondary keywords are present
@@ -51,4 +56,19 @@ export function hasSupplyChainKeywords(text: string): boolean {
   
   // If there are at least 2 secondary keywords, it's likely a supply chain job
   return secondaryMatches >= 2;
+}
+
+// Check if a job is supply chain related based on title, description and category
+export function isSupplyChainJob(job: { 
+  title?: string; 
+  description?: string; 
+  category?: string | null;
+}): boolean {
+  const textsToCheck = [
+    job.title || '',
+    job.description || '',
+    job.category || ''
+  ].join(' ').toLowerCase();
+  
+  return hasSupplyChainKeywords(textsToCheck);
 }
