@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { validateInput, sanitizeInput } from "@/utils/inputValidation";
+import { supabase } from "@/integrations/supabase/client";
 
 const NewsletterForm = () => {
   const [email, setEmail] = useState("");
@@ -25,15 +26,29 @@ const NewsletterForm = () => {
     setIsSubmitting(true);
     
     try {
-      // For now we're just simulating the API call
-      // In a real implementation, this would connect to a newsletter service API
-      // such as Mailchimp, SendGrid, ConvertKit, etc.
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Subscribed!",
-        description: "You've been successfully subscribed to our newsletter.",
-      });
+      // Insert email into our newsletter_subscribers table
+      const { error } = await supabase
+        .from('newsletter_subscribers')
+        .insert([{ email: sanitizeInput(email) }]);
+
+      if (error) {
+        // Check if this is a unique constraint violation (email already exists)
+        if (error.code === '23505') {
+          toast({
+            title: "Already subscribed",
+            description: "This email is already subscribed to our newsletter.",
+            variant: "default",
+          });
+        } else {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Subscribed!",
+          description: "You've been successfully subscribed to our newsletter.",
+        });
+      }
       
       setEmail("");
     } catch (error) {
