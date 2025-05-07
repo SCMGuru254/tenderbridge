@@ -3,7 +3,7 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
-    // MyJobMag Supply Chain Jobs XML Feed - Direct integration
+    // MyJobMag Supply Chain Jobs XML Feed - Direct integration with more specific keywords
     {
       url: "https://www.myjobmag.co.ke/jobsxml_by_categories.xml",
       source: "MyJobMag XML Feed",
@@ -17,11 +17,12 @@ export const getJobSites = (): JobSite[] => {
         deadline: "deadline",
       },
       isXmlFeed: true,
-      useDirectXmlParser: true
+      useDirectXmlParser: true,
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'shipping']
     },
     // LinkedIn Supply Chain jobs in Kenya
     {
-      url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain&location=Kenya",
+      url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain%20logistics%20procurement&location=Kenya",
       source: "LinkedIn",
       selectors: {
         jobContainer: ".jobs-search__results-list li",
@@ -33,9 +34,9 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
-    // MyJobMag Supply Chain jobs in Kenya - improved selectors
+    // MyJobMag Supply Chain jobs in Kenya - more specific URL
     {
-      url: "https://www.myjobmag.co.ke/jobs-by-field/logistics-transportation",
+      url: "https://www.myjobmag.co.ke/jobs-by-field/supply-chain",
       source: "MyJobMag",
       selectors: {
         jobContainer: ".job-list-wrapper",
@@ -47,7 +48,7 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
-    // JobWebKenya Supply Chain jobs - XML Feed
+    // JobWebKenya Supply Chain jobs - XML Feed with keywords
     {
       url: "https://jobwebkenya.com/feed/?post_type=job_listing",
       source: "JobWebKenya",
@@ -61,11 +62,12 @@ export const getJobSites = (): JobSite[] => {
         jobType: "job_listing_job_type",
         deadline: "job_listing_expiry_date",
       },
-      isXmlFeed: true
+      isXmlFeed: true,
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse']
     },
-    // Direct Google Jobs search - improved implementation
+    // Direct Google Jobs search - more specific search query
     {
-      url: "https://www.google.com/search?q=supply+chain+jobs+kenya&ibp=htl;jobs",
+      url: "https://www.google.com/search?q=supply+chain+logistics+jobs+kenya&ibp=htl;jobs",
       source: "Google",
       selectors: {
         jobContainer: "div[jscontroller] > div[class='gws-plugins-horizon-jobs__tl-lif']",
@@ -77,9 +79,9 @@ export const getJobSites = (): JobSite[] => {
         deadline: null,
       }
     },
-    // PigiaMe Jobs in Kenya
+    // PigiaMe Jobs with logistics focus
     {
-      url: "https://www.pigiame.co.ke/jobs?q=logistics",
+      url: "https://www.pigiame.co.ke/jobs?q=logistics+supply+chain",
       source: "PigiaMe",
       selectors: {
         jobContainer: ".listings__item",
@@ -91,9 +93,9 @@ export const getJobSites = (): JobSite[] => {
         deadline: null
       }
     },
-    // MyJobMag Widget - more reliable approach
+    // MyJobMag Widget - with specific supply chain keywords
     {
-      url: "https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain&count=45",
+      url: "https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain%20logistics%20procurement%20warehouse&count=45",
       source: "MyJobMag Widget",
       selectors: {
         jobContainer: ".job-list",

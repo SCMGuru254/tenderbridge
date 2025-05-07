@@ -1,3 +1,4 @@
+
 import { PostedJob, ScrapedJob, JobFilterParams } from '@/types/jobs';
 
 export const getCompanyName = (job: PostedJob | ScrapedJob): string | null => {
@@ -152,6 +153,39 @@ export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
   return false;
 };
 
+// New helper function to check if a job is supply chain related
+export const isSupplyChainJob = (job: PostedJob | ScrapedJob): boolean => {
+  const supplyChainKeywords = [
+    'supply chain', 'logistics', 'procurement', 'warehouse', 'inventory',
+    'shipping', 'distribution', 'operations', 'sourcing', 'purchasing',
+    'scm', 'freight', 'transport', 'fleet', 'planning', 'demand',
+    'forecasting', 'material', 'import', 'export', 'customs'
+  ];
+  
+  // Check title
+  const title = job.title.toLowerCase();
+  if (supplyChainKeywords.some(keyword => title.includes(keyword))) {
+    return true;
+  }
+  
+  // Check description if available
+  if (job.description) {
+    const description = job.description.toLowerCase();
+    if (supplyChainKeywords.some(keyword => description.includes(keyword))) {
+      return true;
+    }
+  }
+  
+  // Check company if it's a known supply chain company
+  const company = getCompanyName(job)?.toLowerCase() || '';
+  const supplyChainCompanies = ['dhl', 'maersk', 'ups', 'fedex', 'bolloré', 'bollore'];
+  if (supplyChainCompanies.some(keyword => company.includes(keyword))) {
+    return true;
+  }
+  
+  return false;
+};
+
 export const filterJobs = (
   jobs: (PostedJob | ScrapedJob)[] | undefined,
   { searchTerm, category }: JobFilterParams
@@ -164,12 +198,18 @@ export const filterJobs = (
       return false;
     }
     
+    // Only include supply chain related jobs
+    if (!isSupplyChainJob(job)) {
+      return false;
+    }
+    
     // Search in title, description, company name, and location
     const jobCompany = getCompanyName(job) || '';
     const jobLocation = getLocation(job) || '';
     const jobDescription = job.description || '';
     
     const matchesSearch = 
+      !searchTerm || 
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       jobDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
       jobCompany.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -188,12 +228,4 @@ export const getSafeArray = (data: unknown): string[] => {
     return data.map(item => String(item));
   }
   return [];
-};
-
-export const getSocialDescription = (job: PostedJob | ScrapedJob): string => {
-  const company = getCompanyName(job) || 'Company';
-  const location = getLocation(job) || 'Kenya';
-  const jobType = getJobType(job);
-  
-  return `${job.title} - ${company} in ${location} (${jobType})`;
 };

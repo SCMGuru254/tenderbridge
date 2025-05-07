@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useJobData } from "@/hooks/useJobData";
-import { ScrapedJob } from "@/types/jobs";
 import { supabase } from "@/integrations/supabase/client";
 import { CircleCheck, ExternalLink, RefreshCw } from "lucide-react";
 
@@ -23,11 +22,12 @@ export const ExternalJobWidget = () => {
       setImportSuccess(false);
       
       // Call the Edge Function to scrape jobs, specifying the MyJobMag source
+      // and explicitly requesting supply chain related keywords
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
         body: {
           refreshAll: false,
           sources: ['MyJobMag XML Feed'],
-          keywords: ['supply chain', 'logistics', 'procurement', 'warehouse']
+          keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'shipping', 'distribution']
         },
       });
       
@@ -114,7 +114,7 @@ export const ExternalJobWidget = () => {
             </div>
           )}
           <iframe 
-            src="https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain%20logistics%20procurement&count=45&title=Supply%20Chain%20Jobs%20in%20Kenya&width=1200&height=500&bgcolor=FFFFFF&border_color=CCCCCC&border_thickness=1&font_type=Verdana&title_font_size=14&title_font_color=000000&font_size=12&font_color=333333&link_color=031333&show_logo=Yes&scroll=No"
+            src="https://www.myjobmag.co.ke/widget/feed.php?field=63,65&industry=0&keyword=supply%20chain%20logistics%20procurement%20warehouse&count=45&title=Supply%20Chain%20Jobs%20in%20Kenya&width=1200&height=500&bgcolor=FFFFFF&border_color=CCCCCC&border_thickness=1&font_type=Verdana&title_font_size=14&title_font_color=000000&font_size=12&font_color=333333&link_color=031333&show_logo=Yes&scroll=No"
             frameBorder="0" 
             height="500" 
             scrolling="no"
