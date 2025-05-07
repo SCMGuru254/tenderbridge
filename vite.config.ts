@@ -35,7 +35,5 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
-    // Skip TypeScript checking during build to avoid tsconfig issues
-    skipTypeCheck: true,
   }
 }));
