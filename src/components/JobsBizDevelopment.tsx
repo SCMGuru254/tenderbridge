@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { BriefcaseIcon, Building2, MapPin, Users, TrendingUp, GraduationCap, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CareersVotingCTA } from "./CareersVotingCTA";
 
 export const JobsBizDevelopment = () => {
   return (
@@ -20,11 +21,13 @@ export const JobsBizDevelopment = () => {
           </p>
           <div className="mt-6">
             <Button asChild size="lg" className="bg-white text-purple-700 hover:bg-gray-100">
-              <a href="#apply">Apply Now</a>
+              <Link to="/careers?tab=apply">Apply Now</Link>
             </Button>
           </div>
         </div>
       </div>
+
+      <CareersVotingCTA />
 
       <Card>
         <CardHeader>
