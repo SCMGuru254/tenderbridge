@@ -4,43 +4,61 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useJobData } from "@/hooks/useJobData";
 import { supabase } from "@/integrations/supabase/client";
-import { CircleCheck, ExternalLink, RefreshCw } from "lucide-react";
+import { CircleCheck, ExternalLink, RefreshCw, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 export const ExternalJobWidget = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { refetchScrapedJobs } = useJobData();
   
   const hideLoader = () => {
     setIsLoading(false);
   };
 
-  const importMyJobMagJobs = async () => {
+  const importSupplyChainJobs = async () => {
     try {
       setIsImporting(true);
       setImportSuccess(false);
+      setErrorMessage(null);
       
-      // Call the Edge Function to scrape jobs, specifying the MyJobMag source
-      // and explicitly requesting supply chain related keywords
+      // Call the Edge Function to scrape jobs, explicitly requesting supply chain related keywords
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
         body: {
           refreshAll: false,
           sources: ['MyJobMag XML Feed'],
-          keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'shipping', 'distribution']
+          keywords: [
+            'supply chain', 
+            'logistics', 
+            'procurement', 
+            'warehouse', 
+            'inventory', 
+            'shipping', 
+            'distribution',
+            'sourcing',
+            'operations',
+            'transport'
+          ]
         },
       });
       
       if (error) {
-        console.error('Error importing MyJobMag jobs:', error);
+        console.error('Error importing jobs:', error);
+        setErrorMessage('Failed to import jobs. Please try again later.');
+        toast.error('Error importing jobs');
       } else {
-        console.log('MyJobMag jobs imported successfully:', data);
+        console.log('Supply chain jobs imported successfully:', data);
         // Refetch jobs to show the newly scraped ones
         refetchScrapedJobs();
         setImportSuccess(true);
+        toast.success('Supply chain jobs imported successfully');
       }
     } catch (error) {
-      console.error('Exception when importing MyJobMag jobs:', error);
+      console.error('Exception when importing jobs:', error);
+      setErrorMessage('An unexpected error occurred');
+      toast.error('Import failed');
     } finally {
       setIsImporting(false);
     }
@@ -81,7 +99,7 @@ export const ExternalJobWidget = () => {
         <CardTitle className="text-xl">Supply Chain Jobs in Kenya</CardTitle>
         <div className="flex items-center gap-2">
           <Button 
-            onClick={importMyJobMagJobs} 
+            onClick={importSupplyChainJobs} 
             disabled={isImporting}
             variant="outline" 
             size="sm"
@@ -100,13 +118,20 @@ export const ExternalJobWidget = () => {
             ) : (
               <>
                 <ExternalLink className="h-4 w-4" />
-                Import to Platform
+                Import Supply Chain Jobs
               </>
             )}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
+        {errorMessage && (
+          <div className="bg-red-50 text-red-800 p-3 mb-4 rounded-md flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            {errorMessage}
+          </div>
+        )}
+        
         <div id="widget-container" className="flex justify-center w-full relative overflow-hidden">
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10">
@@ -119,7 +144,7 @@ export const ExternalJobWidget = () => {
             height="500" 
             scrolling="no"
             onLoad={hideLoader}
-            title="MyJobMag Kenya Jobs"
+            title="MyJobMag Kenya Supply Chain Jobs"
             className="border rounded shadow-sm transition-all duration-300 max-w-full"
             style={{ width: "1200px", maxWidth: "100%" }}
           />

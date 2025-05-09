@@ -46,6 +46,28 @@ export function hasSupplyChainKeywords(text: string): boolean {
     'replenishment'
   ];
   
+  // Explicitly exclude certain job titles
+  const excludedKeywords = [
+    'construction manager',
+    'software developer',
+    'accountant',
+    'receptionist',
+    'security',
+    'marketing',
+    'sales',
+    'teacher',
+    'nurse',
+    'doctor',
+    'chef'
+  ];
+  
+  // If excluded keywords are present in the title, reject regardless of other matches
+  for (const excluded of excludedKeywords) {
+    if (lowerCaseText.includes(excluded)) {
+      return false;
+    }
+  }
+  
   // Count how many secondary keywords are present
   let secondaryMatches = 0;
   for (const keyword of secondaryKeywords) {

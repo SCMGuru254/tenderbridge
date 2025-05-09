@@ -12,13 +12,13 @@ export const VisionCard = () => {
       </CardHeader>
       <CardContent>
         <p className="mb-4">
-          "The roles are young, new and well, you'll be running your business and meeting your own objectives. 
-          Since the app is supply chain jobs only, your vision and deliverables will be measured by the supply 
-          chain community."
+          We're creating Kenya's premier supply chain careers platform, connecting professionals with 
+          opportunities across procurement, logistics, distribution, and inventory management.
         </p>
         <p>
-          "No weird interview, because SupplyChain_KE is just starting. So you set the pace. 
-          In case you want an office, well this might not be for you, as most work can be done remotely."
+          Join our remote-first team to help shape the future of supply chain recruitment in Kenya. 
+          Our community-driven approach means your impact will be measured by the supply chain professionals 
+          we serve every day.
         </p>
       </CardContent>
     </Card>

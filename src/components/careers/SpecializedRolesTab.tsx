@@ -1,38 +1,43 @@
 
-import { TrendingUp, MapPin, Globe } from "lucide-react";
 import { RoleCard } from "./RoleCard";
+import { Users, Briefcase, Globe } from "lucide-react";
 
 export const SpecializedRolesTab = () => {
   return (
     <div className="space-y-4 mt-4">
       <RoleCard 
-        title="Revenue Strategy Manager"
-        icon={TrendingUp}
+        title="Partnerships Manager"
+        icon={Users}
         responsibilities={[
-          "Design sustainable monetization models (premium listings, featured employers, etc.)",
-          "Develop pricing strategies appropriate for the Kenyan market",
-          "Create financial projections and business growth models",
-          "Identify opportunities for value-added services"
+          "Develop strategic partnerships with key industry players",
+          "Represent the platform at industry events and conferences",
+          "Create partnership agreements that drive mutual value",
+          "Collaborate with leadership on business development strategies",
+          "Track partnership performance metrics and report on outcomes"
         ]}
       />
 
       <RoleCard 
-        title="Regional Business Development Representatives"
-        icon={MapPin}
+        title="Recruiting Specialist"
+        icon={Briefcase}
         responsibilities={[
-          "Focus on specific geographic regions within Kenya",
-          "Build relationships with local businesses and community organizations",
-          "Understand regional supply chain employment needs and challenges"
+          "Screen and qualify supply chain candidates",
+          "Assist employers with job description optimization",
+          "Provide guidance on industry-specific hiring best practices",
+          "Build relationships with supply chain educational institutions",
+          "Offer career coaching to supply chain professionals"
         ]}
       />
 
       <RoleCard 
-        title="International Supply Chain Connector"
+        title="International Markets Coordinator"
         icon={Globe}
         responsibilities={[
-          "Build relationships with multinational companies establishing operations in Kenya",
-          "Create pathways for Kenyan supply chain professionals to access international opportunities",
-          "Connect with East African regional employers looking for Kenyan talent"
+          "Research regional supply chain job markets",
+          "Adapt platform features for different market needs",
+          "Establish connections with supply chain associations",
+          "Monitor job trends in African supply chain sectors",
+          "Provide insights for cross-border opportunities"
         ]}
       />
     </div>
