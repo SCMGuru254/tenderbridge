@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Facebook } from "lucide-react";
+import { Facebook, Telegram } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -18,6 +18,10 @@ const Footer = () => {
               <a href="https://www.facebook.com/people/SupplyChain-Ke/61575329135959/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
                 <span className="sr-only">Facebook</span>
                 <Facebook className="h-6 w-6" />
+              </a>
+              <a href="https://t.me/supplychainke" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                <span className="sr-only">Telegram</span>
+                <Telegram className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-400 hover:text-gray-700">
                 <span className="sr-only">Twitter</span>
@@ -81,6 +85,11 @@ const Footer = () => {
               <li>
                 <Link to="/careers" className="text-sm text-gray-600 hover:text-primary transition-colors">
                   Careers at SupplyChain_KE
+                </Link>
+              </li>
+              <li>
+                <Link to="/rewards" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Rewards Program
                 </Link>
               </li>
             </ul>

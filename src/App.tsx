@@ -28,6 +28,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Careers from './pages/Careers';
 import Forms from './pages/Forms';
+import Rewards from './pages/Rewards';
 
 function App() {
   const { theme } = useTheme();
@@ -65,6 +66,7 @@ function App() {
               <Route path="/terms" element={<Terms />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/forms" element={<Forms />} />
+              <Route path="/rewards" element={<Rewards />} />
             </Routes>
           </main>
           <Footer />

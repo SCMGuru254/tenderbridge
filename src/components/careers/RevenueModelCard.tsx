@@ -21,7 +21,7 @@ export const RevenueModelCard = ({ onSubmitClick }: RevenueModelCardProps) => {
               <li>Premium job listings</li>
               <li>Featured company profiles</li>
               <li>Corporate subscription packages</li>
-              <li>Candidate database access</li>
+              <li>Candidate profile highlights (50 KES lifetime)</li>
               <li>Sponsored industry reports</li>
             </ul>
           </div>
@@ -30,9 +30,9 @@ export const RevenueModelCard = ({ onSubmitClick }: RevenueModelCardProps) => {
             <ul className="list-disc pl-5 space-y-1">
               <li>Resume building & optimization</li>
               <li>AI-based candidate matching</li>
-              <li>Job fair organization</li>
+              <li>Rewarded video credits (earn free CV reviews)</li>
               <li>Supply chain salary analysis</li>
-              <li>Industry certification tracking</li>
+              <li>Free monthly HR coaching opportunities</li>
             </ul>
           </div>
         </div>
