@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
@@ -29,45 +28,67 @@ import Terms from './pages/Terms';
 import Careers from './pages/Careers';
 import Forms from './pages/Forms';
 import Rewards from './pages/Rewards';
+import { adService } from "@/services/adService";
+import { AdSection } from "@/components/AdSection";
+import Navbar from "@/components/Navbar";
+import Home from "@/pages/Home";
+import FreeServices from "@/pages/FreeServices";
 
 function App() {
   const { theme } = useTheme();
 
   useEffect(() => {
     document.body.dataset.theme = theme;
+    // Initialize ad service
+    adService.initialize().catch(console.error);
   }, [theme]);
 
   return (
     <div className={theme === "dark" ? "dark" : ""}>
       <div className="min-h-screen bg-background">
         <SecurityMiddleware>
-          <Header />
+          <Navbar />
           <main className="pb-8 pt-20">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/job-details/:id" element={<JobDetails />} />
-              <Route path="/job-seekers" element={<JobSeekers />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} />
-              <Route path="/companies" element={<Companies />} />
-              <Route path="/companies/:id" element={<CompanyProfile />} />
-              <Route path="/faq" element={<Faq />} />
-              <Route path="/discussions" element={<Discussions />} />
-              <Route path="/post-job" element={<PostJob />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/document-generator" element={<DocumentGenerator />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/supply-chain-insights" element={<SupplyChainInsights />} />
-              <Route path="/security" element={<Security />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/careers" element={<Careers />} />
-              <Route path="/forms" element={<Forms />} />
-              <Route path="/rewards" element={<Rewards />} />
-            </Routes>
+            <div className="flex gap-8">
+              {/* Main Content */}
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/jobs" element={<Jobs />} />
+                  <Route path="/job-details/:id" element={<JobDetails />} />
+                  <Route path="/job-seekers" element={<JobSeekers />} />
+                  <Route path="/interview-prep" element={<InterviewPrep />} />
+                  <Route path="/companies" element={<Companies />} />
+                  <Route path="/companies/:id" element={<CompanyProfile />} />
+                  <Route path="/faq" element={<Faq />} />
+                  <Route path="/discussions" element={<Discussions />} />
+                  <Route path="/post-job" element={<PostJob />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
+                  <Route path="/document-generator" element={<DocumentGenerator />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/supply-chain-insights" element={<SupplyChainInsights />} />
+                  <Route path="/security" element={<Security />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/careers" element={<Careers />} />
+                  <Route path="/forms" element={<Forms />} />
+                  <Route path="/rewards" element={<Rewards />} />
+                  <Route path="/free-services" element={<FreeServices />} />
+                </Routes>
+              </div>
+
+              {/* Sidebar Ads */}
+              <div className="hidden lg:block w-[300px] space-y-8">
+                <AdSection type="sidebar" position="sidebar-top" />
+                <AdSection type="sidebar" position="sidebar-bottom" />
+              </div>
+            </div>
+
+            {/* Inline Content Ad */}
+            <AdSection type="inline" position="content" className="my-8" />
           </main>
           <Footer />
           <Toaster />

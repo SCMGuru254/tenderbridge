@@ -1,7 +1,7 @@
-
 {
-  "short_name": "TenderZville",
-  "name": "TenderZville Supply Chain Portal",
+  "short_name": "SupplyChain_KE",
+  "name": "SupplyChain_KE - Supply Chain Portal",
+  "description": "Connect with supply chain professionals in Kenya, find jobs, and access career resources",
   "icons": [
     {
       "src": "favicon.ico",
@@ -9,18 +9,57 @@
       "type": "image/x-icon"
     },
     {
-      "src": "og-image.png",
+      "src": "logo192.png",
       "type": "image/png",
-      "sizes": "1200x630"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "apple-touch-icon.png",
+      "src": "logo512.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "theme_color": "#E65D03",
+  "background_color": "#ffffff",
+  "orientation": "portrait",
+  "categories": ["business", "productivity", "social"],
+  "screenshots": [
+    {
+      "src": "screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/jobs.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    },
+    {
+      "src": "screenshots/profile.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Jobs",
+      "short_name": "Jobs",
+      "description": "View the latest supply chain jobs",
+      "url": "/jobs",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Profile",
+      "short_name": "Profile",
+      "description": "View your profile",
+      "url": "/profile",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
