@@ -12,15 +12,13 @@ export const VisionCard = () => {
       </CardHeader>
       <CardContent>
         <p className="mb-4">
-          "The role is demanding. The expectations are clear: leading our multi-city procurement, 
-          inventory, logistics, and partner management strategy, designing frameworks that prevent 
-          stockouts and wastage, management of vendor relations to last-mile delivery - and this 
-          would be done with limited resources, and a lot of hustle—in the beginning."
+          "The roles are young, new and well, you'll be running your business and meeting your own objectives. 
+          Since the app is supply chain jobs only, your vision and deliverables will be measured by the supply 
+          chain community."
         </p>
         <p>
-          "We're offering a structure that leans on value. You won't be walking into a plush seat. 
-          The first months will be an immersive co-leadership phase with stipend. After that, it transitions 
-          into full managerial role, plus other benefits tied to your office, milestones and impact."
+          "No weird interview, because SupplyChain_KE is just starting. So you set the pace. 
+          In case you want an office, well this might not be for you, as most work can be done remotely."
         </p>
       </CardContent>
     </Card>

@@ -18,7 +18,7 @@ export const JobsBizDevelopment = () => {
     <div className="animate-fade-in space-y-8">
       <HeroSection />
       
-      <CareersVotingCTA />
+      <CareersVotingCTA telegramLink="https://t.me/+wfJms8ke7Ro5MDZk" />
       
       <VisionCard />
       
