@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
@@ -33,6 +34,8 @@ import { AdSection } from "@/components/AdSection";
 import Navbar from "@/components/Navbar";
 import Home from "@/pages/Home";
 import FreeServices from "@/pages/FreeServices";
+import { SiteNavigation } from '@/components/SiteNavigation';
+import AdManagement from './pages/AdManagement';
 
 function App() {
   const { theme } = useTheme();
@@ -48,6 +51,7 @@ function App() {
       <div className="min-h-screen bg-background">
         <SecurityMiddleware>
           <Navbar />
+          <SiteNavigation />
           <main className="pb-8 pt-20">
             <div className="flex gap-8">
               {/* Main Content */}
@@ -77,6 +81,7 @@ function App() {
                   <Route path="/forms" element={<Forms />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/free-services" element={<FreeServices />} />
+                  <Route path="/ad-management" element={<AdManagement />} />
                 </Routes>
               </div>
 
