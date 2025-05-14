@@ -11,6 +11,61 @@ import { Mentorship } from "@/components/Mentorship";
 import { JobMatchingChat } from "@/components/JobMatchingChat";
 import { JobsBizDevelopment } from "@/components/JobsBizDevelopment";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/components/ui/use-toast";
+
+// Custom fallback component for database connection errors
+const DatabaseErrorFallback = () => {
+  const handleRetry = () => {
+    window.location.reload();
+    toast({
+      title: "Retrying connection",
+      description: "Attempting to reconnect to the database..."
+    });
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
+      <Card className="max-w-3xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Service Temporarily Unavailable
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p>We're having trouble connecting to our job database at the moment.</p>
+            
+            <div className="bg-muted p-4 rounded-md">
+              <h3 className="font-medium mb-2">This could be due to:</h3>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Temporary database maintenance</li>
+                <li>Network connectivity issues</li>
+                <li>High server load</li>
+              </ul>
+            </div>
+            
+            <p>Please try again in a few moments. We apologize for the inconvenience.</p>
+            
+            <div className="flex justify-center mt-4">
+              <Button 
+                onClick={handleRetry} 
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Retry Connection
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +90,8 @@ const Jobs = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
+    <ErrorBoundary fallback={<DatabaseErrorFallback />}>
+      <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 className="text-3xl font-bold mb-4 md:mb-0">Supply Chain Jobs in Kenya</h1>
         <JobRefreshButton onRefreshComplete={handleRefreshComplete} />
@@ -63,14 +119,22 @@ const Jobs = () => {
             </TabsList>
           </Tabs>
 
-          <JobFilters 
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            category={category}
-            setCategory={setCategory}
-          />
-
-          <JobList jobs={filteredJobs} isLoading={isLoading} />
+          {isMobile ? (
+              <MobileJobFilters 
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                category={category}
+                setCategory={setCategory}
+              />
+            ) : (
+              <JobFilters 
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                category={category}
+                setCategory={setCategory}
+              />
+            )}
+            <JobList jobs={filteredJobs} isLoading={isLoading} />
         </TabsContent>
         
         {/* Job Matching Chat Content */}
@@ -93,7 +157,8 @@ const Jobs = () => {
           <JobsBizDevelopment />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

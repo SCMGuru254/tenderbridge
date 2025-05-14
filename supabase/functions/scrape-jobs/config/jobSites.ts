@@ -3,6 +3,27 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
+    // Google Search for Supply Chain jobs posted in the last 24 hours with expanded keywords
+    {
+      url: "https://www.google.com/search?q=site:linkedin.com+OR+site:brightermonday.co.ke+OR+site:fuzu.com+OR+site:jobwebkenya.com+OR+site:myjobmag.co.ke+(supply+chain+OR+logistics+OR+procurement+OR+warehouse+OR+inventory+OR+distribution+OR+shipping+OR+freight+OR+import+OR+export)+jobs+kenya&tbs=qdr:d",
+      source: "Google Search 24h",
+      selectors: {
+        jobContainer: ".g, .jtfYYd, [data-hveid], .jobList-item, .job-card, [role='article'], .PwjeAc, .BjJfJf, .vWdgBe, .KLsYvd, .MjjYud",
+        title: "h3, .DKV0Md, .JobTitle, .title, [role='heading'], .BjJfJf, .pE8vnd, .tl-title, .LC20lb",
+        company: ".MBeuO, .company, .employer, [class*='company'], [class*='subtitle'], .vNEEBe, .tl-company, .VuuXrf",
+        location: ".MBeuO, .location, [class*='location'], [class*='subtitle'], .Qk80Jf, .tl-location, .VuuXrf",
+        jobLink: "a[href], .pMhGee a, .tl-link, .yuRUbf a",
+        jobType: ".SuWscb, .tl-job-type",
+        deadline: ".SuWscb, .tl-deadline",
+      },
+      keywords: [
+        'supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'shipping',
+        'distribution', 'freight', 'import', 'export', 'supply planner', 'demand planner',
+        'logistics coordinator', 'procurement officer', 'supply chain manager', 'logistics manager',
+        'procurement manager', 'warehouse manager', 'inventory manager', 'distribution manager',
+        'scm', 'sourcing', 'purchasing', 'materials', 'operations', 'transport', 'customs'
+      ]
+    },
     // MyJobMag Supply Chain Jobs XML Feed - Direct integration with more specific keywords
     {
       url: "https://www.myjobmag.co.ke/jobsxml_by_categories.xml",
@@ -64,20 +85,6 @@ export const getJobSites = (): JobSite[] => {
       },
       isXmlFeed: true,
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse']
-    },
-    // Direct Google Jobs search - more specific search query
-    {
-      url: "https://www.google.com/search?q=supply+chain+logistics+jobs+kenya&ibp=htl;jobs",
-      source: "Google",
-      selectors: {
-        jobContainer: "div[jscontroller] > div[class='gws-plugins-horizon-jobs__tl-lif']",
-        title: "div[role='heading']",
-        company: "div:nth-child(1) > div:nth-child(2)",
-        location: "div:nth-child(1) > div:nth-child(3)",
-        jobLink: "a[jsname]",
-        jobType: null,
-        deadline: null,
-      }
     },
     // PigiaMe Jobs with logistics focus
     {

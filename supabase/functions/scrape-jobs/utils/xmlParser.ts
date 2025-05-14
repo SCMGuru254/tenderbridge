@@ -86,15 +86,55 @@ export function parseXmlFeed(xmlText: string): any[] {
       const job: Record<string, string> = {};
       
       // Extract standard fields
-      const fieldRegex = /<([^>]+)>([\s\S]*?)<\/\1>/g;
+      const fieldRegex = /<([^>]+)>([\\s\S]*?)<\/\1>/g;
       let fieldMatch;
       
       while ((fieldMatch = fieldRegex.exec(jobContent)) !== null) {
         const fieldName = fieldMatch[1].toLowerCase();
-        const fieldValue = fieldMatch[2]
+        let fieldValue = fieldMatch[2];
+        
+        // Handle all variations of CDATA tags
+        fieldValue = fieldValue
+          // Complete CDATA tags with content
+          .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
+          .replace(/&lt;!\[CDATA\[(.*?)\]\]&gt;/gs, '$1')
+          // Handle incomplete or malformed CDATA tags
           .replace(/<!\[CDATA\[/g, '')
           .replace(/\]\]>/g, '')
+          .replace(/&lt;!\[CDATA\[/g, '')
+          .replace(/\]\]&gt;/g, '')
+          .replace(/&#60;!\[CDATA\[(.*?)\]\]&#62;/gs, '$1')
+          .replace(/&#x3C;!\[CDATA\[(.*?)\]\]&#x3E;/gs, '$1')
+          .replace(/&#0*60;!\[CDATA\[(.*?)\]\]&#0*62;/gs, '$1')
+          
+          // Partial CDATA tags
+          .replace(/<!\[CDATA\[/g, '')
+          .replace(/\]\]>/g, '')
+          .replace(/&lt;!\[CDATA\[/g, '')
+          .replace(/\]\]&gt;/g, '')
+          .replace(/&#60;!\[CDATA\[/g, '')
+          .replace(/\]\]&#62;/g, '')
+          .replace(/&#x3C;!\[CDATA\[/g, '')
+          .replace(/\]\]&#x3E;/g, '')
+          .replace(/&#0*60;!\[CDATA\[/g, '')
+          .replace(/\]\]&#0*62;/g, '')
+          .replace(/&amp;lt;!\[CDATA\[/g, '')
+          .replace(/\]\]&amp;gt;/g, '')
+          
+          // Remove HTML tags
           .replace(/<[^>]*>/g, ' ')
+          
+          // Decode common HTML entities
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/&#39;/g, "'")
+          .replace(/&#34;/g, '"')
+          .replace(/&#x27;/g, "'")
+          .replace(/&#x22;/g, '"')
+          .replace(/&nbsp;/g, ' ')
           .trim();
           
         job[fieldName] = fieldValue;

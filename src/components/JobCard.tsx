@@ -2,18 +2,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Building2, MapPin, BriefcaseIcon, Share2, Clock, ExternalLink, Info } from "lucide-react";
+import { Building2, MapPin, BriefcaseIcon, Share2, Clock, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "../integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { hasExternalUrl } from "../utils/jobUtils";
-import { ShareToSocial } from './ShareToSocial';
-import type { Database } from "../integrations/supabase/types";
+import { cleanJobTitle } from "../utils/cleanJobTitle";
+// import { ShareToSocial } from './ShareToSocial';
+import type { JobType } from "../types/jobs";
 
 interface JobCardProps {
-  job: Database["public"]["Tables"]["scraped_jobs"]["Row"];
+  job: JobType;
 }
 
 export function JobCard({ job }: JobCardProps) {
@@ -30,7 +31,7 @@ export function JobCard({ job }: JobCardProps) {
     category
   } = job;
 
-  const isExternalJob = hasExternalUrl(job);
+  // const isExternalJob = hasExternalUrl(job);
   
   // Calculate remaining time if deadline exists
   const getRemainingTime = () => {
@@ -51,9 +52,11 @@ export function JobCard({ job }: JobCardProps) {
 
   // View job details handler
   const handleViewDetails = () => {
-    if (isExternalJob && job_url) {
+    // For all imported/scraped jobs with URLs, go directly to the job URL
+    if (job_url) {
       window.open(job_url, '_blank');
     } else {
+      // Only use the details page for jobs without external URLs
       navigate(`/jobs/${job.id}`);
     }
   };
@@ -89,7 +92,7 @@ export function JobCard({ job }: JobCardProps) {
       <CardHeader>
         <div className="flex justify-between">
           <div>
-            <CardTitle className="text-xl mb-1">{title}</CardTitle>
+            <CardTitle className="text-xl mb-1">{cleanJobTitle(title)}</CardTitle>
             <div className="flex items-center text-muted-foreground">
               <Building2 className="h-4 w-4 mr-1" />
               <span>{company || "Company not specified"}</span>
@@ -124,9 +127,9 @@ export function JobCard({ job }: JobCardProps) {
           
           <div className="flex items-center justify-between pt-2">
             <Button onClick={handleViewDetails}>
-              {isExternalJob ? (
+              {job_url ? (
                 <>
-                  View External Job
+                  Apply
                   <ExternalLink className="ml-1 h-4 w-4" />
                 </>
               ) : (

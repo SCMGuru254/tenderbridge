@@ -28,19 +28,58 @@ export function SiteNavigation() {
   const location = useLocation();
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("platform");
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Close menu when clicking outside on mobile
+  useEffect(() => {
+    if (isMobile) {
+      const handleClickOutside = () => {
+        if (isMenuOpen) {
+          setIsMenuOpen(false);
+        }
+      };
+      document.addEventListener('click', handleClickOutside);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+      };
+    }
+  }, [isMobile, isMenuOpen]);
+
+  // Handle menu item click on mobile
+  const handleMenuItemClick = () => {
+    if (isMobile) {
+      setIsMenuOpen(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-2">
-      <Menubar className="border-none bg-transparent px-0">
+      <Menubar className={`border-none bg-transparent px-0 ${isMobile ? 'flex-wrap gap-2' : ''}`}>
         <MenubarMenu>
-          <MenubarTrigger className={activeSection === "platform" ? "font-bold text-primary" : ""}>
+          <MenubarTrigger 
+            className={`${activeSection === "platform" ? "font-bold text-primary" : ""} ${isMobile ? "py-2 px-3" : ""}`}
+            onClick={() => isMobile && setIsMenuOpen(!isMenuOpen)}
+          >
             Platform
           </MenubarTrigger>
-          <MenubarContent className="min-w-[220px]" onOpenChange={() => setActiveSection("platform")}>
+          <MenubarContent 
+            className="min-w-[220px]" 
+            onOpenChange={(open) => {
+              setActiveSection("platform");
+              if (isMobile) setIsMenuOpen(open);
+            }}
+            forceMount={isMobile && isMenuOpen}
+            align={isMobile ? "start" : "center"}
+          >
             <MenubarItem asChild>
-              <Link to="/jobs" className={isActive("/jobs") ? "bg-muted" : ""}>
+              <Link 
+                to="/jobs" 
+                className={`${isActive("/jobs") ? "bg-muted" : ""} ${isMobile ? "py-3" : ""}`}
+                onClick={handleMenuItemClick}
+              >
                 <Briefcase className="mr-2 h-4 w-4" />
                 Jobs
               </Link>

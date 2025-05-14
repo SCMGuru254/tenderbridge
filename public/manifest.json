@@ -1,7 +1,7 @@
 {
-  "short_name": "SupplyChain_KE",
-  "name": "SupplyChain_KE - Supply Chain Portal",
-  "description": "Connect with supply chain professionals in Kenya, find jobs, and access career resources",
+  "short_name": "TenderBridge",
+  "name": "TenderBridge - Job Portal",
+  "description": "Connect with professionals, find jobs, and access career resources",
   "icons": [
     {
       "src": "favicon.ico",

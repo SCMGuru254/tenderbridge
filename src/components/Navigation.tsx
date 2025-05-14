@@ -13,6 +13,7 @@ const Navigation = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [isOpen, setIsOpen] = useState(!isMobile);
   const { user, loading, signOut } = useUser();
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   useEffect(() => {
     if (isMobile) {
@@ -21,6 +22,29 @@ const Navigation = () => {
       setIsOpen(true);
     }
   }, [window.location.pathname, isMobile]);
+
+  // Handle swipe to open/close sidebar on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isMobile) {
+      setTouchStartX(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isMobile || touchStartX === null) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+    
+    // Swipe right to open, swipe left to close
+    if (deltaX > 70 && !isOpen) {
+      setIsOpen(true);
+    } else if (deltaX < -70 && isOpen) {
+      setIsOpen(false);
+    }
+    
+    setTouchStartX(null);
+  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -67,7 +91,13 @@ const Navigation = () => {
       <div 
         className={`fixed top-16 left-0 h-[calc(100vh-4rem)] transition-all duration-300 bg-white 
           shadow-md z-40 ${isOpen ? (isMobile ? "w-64" : "w-64") : "w-0"}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
+        {/* Swipe indicator for mobile */}
+        {isMobile && isOpen && (
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-16 w-1.5 bg-primary/30 rounded-l-md" />
+        )}
         <div className={`h-full flex flex-col overflow-y-auto ${!isOpen ? "invisible" : "visible"}`}>
           <div className="p-4 flex-1">
             <h2 className="text-lg font-semibold mb-4 px-2">Navigation</h2>

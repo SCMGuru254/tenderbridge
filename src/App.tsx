@@ -5,6 +5,7 @@ import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import Jobs from './pages/Jobs';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import JobDetails from './pages/JobDetails';
 import JobSeekers from './pages/JobSeekers';
 import InterviewPrep from './pages/InterviewPrep';
@@ -48,6 +49,7 @@ function App() {
 
   return (
     <div className={theme === "dark" ? "dark" : ""}>
+      <PWAInstallPrompt />
       <div className="min-h-screen bg-background">
         <SecurityMiddleware>
           <Navbar />

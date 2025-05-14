@@ -33,9 +33,9 @@ export type ScrapedJob = {
   application_url: string | null;
   created_at: string;
   updated_at?: string;
-  employment_type?: string;
-  experience_level?: string;
-  category?: string;
+  employment_type?: string | null;
+  experience_level?: string | null;
+  category?: string | null;
   application_deadline: string | null;
   skills?: string[] | null;
   requirements?: string[] | null;

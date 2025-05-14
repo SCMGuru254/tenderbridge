@@ -1,11 +1,14 @@
 
 import { Loader2 } from "lucide-react";
 import { JobCard } from "@/components/job-card/JobCard";
+import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getRemainingTime } from "@/utils/jobUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 interface JobListProps {
   jobs: (PostedJob | ScrapedJob)[] | undefined;
@@ -13,6 +16,7 @@ interface JobListProps {
 }
 
 export const JobList = ({ jobs, isLoading }: JobListProps) => {
+  const isMobile = useIsMobile();
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -86,19 +90,44 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => (
-          <JobCard
-            key={job.id}
-            title={job.title}
-            company={getCompanyName(job)}
-            location={getLocation(job)}
-            type={job.job_type}
-            category={getJobSource(job)}
-            jobUrl={getJobUrl(job)}
-            deadline={getDeadline(job)}
-            remainingTime={getRemainingTime(job)}
-            jobId={job.id}
-            fullJob={job} // Pass the full job object for sharing
-          />
+          isMobile ? (
+            <SwipeableJobCard
+              key={job.id}
+              job={{
+                id: job.id,
+                title: job.title,
+                company: getCompanyName(job),
+                location: getLocation(job),
+                job_type: job.job_type,
+                category: getJobSource(job),
+                job_url: getJobUrl(job),
+                application_deadline: getDeadline(job),
+                social_shares: job.social_shares || {}
+              }}
+              onSave={() => {
+                toast.success("Job saved to favorites");
+                // Implement save functionality
+              }}
+              onShare={() => {
+                toast.success("Job shared");
+                // Implement share functionality
+              }}
+            />
+          ) : (
+            <JobCard
+              key={job.id}
+              title={job.title}
+              company={getCompanyName(job)}
+              location={getLocation(job)}
+              type={job.job_type}
+              category={getJobSource(job)}
+              jobUrl={getJobUrl(job)}
+              deadline={getDeadline(job)}
+              remainingTime={getRemainingTime(job)}
+              jobId={job.id}
+              fullJob={job} // Pass the full job object for sharing
+            />
+          )
         ))}
       </div>
       

@@ -33,6 +33,8 @@ export async function insertJob(supabaseUrl: string, supabaseKey: string, job: J
     job_type: job.job_type,
     description: job.description,
     job_url: jobUrl,
-    application_url: applicationUrl || jobUrl // Ensure at least one URL is set
+    application_url: applicationUrl || jobUrl, // Ensure at least one URL is set
+    date_posted: job.date_posted || new Date().toISOString().split('T')[0], // Add date posted field
+    tags: job.tags || [] // Add tags field
   }).select();
 }
