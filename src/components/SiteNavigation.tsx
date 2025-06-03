@@ -7,11 +7,9 @@ import {
   MenubarItem, 
   MenubarMenu, 
   MenubarSeparator, 
-  MenubarShortcut, 
   MenubarTrigger 
 } from "@/components/ui/menubar";
 import { useAuth } from "@/hooks/use-auth";
-import { useMediaQuery } from "@/hooks/use-mobile";
 import { 
   Briefcase, 
   FileText, 
@@ -24,6 +22,23 @@ import {
   Building,
   ShieldCheck
 } from "lucide-react";
+
+// Simple media query hook inline to avoid import issues
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+    const listener = () => setMatches(media.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, [matches, query]);
+
+  return matches;
+}
 
 export function SiteNavigation() {
   const location = useLocation();
@@ -72,8 +87,6 @@ export function SiteNavigation() {
               setActiveSection("platform");
               if (isMobile) setIsMenuOpen(open);
             }}
-            forceMount={isMobile && isMenuOpen}
-            align={isMobile ? "start" : "center"}
           >
             <MenubarItem asChild>
               <Link 
@@ -86,19 +99,19 @@ export function SiteNavigation() {
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/companies" className={isActive("/companies") ? "bg-muted" : ""}>
+              <Link to="/companies" className={isActive("/companies") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <Building className="mr-2 h-4 w-4" />
                 Companies
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/discussions" className={isActive("/discussions") ? "bg-muted" : ""}>
+              <Link to="/discussions" className={isActive("/discussions") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Discussions
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/blog" className={isActive("/blog") ? "bg-muted" : ""}>
+              <Link to="/blog" className={isActive("/blog") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <BookOpen className="mr-2 h-4 w-4" />
                 Blog
               </Link>
@@ -112,32 +125,32 @@ export function SiteNavigation() {
           </MenubarTrigger>
           <MenubarContent className="min-w-[220px]" onOpenChange={() => setActiveSection("resources")}>
             <MenubarItem asChild>
-              <Link to="/interview-prep" className={isActive("/interview-prep") ? "bg-muted" : ""}>
+              <Link to="/interview-prep" className={isActive("/interview-prep") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <GraduationCap className="mr-2 h-4 w-4" />
                 Interview Prep
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/document-generator" className={isActive("/document-generator") ? "bg-muted" : ""}>
+              <Link to="/document-generator" className={isActive("/document-generator") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <FileText className="mr-2 h-4 w-4" />
                 Document Generator
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/faq" className={isActive("/faq") ? "bg-muted" : ""}>
+              <Link to="/faq" className={isActive("/faq") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 FAQ
               </Link>
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem asChild>
-              <Link to="/free-services" className={isActive("/free-services") ? "bg-muted" : ""}>
+              <Link to="/free-services" className={isActive("/free-services") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <Award className="mr-2 h-4 w-4" />
                 Free Services
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/rewards" className={isActive("/rewards") ? "bg-muted" : ""}>
+              <Link to="/rewards" className={isActive("/rewards") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <Award className="mr-2 h-4 w-4" />
                 Rewards Program
               </Link>
@@ -153,13 +166,13 @@ export function SiteNavigation() {
             {user ? (
               <>
                 <MenubarItem asChild>
-                  <Link to="/profile" className={isActive("/profile") ? "bg-muted" : ""}>
+                  <Link to="/profile" className={isActive("/profile") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                     <Users className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
                 </MenubarItem>
                 <MenubarItem asChild>
-                  <Link to="/messages" className={isActive("/messages") ? "bg-muted" : ""}>
+                  <Link to="/messages" className={isActive("/messages") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Messages
                   </Link>
@@ -167,7 +180,7 @@ export function SiteNavigation() {
               </>
             ) : (
               <MenubarItem asChild>
-                <Link to="/auth">
+                <Link to="/auth" onClick={handleMenuItemClick}>
                   <Users className="mr-2 h-4 w-4" />
                   Sign In
                 </Link>
@@ -175,13 +188,13 @@ export function SiteNavigation() {
             )}
             <MenubarSeparator />
             <MenubarItem asChild>
-              <Link to="/security" className={isActive("/security") ? "bg-muted" : ""}>
+              <Link to="/security" className={isActive("/security") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Security
               </Link>
             </MenubarItem>
             <MenubarItem asChild>
-              <Link to="/privacy" className={isActive("/privacy") ? "bg-muted" : ""}>
+              <Link to="/privacy" className={isActive("/privacy") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <ShieldCheck className="mr-2 h-4 w-4" />
                 Privacy Policy
               </Link>
