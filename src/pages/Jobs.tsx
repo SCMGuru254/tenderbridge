@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobData } from "@/hooks/useJobData";
 import { filterJobs } from "@/utils/jobUtils";
 import { JobFilters } from "@/components/JobFilters";
+import { MobileJobFilters } from "@/components/MobileJobFilters";
 import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
 import { SalaryAnalyzer } from "@/components/SalaryAnalyzer";
@@ -16,6 +16,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Custom fallback component for database connection errors
 const DatabaseErrorFallback = () => {
@@ -71,6 +72,7 @@ const Jobs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [mainTab, setMainTab] = useState("jobs");
+  const isMobile = useIsMobile();
   const { 
     allJobs, 
     isLoading, 
