@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Menubar, 
@@ -11,6 +11,7 @@ import {
   MenubarTrigger 
 } from "@/components/ui/menubar";
 import { useAuth } from "@/hooks/use-auth";
+import { useMediaQuery } from "@/hooks/use-mobile";
 import { 
   Briefcase, 
   FileText, 
