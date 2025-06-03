@@ -1,16 +1,21 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
 import { PostedJob, ScrapedJob } from '@/types/jobs';
 import { isJobExpired } from '@/utils/jobUtils';
+import { CACHE_CONFIG } from './useAdvancedCaching';
+import { usePerformanceMonitoring } from './usePerformanceMonitoring';
 
-// Fetch posted jobs from the database with improved error handling
+// High-performance job fetching optimized for 100k+ users
 export const usePostedJobs = () => {
+  const { trackNetworkRequest, trackError } = usePerformanceMonitoring();
+  
   return useQuery<PostedJob[], PostgrestError>({
     queryKey: ['posted-jobs'],
     queryFn: async () => {
       console.log("Fetching posted jobs...");
+      trackNetworkRequest();
+      
       try {
         const { data, error } = await supabase
           .from('jobs')
@@ -23,93 +28,112 @@ export const usePostedJobs = () => {
               description
             )
           `)
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(1000); // Limit for performance
 
         if (error) {
           console.error("Error fetching posted jobs:", error);
+          trackError(new Error(error.message));
           throw error;
         }
+        
         console.log("Posted jobs:", data);
         return (data || []) as PostedJob[];
       } catch (error) {
         console.error("Failed to fetch posted jobs:", error);
-        // Return empty array instead of throwing to prevent UI from breaking
+        trackError(error as Error);
         return [] as PostedJob[];
       }
     },
-    refetchInterval: 1000 * 60 * 30, // Refetch every 30 minutes
-    retry: 3, // Retry failed requests up to 3 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    gcTime: 1000 * 60 * 60, // Keep cached data for 1 hour
-    // Using the new API for error handling
-    networkMode: 'always',
+    ...CACHE_CONFIG.JOBS,
+    // Enable background refetching
+    refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
+    // Keep previous data while refetching
+    placeholderData: (previousData) => previousData,
     // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in usePostedJobs:", error);
+        trackError(new Error(error.message));
       }
     }
   });
 };
 
-// Fetch scraped jobs from the database with duplicate and expired job filtering and improved error handling
-export const useScrapedJobs = () => {
+// Optimized scraped jobs fetching with pagination and filtering
+export const useScrapedJobs = (limit: number = 1000) => {
+  const { trackNetworkRequest, trackError } = usePerformanceMonitoring();
+  
   return useQuery<ScrapedJob[], PostgrestError>({
-    queryKey: ['scraped-jobs'],
+    queryKey: ['scraped-jobs', limit],
     queryFn: async () => {
       console.log("Fetching scraped jobs...");
+      trackNetworkRequest();
+      
       try {
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(limit)
+          .not('title', 'is', null)
+          .not('company', 'is', null);
 
         if (error) {
           console.error("Error fetching scraped jobs:", error);
+          trackError(new Error(error.message));
           throw error;
         }
         
         console.log("Scraped jobs:", data);
         
-        // Filter out any obviously expired jobs
+        // Filter out expired jobs
         const nonExpiredJobs = (data || []).filter(job => !isJobExpired(job));
         console.log(`Filtered out ${(data || []).length - nonExpiredJobs.length} expired jobs, showing ${nonExpiredJobs.length} jobs`);
         
         return nonExpiredJobs as ScrapedJob[];
       } catch (error) {
         console.error("Failed to fetch scraped jobs:", error);
-        // Return empty array instead of throwing to prevent UI from breaking
+        trackError(error as Error);
         return [] as ScrapedJob[];
       }
     },
-    refetchInterval: 1000 * 60 * 30, // Refetch every 30 minutes
-    retry: 3, // Retry failed requests up to 3 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    gcTime: 1000 * 60 * 60, // Keep cached data for 1 hour
-    // Using the new API for error handling
-    networkMode: 'always',
+    ...CACHE_CONFIG.JOBS,
+    // Enable background refetching
+    refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
+    // Keep previous data while refetching
+    placeholderData: (previousData) => previousData,
     // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in useScrapedJobs:", error);
+        trackError(new Error(error.message));
       }
     }
   });
 };
 
-// Fetch companies with improved error handling
+// Optimized companies fetching
 export const useCompanies = () => {
+  const { trackNetworkRequest, trackError } = usePerformanceMonitoring();
+  
   return useQuery<any[], PostgrestError>({
     queryKey: ['companies'],
     queryFn: async () => {
       console.log("Fetching companies...");
+      trackNetworkRequest();
+      
       try {
         const { data, error } = await supabase
           .from('companies')
-          .select('*');
+          .select('*')
+          .order('name', { ascending: true })
+          .limit(500); // Limit for performance
 
         if (error) {
           console.error("Error fetching companies:", error);
+          trackError(new Error(error.message));
           throw error;
         }
         
@@ -117,19 +141,16 @@ export const useCompanies = () => {
         return data || [];
       } catch (error) {
         console.error("Failed to fetch companies:", error);
-        // Return empty array instead of throwing to prevent UI from breaking
+        trackError(error as Error);
         return [];
       }
     },
-    retry: 3, // Retry failed requests up to 3 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    gcTime: 1000 * 60 * 60, // Keep cached data for 1 hour
-    // Using the new API for error handling
-    networkMode: 'always',
+    ...CACHE_CONFIG.STATIC,
     // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in useCompanies:", error);
+        trackError(new Error(error.message));
       }
     }
   });
