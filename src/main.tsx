@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { CACHE_CONFIG } from '@/hooks/useAdvancedCaching'
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
@@ -21,12 +22,25 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Create a client
+// High-performance query client configuration for 100k+ users
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
+      staleTime: CACHE_CONFIG.JOBS.staleTime,
+      gcTime: CACHE_CONFIG.JOBS.gcTime,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: CACHE_CONFIG.JOBS.retry,
+      retryDelay: CACHE_CONFIG.JOBS.retryDelay,
+      // Enable background refetching for better UX
+      refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
+      // Network mode for better offline handling
+      networkMode: 'offlineFirst',
+    },
+    mutations: {
+      retry: 2,
+      retryDelay: 1000,
+      networkMode: 'offlineFirst',
     },
   },
 })
