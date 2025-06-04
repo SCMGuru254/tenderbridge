@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, Newspaper, Zap } from "lucide-react";
+import { Loader2, Zap } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNewsAPI } from "@/hooks/useNewsAPI";
 
@@ -17,12 +17,15 @@ export const NewsRefreshButton = ({ onRefreshComplete }: NewsRefreshButtonProps)
   const refreshNews = async () => {
     try {
       setIsRefreshing(true);
+      console.log('Starting news refresh...');
+      
       toast({
         title: "Fetching latest news...",
-        description: "Getting the most recent supply chain news from News API.",
+        description: "Getting the most recent supply chain news from The News API.",
       });
 
       const result = await fetchSupplyChainNews();
+      console.log('News refresh result:', result);
       
       if (result?.success) {
         onRefreshComplete();
@@ -31,14 +34,14 @@ export const NewsRefreshButton = ({ onRefreshComplete }: NewsRefreshButtonProps)
           description: `Successfully fetched ${result.count} new supply chain articles.`,
         });
       } else {
-        throw new Error("Failed to fetch news");
+        throw new Error(result?.message || "Failed to fetch news");
       }
     } catch (error) {
       console.error('Error refreshing news:', error);
       toast({
         variant: "destructive",
         title: "Error refreshing news",
-        description: "There was a problem fetching the latest news. Please try again later.",
+        description: "There was a problem fetching the latest news. Please check your API configuration.",
       });
     } finally {
       setIsRefreshing(false);

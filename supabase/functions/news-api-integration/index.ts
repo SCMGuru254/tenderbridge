@@ -18,7 +18,14 @@ serve(async (req) => {
   }
 
   try {
-    const { searchTerm = '', limit = 50 } = await req.json();
+    console.log('Starting news fetch process...');
+    
+    if (!newsApiToken) {
+      console.error('NEWS_API_TOKEN not found in environment variables');
+      throw new Error('News API token not configured');
+    }
+
+    const { searchTerm = '', limit = 50 } = await req.json().catch(() => ({}));
 
     // Build the News API URL with supply chain focused parameters
     const url = new URL('https://api.thenewsapi.com/v1/news/all');
@@ -29,15 +36,25 @@ serve(async (req) => {
     url.searchParams.append('sort', 'published_at');
     url.searchParams.append('language', 'en');
 
-    console.log('Fetching news from:', url.toString().replace(newsApiToken, 'HIDDEN_TOKEN'));
+    console.log('Fetching news from The News API...');
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'SupplyChainPortal/1.0'
+      }
+    });
     
     if (!response.ok) {
+      console.error(`News API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
       throw new Error(`News API error: ${response.status} ${response.statusText}`);
     }
 
     const newsData = await response.json();
+    console.log(`Received ${newsData.data?.length || 0} articles from News API`);
     
     // Filter and process the news for supply chain relevance
     const supplyChainNews = newsData.data?.filter((article: any) => {
@@ -48,18 +65,20 @@ serve(async (req) => {
       const supplyChainKeywords = [
         'supply chain', 'logistics', 'procurement', 'warehousing', 'transportation',
         'freight', 'shipping', 'distribution', 'inventory', 'manufacturing',
-        'port', 'cargo', 'trade', 'import', 'export', 'customs'
+        'port', 'cargo', 'trade', 'import', 'export', 'customs', 'warehouse'
       ];
       
       return supplyChainKeywords.some(keyword => content.includes(keyword));
     }) || [];
+
+    console.log(`Filtered to ${supplyChainNews.length} supply chain relevant articles`);
 
     // Store filtered news in database
     if (supplyChainNews.length > 0) {
       const newsToStore = supplyChainNews.map((article: any) => ({
         title: article.title || 'No title',
         content: article.description || article.snippet || '',
-        source_name: article.source || 'News API',
+        source_name: article.source || 'The News API',
         source_url: article.url || '',
         published_at: article.published_at || new Date().toISOString(),
         tags: ['Supply Chain', 'News API', ...(article.categories || [])],
@@ -73,6 +92,8 @@ serve(async (req) => {
 
       if (insertError) {
         console.error('Error storing news:', insertError);
+      } else {
+        console.log(`Successfully stored ${newsToStore.length} articles`);
       }
     }
 
@@ -93,7 +114,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message,
+        message: 'Failed to fetch news. Please check your API configuration.'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
