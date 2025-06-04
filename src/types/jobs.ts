@@ -1,4 +1,3 @@
-
 export type PostedJob = {
   id: string;
   title: string;
@@ -41,9 +40,19 @@ export type ScrapedJob = {
   requirements?: string[] | null;
   responsibilities?: string[] | null;
   salary_range?: string | null;
+  social_shares?: {
+    count: number;
+  } | null;
 }
 
-export type JobType = PostedJob | ScrapedJob;
+export type JobType = {
+  company?: string;
+  job_url?: string;
+  category?: string;
+  social_shares?: {
+    count: number;
+  } | null;
+} & (PostedJob | ScrapedJob);
 
 export type JobFilterParams = {
   searchTerm: string;

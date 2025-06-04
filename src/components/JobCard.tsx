@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -8,7 +7,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "../integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { hasExternalUrl } from "../utils/jobUtils";
 import { cleanJobTitle } from "../utils/cleanJobTitle";
 // import { ShareToSocial } from './ShareToSocial';
 import type { JobType } from "../types/jobs";
@@ -20,6 +18,7 @@ interface JobCardProps {
 export function JobCard({ job }: JobCardProps) {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
+  const [jobStatus, setJobStatus] = useState({ saved: false, applied: false, remindLater: false });
   
   const {
     title,
@@ -87,6 +86,21 @@ export function JobCard({ job }: JobCardProps) {
     }
   };
 
+  const handleSaveJob = () => {
+    setJobStatus((prev) => ({ ...prev, saved: !prev.saved }));
+    toast.success(jobStatus.saved ? "Job removed from saved list" : "Job saved successfully!");
+  };
+
+  const handleMarkAsApplied = () => {
+    setJobStatus((prev) => ({ ...prev, applied: !prev.applied }));
+    toast.success(jobStatus.applied ? "Marked as not applied" : "Marked as applied!");
+  };
+
+  const handleRemindLater = () => {
+    setJobStatus((prev) => ({ ...prev, remindLater: !prev.remindLater }));
+    toast.success(jobStatus.remindLater ? "Reminder removed" : "Reminder set successfully!");
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
@@ -149,6 +163,18 @@ export function JobCard({ job }: JobCardProps) {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          </div>
+
+          <div className="flex gap-2">
+            <Button onClick={handleSaveJob} variant={jobStatus.saved ? "default" : "outline"}>
+              {jobStatus.saved ? "Unsave" : "Save"}
+            </Button>
+            <Button onClick={handleMarkAsApplied} variant={jobStatus.applied ? "default" : "outline"}>
+              {jobStatus.applied ? "Undo Applied" : "Mark as Applied"}
+            </Button>
+            <Button onClick={handleRemindLater} variant={jobStatus.remindLater ? "default" : "outline"}>
+              {jobStatus.remindLater ? "Remove Reminder" : "Remind Me Later"}
+            </Button>
           </div>
         </div>
       </CardContent>
