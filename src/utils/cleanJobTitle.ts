@@ -1,62 +1,62 @@
-/**
- * Utility function to clean job titles from any remaining CDATA tags or HTML entities
- * This provides an additional cleaning step in the frontend before displaying job titles
- */
 
-export function cleanJobTitle(title: string): string {
+// Utility to clean job titles by removing CDATA tags and other unwanted elements
+export const cleanJobTitle = (title: string): string => {
   if (!title) return '';
   
-  let cleaned = title;
+  // Remove CDATA tags and their content markers
+  let cleaned = title.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
   
-  // Handle all variations of complete CDATA tags with content
-  // Standard XML CDATA format
-  cleaned = cleaned.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1');
-  
-  // HTML entity encoded variations (common in double-processed XML)
-  cleaned = cleaned.replace(/&lt;!\[CDATA\[(.*?)\]\]&gt;/gs, '$1');
-  cleaned = cleaned.replace(/&#60;!\[CDATA\[(.*?)\]\]&#62;/gs, '$1');
-  cleaned = cleaned.replace(/&#x3C;!\[CDATA\[(.*?)\]\]&#x3E;/gs, '$1');
-  
-  // Additional numeric entity variations
-  cleaned = cleaned.replace(/&#0*60;!\[CDATA\[(.*?)\]\]&#0*62;/gs, '$1');
-  cleaned = cleaned.replace(/&#0*76;!\[CDATA\[(.*?)\]\]&#0*76;/gs, '$1');
-  
-  // Handle partial or malformed CDATA tags (opening tags)
-  cleaned = cleaned
-    .replace(/<!\[CDATA\[/g, '')
-    .replace(/&lt;!\[CDATA\[/g, '')
-    .replace(/&#60;!\[CDATA\[/g, '')
-    .replace(/&#x3C;!\[CDATA\[/g, '')
-    .replace(/&#0*60;!\[CDATA\[/g, '')
-    .replace(/&amp;lt;!\[CDATA\[/g, '');
-  
-  // Handle partial or malformed CDATA tags (closing tags)
-  cleaned = cleaned
-    .replace(/\]\]>/g, '')
-    .replace(/\]\]&gt;/g, '')
-    .replace(/\]\]&#62;/g, '')
-    .replace(/\]\]&#x3E;/g, '')
-    .replace(/\]\]&#0*62;/g, '')
-    .replace(/\]\]&amp;gt;/g, '');
-  
-  // Remove any HTML tags
+  // Remove any remaining XML/HTML tags
   cleaned = cleaned.replace(/<[^>]*>/g, '');
   
-  // Decode common HTML entities
-  cleaned = cleaned
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#39;/g, "'")
-    .replace(/&#34;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&#x22;/g, '"')
-    .replace(/&nbsp;/g, ' ');
+  // Remove extra whitespace and normalize
+  cleaned = cleaned.trim().replace(/\s+/g, ' ');
   
-  // Normalize whitespace
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  // Remove any remaining brackets or special characters that might be artifacts
+  cleaned = cleaned.replace(/[\[\]<>]/g, '');
   
   return cleaned;
-}
+};
+
+// Clean job description as well
+export const cleanJobDescription = (description: string): string => {
+  if (!description) return '';
+  
+  // Remove CDATA tags
+  let cleaned = description.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+  
+  // Remove script and style tags completely
+  cleaned = cleaned.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  cleaned = cleaned.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  
+  // Convert common HTML entities
+  cleaned = cleaned.replace(/&nbsp;/g, ' ');
+  cleaned = cleaned.replace(/&amp;/g, '&');
+  cleaned = cleaned.replace(/&lt;/g, '<');
+  cleaned = cleaned.replace(/&gt;/g, '>');
+  cleaned = cleaned.replace(/&quot;/g, '"');
+  cleaned = cleaned.replace(/&#39;/g, "'");
+  
+  // Remove HTML tags but preserve line breaks
+  cleaned = cleaned.replace(/<br\s*\/?>/gi, '\n');
+  cleaned = cleaned.replace(/<\/p>/gi, '\n\n');
+  cleaned = cleaned.replace(/<[^>]*>/g, '');
+  
+  // Clean up extra whitespace
+  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // Remove triple+ line breaks
+  cleaned = cleaned.replace(/[ \t]+/g, ' '); // Normalize spaces and tabs
+  cleaned = cleaned.trim();
+  
+  return cleaned;
+};
+
+// Clean company names
+export const cleanCompanyName = (company: string): string => {
+  if (!company) return '';
+  
+  let cleaned = company.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+  cleaned = cleaned.replace(/<[^>]*>/g, '');
+  cleaned = cleaned.trim().replace(/\s+/g, ' ');
+  
+  return cleaned;
+};
