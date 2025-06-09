@@ -117,15 +117,15 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
           ) : (
             <JobCard
               key={job.id}
-              id={job.id}
               title={job.title}
               company={getCompanyName(job) || null}
               location={getLocation(job) || null}
-              job_type={job.job_type || null}
+              type={job.job_type || null}
               category={getJobSource(job)}
-              job_url={getJobUrl(job)}
-              application_deadline={getDeadline(job) || null}
-              social_shares={job.social_shares || {}}
+              jobUrl={getJobUrl(job)}
+              deadline={getDeadline(job) || null}
+              jobId={job.id}
+              fullJob={job}
             />
           )
         ))}

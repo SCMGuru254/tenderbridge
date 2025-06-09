@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
 // Sample data for demo purposes - in production this would come from an API or database
-const SAMPLE_SALARY_DATA = {
+const SAMPLE_SALARY_DATA: Record<string, Record<string, any>> = {
   "Supply Chain Manager": {
     "Kenya": { 
       min: 150000, max: 350000, currency: "KES", period: "monthly",
@@ -130,7 +129,7 @@ const SAMPLE_SALARY_DATA = {
 const COUNTRIES = ["Kenya", "Tanzania", "Uganda", "Rwanda", "Ethiopia", "Burundi", "South Sudan"];
 
 // Sample list of cities by country
-const CITIES_BY_COUNTRY = {
+const CITIES_BY_COUNTRY: Record<string, string[]> = {
   "Kenya": ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika", "Malindi", "Kitale", "Garissa"],
   "Tanzania": ["Dar es Salaam", "Mwanza", "Arusha", "Dodoma", "Mbeya", "Morogoro", "Tanga", "Zanzibar"],
   "Uganda": ["Kampala", "Entebbe", "Jinja", "Gulu", "Mbarara", "Mbale", "Kasese", "Lira"],
@@ -173,7 +172,7 @@ export const SalaryAnalyzer = () => {
   const handleRoleChange = (role: string) => {
     setSelectedRole(role);
     if (selectedCountry && role) {
-      const data = SAMPLE_SALARY_DATA[role]?.[selectedCountry];
+      const data = SAMPLE_SALARY_DATA[role as keyof typeof SAMPLE_SALARY_DATA]?.[selectedCountry];
       setSalaryData(data);
       
       // Reset region when role changes
@@ -185,13 +184,13 @@ export const SalaryAnalyzer = () => {
     setSelectedCountry(country);
     
     // Update available cities based on country
-    setAvailableCities(CITIES_BY_COUNTRY[country] || []);
+    setAvailableCities(CITIES_BY_COUNTRY[country as keyof typeof CITIES_BY_COUNTRY] || []);
     
     // Reset region when country changes
     setSelectedRegion("");
     
     if (selectedRole && country) {
-      setSalaryData(SAMPLE_SALARY_DATA[selectedRole]?.[country]);
+      setSalaryData(SAMPLE_SALARY_DATA[selectedRole as keyof typeof SAMPLE_SALARY_DATA]?.[country]);
     }
   };
 
@@ -200,8 +199,8 @@ export const SalaryAnalyzer = () => {
     
     // If we have region-specific data, update the salary display
     if (selectedRole && selectedCountry && region && 
-        SAMPLE_SALARY_DATA[selectedRole]?.[selectedCountry]?.regions?.[region]) {
-      const countryData = SAMPLE_SALARY_DATA[selectedRole][selectedCountry];
+        SAMPLE_SALARY_DATA[selectedRole as keyof typeof SAMPLE_SALARY_DATA]?.[selectedCountry]?.regions?.[region]) {
+      const countryData = SAMPLE_SALARY_DATA[selectedRole as keyof typeof SAMPLE_SALARY_DATA][selectedCountry];
       const regionData = countryData.regions[region];
       
       // Merge country data with region-specific overrides
@@ -296,7 +295,7 @@ export const SalaryAnalyzer = () => {
                     <SelectValue placeholder="Choose a city/town" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableCities.map(city => (
+                    {availableCities.map((city: string) => (
                       <SelectItem key={city} value={city}>{city}</SelectItem>
                     ))}
                   </SelectContent>
@@ -304,6 +303,23 @@ export const SalaryAnalyzer = () => {
               </div>
             )}
           </div>
+
+          {selectedCountry && CITIES_BY_COUNTRY[selectedCountry as keyof typeof CITIES_BY_COUNTRY] && (
+            <div className="mt-6">
+              <Label htmlFor="form-city">City/Town</Label>
+              <Select onValueChange={(val) => handleFormChange('city', val)} value={formData.country}>
+                <SelectTrigger id="form-city">
+                  <SelectValue placeholder="Select city/town" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CITIES_BY_COUNTRY[selectedCountry as keyof typeof CITIES_BY_COUNTRY].map((city: string) => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {salaryData && (
             <div className="mt-6 p-4 bg-muted/50 rounded-md">

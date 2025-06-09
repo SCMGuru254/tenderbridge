@@ -1,12 +1,14 @@
+
 import { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Button, Drawer, List, ListItem, ListItemText, useMediaQuery, useTheme } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import { Menu as MenuIcon } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ResponsiveAppBar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useIsMobile();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -18,85 +20,59 @@ const ResponsiveAppBar = () => {
     { text: 'Career Path', path: '/career' }
   ];
 
-  const drawer = (
-    <List>
-      {menuItems.map((item) => (
-        <ListItem 
-          button 
-          key={item.text} 
-          component={RouterLink} 
-          to={item.path}
-          onClick={handleDrawerToggle}
-        >
-          <ListItemText primary={item.text} />
-        </ListItem>
-      ))}
-    </List>
-  );
-
   return (
-    <>
-      <AppBar position="fixed">
-        <Toolbar>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
           {isMobile && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleDrawerToggle}>
+                  <MenuIcon className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64">
+                <nav className="flex flex-col space-y-4 mt-8">
+                  {menuItems.map((item) => (
+                    <RouterLink
+                      key={item.text}
+                      to={item.path}
+                      onClick={handleDrawerToggle}
+                      className="text-lg font-medium hover:text-primary transition-colors"
+                    >
+                      {item.text}
+                    </RouterLink>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
           )}
-          <Typography
-            variant="h6"
-            component={RouterLink}
+          
+          <RouterLink
             to="/"
-            sx={{
-              flexGrow: 1,
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 'bold'
-            }}
+            className="text-xl font-bold text-primary hover:text-primary/80 transition-colors"
           >
             TenderBridge
-          </Typography>
+          </RouterLink>
+          
           {!isMobile && (
-            <div>
+            <nav className="flex space-x-6">
               {menuItems.map((item) => (
-                <Button
+                <RouterLink
                   key={item.text}
-                  color="inherit"
-                  component={RouterLink}
                   to={item.path}
+                  className="text-sm font-medium hover:text-primary transition-colors"
                 >
                   {item.text}
-                </Button>
+                </RouterLink>
               ))}
-            </div>
+            </nav>
           )}
-        </Toolbar>
-      </AppBar>
-      <Drawer
-        variant="temporary"
-        anchor="left"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
-        }}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: 240,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
-        {drawer}
-      </Drawer>
-    </>
+        </div>
+      </div>
+    </header>
   );
 };
 
-export default ResponsiveAppBar; 
+export default ResponsiveAppBar;
