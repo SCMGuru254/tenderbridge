@@ -1,12 +1,11 @@
 
-import { useEffect, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
-import NewsCard from './NewsCard';
-import { newsService } from '../services/newsService';
-import { AIAgent, AGENT_ROLES } from '../services/aiAgents';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, ExternalLink } from "lucide-react";
+import { newsService, SupplyChainNews } from "@/services/newsService";
+import { NewsRefreshButton } from "./NewsRefreshButton";
 
 interface NewsItem {
   id: string;
@@ -16,111 +15,137 @@ interface NewsItem {
   source_name: string;
   source_url: string;
   tags: string[];
-  analysis?: string;
 }
 
-const NewsFeed = () => {
-  const [news, setNews] = useState<NewsItem[]>([]);
+export const NewsFeed = () => {
+  const [news, setNews] = useState<SupplyChainNews[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const newsAnalyzer = new AIAgent(AGENT_ROLES.NEWS_ANALYZER);
 
-  const fetchNews = async () => {
+  useEffect(() => {
+    loadNews();
+  }, []);
+
+  const loadNews = async () => {
     try {
       setLoading(true);
-      const newsItems = await newsService.getNews();
-      
-      // Analyze each news item using the AI agent
-      const analyzedNews = await Promise.all(
-        newsItems.map(async (item: NewsItem) => {
-          try {
-            const analysis = await newsAnalyzer.processNews({
-              title: item.title,
-              content: item.content
-            });
-            return { ...item, analysis };
-          } catch (error) {
-            console.error('Error analyzing news:', error);
-            return item;
-          }
-        })
-      );
-
-      setNews(analyzedNews);
+      const newsData = await newsService.getNews();
+      setNews(newsData);
     } catch (error) {
-      console.error('Error fetching news:', error);
-      toast.error('Failed to fetch news updates');
+      console.error('Error loading news:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRefresh = async () => {
-    if (refreshing) return;
-    setRefreshing(true);
-    try {
-      await newsService.fetchAndStoreNews();
-      await fetchNews();
-      toast.success('News feed updated successfully');
-    } catch (error) {
-      console.error('Error refreshing news:', error);
-      toast.error('Failed to refresh news feed');
-    } finally {
-      setRefreshing(false);
+  // Convert SupplyChainNews to NewsItem format for analysis
+  const convertToNewsItem = (item: SupplyChainNews): NewsItem => ({
+    ...item,
+    published_date: item.published_date || new Date().toISOString()
+  });
+
+  const analyzeNews = async (item: SupplyChainNews) => {
+    const newsItem = convertToNewsItem(item);
+    const analysis = await newsService.analyzeNews({
+      title: newsItem.title,
+      content: newsItem.content
+    });
+    
+    if (analysis) {
+      console.log('News analysis:', analysis);
     }
   };
 
-  useEffect(() => {
-    fetchNews();
-  }, []);
-
   if (loading) {
     return (
-      <div className="flex justify-center p-10">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Supply Chain News</h2>
+          <NewsRefreshButton onRefreshComplete={loadNews} />
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Supply Chain News</h1>
-        <Button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={refreshing ? "animate-spin" : ""} />
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Supply Chain News</h2>
+        <NewsRefreshButton onRefreshComplete={loadNews} />
       </div>
 
       {news.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-6">
-            <p className="text-muted-foreground">No news items available. Try refreshing the feed.</p>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">
+              No news articles available. Try refreshing to fetch the latest supply chain news.
+            </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-4">
           {news.map((item) => (
-            <NewsCard
-              key={item.id}
-              title={item.title}
-              content={item.content}
-              publishedDate={item.published_date}
-              sourceName={item.source_name}
-              sourceUrl={item.source_url}
-              tags={item.tags}
-              analysis={item.analysis}
-            />
+            <Card key={item.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start gap-4">
+                  <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => analyzeNews(item)}
+                    className="shrink-0"
+                  >
+                    Analyze
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">{item.source_name}</Badge>
+                  {item.tags?.slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground line-clamp-3 mb-4">
+                  {item.content}
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Recent'}
+                  </span>
+                  {item.source_url && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a 
+                        href={item.source_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2"
+                      >
+                        Read More
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
     </div>
   );
 };
-
-export default NewsFeed;

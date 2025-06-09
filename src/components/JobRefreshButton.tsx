@@ -51,7 +51,8 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
           testMode: false, // Set to false to actually save jobs
           forceUpdate: true, // Force update even if we've scraped before
           sources: sourcesToScrape,
-          keywords: ["supply chain", "logistics", "procurement", "warehouse", "inventory"]
+          keywords: ["supply chain", "logistics", "procurement", "warehouse", "inventory"],
+          cleanTitles: true // Enable title cleaning
         },
       });
       
