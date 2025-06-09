@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Index from './pages/Index';
 import Auth from './pages/Auth';
 import Profile from './pages/Profile';
 import Jobs from './pages/Jobs';
@@ -20,7 +19,6 @@ import DocumentGenerator from './pages/DocumentGenerator';
 import Messages from './pages/Messages';
 import SupplyChainInsights from './pages/SupplyChainInsights';
 import Security from './pages/Security';
-import Header from './components/Header';
 import Footer from './components/Footer';
 import { Toaster } from "@/components/ui/toaster";
 import { useTheme } from './hooks/use-theme';

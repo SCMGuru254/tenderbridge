@@ -39,3 +39,11 @@ export interface ScrapedJob extends BaseJob {
 }
 
 export type Job = PostedJob | ScrapedJob;
+
+// Add the missing JobType for compatibility
+export type JobType = PostedJob | ScrapedJob;
+
+export interface JobFilterParams {
+  searchTerm?: string;
+  category?: string;
+}

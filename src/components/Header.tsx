@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import { Logo } from './header/Logo';
 import { UserMenu } from './header/UserMenu';
 import { MobileNav } from './header/MobileNav';
@@ -19,7 +18,6 @@ const navItems = [
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {

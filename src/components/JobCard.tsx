@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -8,11 +9,19 @@ import { toast } from "sonner";
 import { supabase } from "../integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { cleanJobTitle } from "../utils/cleanJobTitle";
-// import { ShareToSocial } from './ShareToSocial';
-import type { JobType } from "../types/jobs";
 
 interface JobCardProps {
-  job: JobType;
+  job: {
+    id: string;
+    title: string;
+    company: string | null;
+    location: string | null;
+    job_url: string | null;
+    application_deadline?: string | null;
+    job_type?: string;
+    category?: string;
+    social_shares?: Record<string, any>;
+  };
 }
 
 export function JobCard({ job }: JobCardProps) {
@@ -29,8 +38,6 @@ export function JobCard({ job }: JobCardProps) {
     job_type,
     category
   } = job;
-
-  // const isExternalJob = hasExternalUrl(job);
   
   // Calculate remaining time if deadline exists
   const getRemainingTime = () => {

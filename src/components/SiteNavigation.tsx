@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Menubar, 
@@ -80,13 +81,7 @@ export function SiteNavigation() {
           >
             Platform
           </MenubarTrigger>
-          <MenubarContent 
-            className="min-w-[220px]" 
-            onOpenChange={(open) => {
-              setActiveSection("platform");
-              if (isMobile) setIsMenuOpen(open);
-            }}
-          >
+          <MenubarContent className="min-w-[220px]">
             <MenubarItem asChild>
               <Link 
                 to="/jobs" 
@@ -122,7 +117,7 @@ export function SiteNavigation() {
           <MenubarTrigger className={activeSection === "resources" ? "font-bold text-primary" : ""}>
             Resources
           </MenubarTrigger>
-          <MenubarContent className="min-w-[220px]" onOpenChange={() => setActiveSection("resources")}>
+          <MenubarContent className="min-w-[220px]">
             <MenubarItem asChild>
               <Link to="/interview-prep" className={isActive("/interview-prep") ? "bg-muted" : ""} onClick={handleMenuItemClick}>
                 <GraduationCap className="mr-2 h-4 w-4" />
@@ -161,7 +156,7 @@ export function SiteNavigation() {
           <MenubarTrigger className={activeSection === "user" ? "font-bold text-primary" : ""}>
             Account
           </MenubarTrigger>
-          <MenubarContent className="min-w-[220px]" onOpenChange={() => setActiveSection("user")}>
+          <MenubarContent className="min-w-[220px]">
             {user ? (
               <>
                 <MenubarItem asChild>

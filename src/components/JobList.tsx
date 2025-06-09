@@ -96,8 +96,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job={{
                 id: job.id,
                 title: job.title,
-                company: getCompanyName(job),
-                location: getLocation(job),
+                company: getCompanyName(job) || null,
+                location: getLocation(job) || null,
                 job_type: job.job_type,
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
@@ -116,16 +116,17 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
           ) : (
             <JobCard
               key={job.id}
-              title={job.title}
-              company={getCompanyName(job)}
-              location={getLocation(job)}
-              type={job.job_type}
-              category={getJobSource(job)}
-              jobUrl={getJobUrl(job)}
-              deadline={getDeadline(job)}
-              remainingTime={getRemainingTime(job)}
-              jobId={job.id}
-              fullJob={job} // Pass the full job object for sharing
+              job={{
+                id: job.id,
+                title: job.title,
+                company: getCompanyName(job) || null,
+                location: getLocation(job) || null,
+                job_type: job.job_type,
+                category: getJobSource(job),
+                job_url: getJobUrl(job),
+                application_deadline: getDeadline(job),
+                social_shares: job.social_shares || {}
+              }}
             />
           )
         ))}

@@ -7,16 +7,6 @@ import { ExternalLink } from "lucide-react";
 import { newsService, SupplyChainNews } from "@/services/newsService";
 import { NewsRefreshButton } from "./NewsRefreshButton";
 
-interface NewsItem {
-  id: string;
-  title: string;
-  content: string;
-  published_at: string;
-  source_name: string;
-  source_url: string;
-  tags: string[];
-}
-
 export const NewsFeed = () => {
   const [news, setNews] = useState<SupplyChainNews[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +28,7 @@ export const NewsFeed = () => {
   };
 
   // Convert SupplyChainNews to NewsItem format for analysis
-  const convertToNewsItem = (item: SupplyChainNews): NewsItem => ({
+  const convertToNewsItem = (item: SupplyChainNews) => ({
     ...item,
     published_at: item.published_at || new Date().toISOString()
   });
