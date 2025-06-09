@@ -1,60 +1,41 @@
-export type PostedJob = {
+
+export interface BaseJob {
   id: string;
   title: string;
+  job_type?: string;
+  created_at: string;
+  social_shares?: Record<string, any>;
+}
+
+export interface PostedJob extends BaseJob {
   description: string;
   location: string;
-  job_type: "full_time" | "part_time" | "contract" | "internship";
-  created_at: string;
+  posted_by: string;
   company_id?: string;
+  salary_range?: string;
+  requirements?: string[];
+  responsibilities?: string[];
   is_active?: boolean;
-  posted_by?: string;
-  updated_at?: string;
-  skills?: string[] | null;
-  requirements?: string[] | null;
-  responsibilities?: string[] | null;
-  salary_range?: string | null;
-  application_deadline?: string | null;
-  companies?: {
-    name: string | null;
-    location: string | null;
-  } | null;
+  updated_at: string;
+  hiring_timeline?: string;
 }
 
-export type ScrapedJob = {
-  id: string;
-  title: string;
-  company: string | null;
-  location: string | null;
-  description: string | null;
-  job_type: string | null;
-  source: string | null;
-  job_url: string | null;
-  application_url: string | null;
-  created_at: string;
-  updated_at?: string;
-  employment_type?: string | null;
-  experience_level?: string | null;
-  category?: string | null;
-  application_deadline: string | null;
-  skills?: string[] | null;
-  requirements?: string[] | null;
-  responsibilities?: string[] | null;
-  salary_range?: string | null;
-  social_shares?: {
-    count: number;
-  } | null;
-}
-
-export type JobType = {
+export interface ScrapedJob extends BaseJob {
   company?: string;
+  location?: string;
+  description?: string;
+  source?: string;
   job_url?: string;
+  application_url?: string;
+  application_deadline?: string;
   category?: string;
-  social_shares?: {
-    count: number;
-  } | null;
-} & (PostedJob | ScrapedJob);
-
-export type JobFilterParams = {
-  searchTerm: string;
-  category: string | null;
+  salary_range?: string;
+  employment_type?: string;
+  experience_level?: string;
+  skills?: string[];
+  is_scam?: boolean;
+  scam_reports?: number;
+  updated_at: string;
 }
+
+export type Job = PostedJob | ScrapedJob;

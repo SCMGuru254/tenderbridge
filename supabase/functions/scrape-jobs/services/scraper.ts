@@ -8,7 +8,7 @@ import { parseSupplyChainJobsXml } from "../utils/xmlJobParser.ts";
 
 // Function to extract keywords from text for job tags
 // Extract relevant keywords from job text to use as tags
-function extractKeywordsFromText(...args: [text: string]): string[] {
+function extractKeywordsFromText(text: string): string[] {
   if (!text) return [];
 
   const lowerCaseText = text.toLowerCase();
@@ -128,4 +128,95 @@ function extractKeywordsFromText(...args: [text: string]): string[] {
   // Limit the number of keywords to avoid overwhelming tags
   return Array.from(keywords).slice(0, 15);
 }
+
+export async function scrapeJobSites(jobSites: JobSite[], options: any = {}) {
+  const results: any = {};
+  
+  for (const site of jobSites) {
+    try {
+      console.log(`Scraping jobs from: ${site.name}`);
+      
+      if (site.type === 'xml') {
+        // Handle XML feeds
+        const jobs = await parseXmlFeed(site.url, site.name);
+        results[site.name] = {
+          success: true,
+          jobsFound: jobs.length,
+          jobs: jobs
+        };
+      } else {
+        // Handle regular web scraping
+        const response = await fetch(site.url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; JobBot/1.0)',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const html = await response.text();
+        const jobs = await scrapeJobsFromHtml(html, site);
+        
+        results[site.name] = {
+          success: true,
+          jobsFound: jobs.length,
+          jobs: jobs
+        };
+      }
+    } catch (error) {
+      console.error(`Error scraping ${site.name}:`, error);
+      results[site.name] = {
+        success: false,
+        error: error.message,
+        jobs: []
+      };
+    }
+  }
+  
+  return results;
+}
+
+async function scrapeJobsFromHtml(html: string, site: JobSite): Promise<Job[]> {
+  // Implementation for HTML scraping
+  const jobs: Job[] = [];
+  
+  try {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    if (!doc) return jobs;
+    
+    // Basic job extraction logic
+    const jobElements = doc.querySelectorAll(site.selectors?.job || '.job, .job-item, .job-listing');
+    
+    for (const element of jobElements) {
+      try {
+        const title = element.querySelector(site.selectors?.title || '.title, .job-title, h2, h3')?.textContent?.trim();
+        const company = element.querySelector(site.selectors?.company || '.company, .employer')?.textContent?.trim();
+        const location = element.querySelector(site.selectors?.location || '.location, .job-location')?.textContent?.trim();
+        const description = element.querySelector(site.selectors?.description || '.description, .job-description')?.textContent?.trim();
+        
+        if (title && hasSupplyChainKeywords(title + ' ' + (description || ''))) {
+          const job: Job = {
+            title: title,
+            company: company || 'Not specified',
+            location: location || 'Kenya',
+            description: description || '',
+            source: site.name,
+            job_url: site.url,
+            tags: extractKeywordsFromText(title + ' ' + (description || ''))
+          };
+          
+          jobs.push(job);
+        }
+      } catch (error) {
+        console.error('Error processing job element:', error);
+        continue;
+      }
+    }
+  } catch (error) {
+    console.error('Error parsing HTML:', error);
+  }
+  
+  return jobs;
 }

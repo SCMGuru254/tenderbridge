@@ -139,4 +139,3 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
     </div>
   );
 };
-

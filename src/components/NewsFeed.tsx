@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { newsService, SupplyChainNews } from "@/services/newsService";
 import { NewsRefreshButton } from "./NewsRefreshButton";
 
@@ -11,7 +11,7 @@ interface NewsItem {
   id: string;
   title: string;
   content: string;
-  published_date: string;
+  published_at: string;
   source_name: string;
   source_url: string;
   tags: string[];
@@ -40,7 +40,7 @@ export const NewsFeed = () => {
   // Convert SupplyChainNews to NewsItem format for analysis
   const convertToNewsItem = (item: SupplyChainNews): NewsItem => ({
     ...item,
-    published_date: item.published_date || new Date().toISOString()
+    published_at: item.published_at || new Date().toISOString()
   });
 
   const analyzeNews = async (item: SupplyChainNews) => {
@@ -125,7 +125,7 @@ export const NewsFeed = () => {
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">
-                    {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Recent'}
+                    {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'Recent'}
                   </span>
                   {item.source_url && (
                     <Button variant="outline" size="sm" asChild>
