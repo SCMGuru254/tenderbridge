@@ -1,62 +1,70 @@
 
-import { Link } from "react-router-dom";
-import { MapPin, Globe, ArrowUpRight, Building } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Company } from "@/pages/Companies";
+import { MapPin, Users, ExternalLink } from "lucide-react";
 
 interface CompanyCardProps {
-  company: Company;
+  id: string;
+  name: string;
+  location?: string;
+  description?: string;
+  website?: string;
+  verificationStatus?: 'verified' | 'pending' | 'rejected';
+  onClick?: () => void;
 }
 
-export function CompanyCard({ company }: CompanyCardProps) {
+const CompanyCard = ({ 
+  name, 
+  location, 
+  description, 
+  website, 
+  verificationStatus = 'pending',
+  onClick 
+}: CompanyCardProps) => {
   return (
-    <Card className="flex flex-col h-full">
-      <CardContent className="pt-6 flex flex-col h-full">
-        <h3 className="font-semibold text-lg mb-2">{company.name}</h3>
-        
-        {company.description ? (
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-            {company.description}
+    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{name}</CardTitle>
+          <Badge 
+            variant={verificationStatus === 'verified' ? 'default' : 'secondary'}
+            className="text-xs"
+          >
+            {verificationStatus}
+          </Badge>
+        </div>
+        {location && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" />
+            {location}
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        {description && (
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+            {description}
           </p>
-        ) : (
-          <p className="text-sm text-muted-foreground italic mb-4">No description available</p>
         )}
         
-        <div className="mt-auto space-y-2">
-          {company.location && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>{company.location}</span>
-            </div>
-          )}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>Supply Chain Team</span>
+          </div>
           
-          {company.website && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Globe className="h-4 w-4" />
-              <a href={company.website} target="_blank" rel="noopener noreferrer" 
-                 className="text-blue-600 hover:underline flex items-center">
-                {company.website.replace(/^https?:\/\//, '').split('/')[0]}
-                <ArrowUpRight className="h-3 w-3 ml-1" />
+          {website && (
+            <Button variant="ghost" size="sm" asChild>
+              <a href={website} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
               </a>
-            </div>
-          )}
-          
-          {company.verification_status && (
-            <Badge variant={company.verification_status === "verified" ? "secondary" : 
-                            company.verification_status === "pending" ? "outline" : "default"}>
-              {company.verification_status.charAt(0).toUpperCase() + company.verification_status.slice(1)}
-            </Badge>
+            </Button>
           )}
         </div>
       </CardContent>
-      
-      <CardFooter className="border-t pt-4">
-        <Button asChild variant="outline" className="w-full">
-          <Link to={`/companies/${company.id}`}>View Profile</Link>
-        </Button>
-      </CardFooter>
     </Card>
   );
-}
+};
+
+export default CompanyCard;

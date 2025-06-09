@@ -1,48 +1,56 @@
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X } from "lucide-react";
-import { EnhancedSearch } from "@/components/EnhancedSearch";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FilterControlsProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedTags: string[];
-  toggleTag: (tag: string) => void;
-  setSelectedTags: (tags: string[]) => void;
-  supplyChainTags: string[];
+  onTagToggle: (tag: string) => void;
+  availableTags: string[];
 }
 
-export const FilterControls = ({
-  activeTab,
-  setActiveTab,
+const FilterControls = ({
   searchTerm,
   setSearchTerm,
   selectedTags,
-  toggleTag,
-  setSelectedTags,
-  supplyChainTags
+  onTagToggle,
+  availableTags
 }: FilterControlsProps) => {
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="news">Latest News</TabsTrigger>
-          <TabsTrigger value="blog">Blog Posts</TabsTrigger>
-          <TabsTrigger value="tenderzville">Tenders</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <EnhancedSearch
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedTags={selectedTags}
-        onTagToggle={toggleTag}
-        availableTags={supplyChainTags}
-      />
-    </div>
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Filter Content</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Input
+          placeholder="Search articles..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
+        <div>
+          <p className="text-sm font-medium mb-2">Tags:</p>
+          <div className="flex flex-wrap gap-2">
+            {availableTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => onTagToggle(tag)}
+                className={`px-3 py-1 rounded-full text-xs border ${
+                  selectedTags.includes(tag)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background hover:bg-muted'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
+
+export default FilterControls;

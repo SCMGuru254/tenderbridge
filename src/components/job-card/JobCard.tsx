@@ -1,57 +1,63 @@
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { JobCardHeader } from "./JobCardHeader";
-import { JobMetadata } from "./JobMetadata";
 import { JobCardActions } from "./JobCardActions";
-import { hasExternalUrl } from "@/utils/jobUtils";
+import { JobMetadata } from "./JobMetadata";
 
-interface JobCardProps {
+export interface JobCardProps {
   title: string;
   company: string | null;
   location: string | null;
-  type: string | null;
-  category: string | null;
-  jobUrl?: string | null;
-  deadline?: string | null;
-  remainingTime?: string | null;
-  jobId?: string;
-  fullJob?: any; // The complete job object for sharing
+  job_type?: string | null;
+  category?: string | null;
+  job_url?: string | null;
+  application_deadline?: string | null;
+  social_shares?: Record<string, any>;
 }
 
-export const JobCard = ({ 
+const JobCard = ({ 
   title, 
   company, 
   location, 
-  type, 
-  category, 
-  jobUrl, 
-  deadline, 
-  remainingTime,
-  jobId,
-  fullJob
+  job_type, 
+  category,
+  job_url,
+  application_deadline,
+  social_shares 
 }: JobCardProps) => {
-  const isExternalUrl = jobUrl ? hasExternalUrl(fullJob) : false;
-
   return (
-    <Card className="hover:shadow-lg transition-shadow relative">
-      <JobCardHeader title={title} company={company} />
-      <CardContent>
-        <div className="space-y-4">
-          <JobMetadata 
-            location={location} 
-            type={type} 
-            remainingTime={remainingTime} 
-          />
-          
-          <JobCardActions 
-            jobUrl={jobUrl} 
-            isExternalUrl={isExternalUrl} 
-            category={category} 
-            jobId={jobId}
-            fullJob={fullJob} 
-          />
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <JobCardHeader 
+          title={title} 
+          company={company || "Company"} 
+          location={location || "Location not specified"} 
+        />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {job_type && (
+            <Badge variant="secondary" className="text-xs">
+              {job_type}
+            </Badge>
+          )}
+          {category && (
+            <Badge variant="outline" className="text-xs">
+              {category}
+            </Badge>
+          )}
         </div>
+        
+        <JobMetadata 
+          deadline={application_deadline || null}
+          shares={social_shares || {}}
+        />
+        
+        <JobCardActions jobUrl={job_url || null} />
       </CardContent>
     </Card>
   );
 };
+
+export default JobCard;

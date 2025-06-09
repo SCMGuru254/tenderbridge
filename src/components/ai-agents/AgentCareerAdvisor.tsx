@@ -1,126 +1,78 @@
-
 import { useState } from "react";
-import { 
-  Card,
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { AIAgent, AGENT_ROLES } from "@/services/agents";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { GraduationCap, TrendingUp, Users, Target } from "lucide-react";
 
-export default function AgentCareerAdvisor() {
-  const [currentRole, setCurrentRole] = useState("");
-  const [yearsExperience, setYearsExperience] = useState("");
-  const [interests, setInterests] = useState("");
-  const [advice, setAdvice] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
-  
-  const careerAgent = new AIAgent(AGENT_ROLES.CAREER_ADVISOR);
+interface CareerAdvice {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  relevanceScore: number;
+}
 
-  const handleGetAdvice = async () => {
-    if (!currentRole.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Please enter your current role",
-        variant: "destructive"
-      });
-      return;
+const AgentCareerAdvisor = () => {
+  const [adviceList, setAdviceList] = useState<CareerAdvice[]>([
+    {
+      id: "1",
+      title: "Upskill in Data Analytics",
+      description: "Data analytics skills are in high demand in supply chain. Consider courses in SQL, Python, and Tableau.",
+      category: "Skills",
+      relevanceScore: 85
+    },
+    {
+      id: "2",
+      title: "Network with Industry Leaders",
+      description: "Attend industry conferences and connect with leaders on LinkedIn to expand your network.",
+      category: "Networking",
+      relevanceScore: 78
+    },
+    {
+      id: "3",
+      title: "Certifications in Logistics",
+      description: "Obtain certifications like CSCP or CLTD to demonstrate your expertise in logistics and supply chain.",
+      category: "Certifications",
+      relevanceScore: 92
     }
-    
-    setIsProcessing(true);
-    
-    try {
-      const careerQuery = {
-        currentRole,
-        yearsExperience: parseInt(yearsExperience) || 0,
-        interests: interests.split(",").map(i => i.trim()).filter(i => i)
-      };
-      
-      const result = await careerAgent.analyzeCareerPath(careerQuery);
-      setAdvice(result);
-      
-      if (!result) {
-        throw new Error("Failed to generate career advice");
-      }
-      
-    } catch (error) {
-      console.error("Career advice error:", error);
-      toast({
-        title: "Process failed",
-        description: "Unable to generate career advice. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  ]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Supply Chain Career Advisor</CardTitle>
-        <CardDescription>
-          Get personalized career guidance for your supply chain career
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="currentRole">Current Role</Label>
-          <Input 
-            id="currentRole"
-            placeholder="e.g., Logistics Coordinator" 
-            value={currentRole}
-            onChange={(e) => setCurrentRole(e.target.value)}
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="yearsExperience">Years of Experience</Label>
-          <Input 
-            id="yearsExperience"
-            type="number" 
-            placeholder="e.g., 3" 
-            value={yearsExperience}
-            onChange={(e) => setYearsExperience(e.target.value)}
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="interests">Career Interests (comma separated)</Label>
-          <Input 
-            id="interests"
-            placeholder="e.g., supply chain analytics, sustainability" 
-            value={interests}
-            onChange={(e) => setInterests(e.target.value)}
-          />
-        </div>
-        
-        <Button 
-          onClick={handleGetAdvice}
-          disabled={isProcessing || !currentRole.trim()}
-          className="w-full"
-        >
-          {isProcessing ? "Generating Advice..." : "Get Career Advice"}
-        </Button>
-        
-        {advice && (
-          <div className="mt-6 space-y-2">
-            <Separator />
-            <h3 className="font-medium">Career Advice:</h3>
-            <div className="p-4 bg-muted rounded-md whitespace-pre-wrap">
-              {advice}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" />
+            Career Advice
+          </CardTitle>
+          <CardDescription>Personalized guidance for your career path</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px]">
+            <div className="space-y-4">
+              {adviceList.map((advice) => (
+                <Card key={advice.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-sm font-medium">{advice.title}</CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        {advice.category}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{advice.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};
+
+export default AgentCareerAdvisor;

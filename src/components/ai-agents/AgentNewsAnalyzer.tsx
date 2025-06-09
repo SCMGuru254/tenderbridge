@@ -1,94 +1,76 @@
-
-import { useState } from "react";
-import { 
-  Card,
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { AIAgent, AGENT_ROLES } from "@/services/agents";
-import { useToast } from "@/hooks/use-toast";
+import { TrendingUp, Globe, BarChart3, Clock } from "lucide-react";
 
-export default function AgentNewsAnalyzer() {
-  const [newsContent, setNewsContent] = useState("");
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { toast } = useToast();
-  
-  const newsAgent = new AIAgent(AGENT_ROLES.NEWS_ANALYZER);
+interface NewsStats {
+  articlesAnalyzed: number;
+  positiveSentiment: number;
+  negativeSentiment: number;
+  neutralSentiment: number;
+  lastUpdated: string;
+}
 
-  const handleAnalyzeNews = async () => {
-    if (!newsContent.trim()) {
-      toast({
-        title: "Empty content",
-        description: "Please enter news content to analyze",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsAnalyzing(true);
-    try {
-      const result = await newsAgent.processNews(newsContent);
-      setAnalysis(result);
-      
-      if (!result) {
-        throw new Error("Failed to analyze news content");
-      }
-      
-    } catch (error) {
-      console.error("News analysis error:", error);
-      toast({
-        title: "Analysis failed",
-        description: "Unable to analyze the news content. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+const AgentNewsAnalyzer = () => {
+  const [newsStats, setNewsStats] = useState<NewsStats>({
+    articlesAnalyzed: 0,
+    positiveSentiment: 0,
+    negativeSentiment: 0,
+    neutralSentiment: 0,
+    lastUpdated: ''
+  });
+
+  useEffect(() => {
+    // Simulate loading news analysis stats
+    setNewsStats({
+      articlesAnalyzed: 235,
+      positiveSentiment: 68,
+      negativeSentiment: 15,
+      neutralSentiment: 17,
+      lastUpdated: '2 hours ago'
+    });
+  }, []);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Supply Chain News Analyzer</CardTitle>
-        <CardDescription>
-          Get insights and key points from supply chain news articles
-        </CardDescription>
+        <CardTitle className="flex items-center justify-between">
+          Supply Chain News Analysis
+          <Badge variant="outline">
+            <Clock className="h-4 w-4 mr-2" />
+            Updated {newsStats.lastUpdated}
+          </Badge>
+        </CardTitle>
+        <CardDescription>Insights from the latest industry news</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <Textarea 
-            placeholder="Paste supply chain news content here..." 
-            className="min-h-[150px]" 
-            value={newsContent}
-            onChange={(e) => setNewsContent(e.target.value)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div className="text-2xl font-bold">{newsStats.articlesAnalyzed}</div>
+            <p className="text-sm text-muted-foreground">Articles Analyzed</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{newsStats.positiveSentiment}%</div>
+            <p className="text-sm text-muted-foreground">Positive Sentiment</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{newsStats.negativeSentiment}%</div>
+            <p className="text-sm text-muted-foreground">Negative Sentiment</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{newsStats.neutralSentiment}%</div>
+            <p className="text-sm text-muted-foreground">Neutral Sentiment</p>
+          </div>
         </div>
         
-        <Button 
-          onClick={handleAnalyzeNews}
-          disabled={isAnalyzing || !newsContent.trim()}
-          className="w-full"
-        >
-          {isAnalyzing ? "Analyzing..." : "Analyze News"}
+        <Button variant="secondary" className="w-full">
+          <TrendingUp className="h-4 w-4 mr-2" />
+          View Detailed Analysis
         </Button>
-        
-        {analysis && (
-          <div className="mt-4 space-y-2">
-            <Separator />
-            <h3 className="font-medium">Analysis Results:</h3>
-            <div className="p-4 bg-muted rounded-md whitespace-pre-wrap">
-              {analysis}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
-}
+};
+
+export default AgentNewsAnalyzer;

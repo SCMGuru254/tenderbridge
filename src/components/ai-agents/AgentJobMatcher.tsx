@@ -1,19 +1,9 @@
-
-import { useState } from "react";
-import { 
-  Card,
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Target, TrendingUp, Users, Briefcase } from "lucide-react";
 import { AIAgent, AGENT_ROLES } from "@/services/agents"; // Fixed import path
 import { useToast } from "@/hooks/use-toast";
 

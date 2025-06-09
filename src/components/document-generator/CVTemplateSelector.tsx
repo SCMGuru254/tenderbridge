@@ -1,50 +1,82 @@
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Crown } from "lucide-react";
 
-interface CVTemplateSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  isPremium: boolean;
+  preview?: string;
 }
 
-const templates = [
-  { id: "modern", name: "Modern", description: "Clean and professional design with subtle accents" },
-  { id: "classic", name: "Classic", description: "Traditional layout perfect for conservative industries" },
-  { id: "creative", name: "Creative", description: "Unique design to stand out from the crowd" },
-  { id: "executive", name: "Executive", description: "Sophisticated design for senior positions" },
-  { id: "minimal", name: "Minimal", description: "Simple and focused on content without distractions" },
-];
+interface CVTemplateSelectorProps {
+  selectedTemplate: string;
+  onTemplateSelect: (templateId: string) => void;
+}
 
-const CVTemplateSelector = ({ value, onChange }: CVTemplateSelectorProps) => {
+const CVTemplateSelector = ({ selectedTemplate, onTemplateSelect }: CVTemplateSelectorProps) => {
+  const templates: Template[] = [
+    {
+      id: 'modern',
+      name: 'Modern Professional',
+      description: 'Clean, contemporary design perfect for supply chain roles',
+      isPremium: false
+    },
+    {
+      id: 'executive',
+      name: 'Executive',
+      description: 'Sophisticated layout for senior management positions',
+      isPremium: true
+    },
+    {
+      id: 'minimal',
+      name: 'Minimal Clean',
+      description: 'Simple, ATS-friendly format that highlights content',
+      isPremium: false
+    },
+    {
+      id: 'creative',
+      name: 'Creative Professional',
+      description: 'Distinctive design for innovative supply chain roles',
+      isPremium: true
+    }
+  ];
+
   return (
-    <ScrollArea className="h-[150px] rounded-md border">
-      <div className="p-4 space-y-2">
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Choose a Template</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {templates.map((template) => (
           <Card 
             key={template.id}
-            className={`cursor-pointer transition-all ${
-              template.id === value 
-                ? 'bg-primary/10 border-primary/50' 
-                : 'hover:bg-secondary/50'
+            className={`cursor-pointer transition-all hover:shadow-md ${
+              selectedTemplate === template.id ? 'ring-2 ring-primary' : ''
             }`}
-            onClick={() => onChange(template.id)}
+            onClick={() => onTemplateSelect(template.id)}
           >
-            <CardContent className="p-3 flex justify-between items-center">
-              <div>
-                <h4 className="font-medium">{template.name}</h4>
-                <p className="text-xs text-muted-foreground">{template.description}</p>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  {template.name}
+                </CardTitle>
+                {template.isPremium && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                )}
               </div>
-              <div className={`w-4 h-4 rounded-full ${
-                template.id === value 
-                  ? 'bg-primary' 
-                  : 'border border-muted-foreground'
-              }`} />
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">{template.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 

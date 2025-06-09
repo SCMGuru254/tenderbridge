@@ -1,62 +1,64 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { 
-  MenubarContent, 
-  MenubarItem, 
-  MenubarSeparator 
-} from "@/components/ui/menubar";
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { 
+  Menu, 
+  Home, 
   Briefcase, 
-  FileText, 
-  Users, 
   MessageSquare, 
-  BookOpen, 
-  HelpCircle,
-  Award,
-  GraduationCap,
-  Building,
-  ShieldCheck
+  Building2,
+  BookOpen,
+  Bot,
+  Search
 } from "lucide-react";
 
-interface MobileNavigationProps {
-  isActive: (path: string) => boolean;
-  onItemClick: () => void;
-}
+const MobileNavigation = () => {
+  const navigationItems = [
+    { to: "/", label: "Home", icon: Home },
+    { to: "/jobs", label: "Jobs", icon: Briefcase },
+    { to: "/discussions", label: "Discussions", icon: MessageSquare },
+    { to: "/companies", label: "Companies", icon: Building2 },
+    { to: "/supply-chain-insights", label: "Insights", icon: BookOpen },
+    { to: "/interview-prep", label: "Interview Prep", icon: Search },
+    { to: "/ai-agents", label: "AI Agents", icon: Bot },
+  ];
 
-export function MobileNavigation({ isActive, onItemClick }: MobileNavigationProps) {
   return (
-    <>
-      <MenubarContent className="min-w-[220px]">
-        <MenubarItem asChild>
-          <Link 
-            to="/jobs" 
-            className={`${isActive("/jobs") ? "bg-muted" : ""} py-3`}
-            onClick={onItemClick}
-          >
-            <Briefcase className="mr-2 h-4 w-4" />
-            Jobs
-          </Link>
-        </MenubarItem>
-        <MenubarItem asChild>
-          <Link to="/companies" className={isActive("/companies") ? "bg-muted" : ""} onClick={onItemClick}>
-            <Building className="mr-2 h-4 w-4" />
-            Companies
-          </Link>
-        </MenubarItem>
-        <MenubarItem asChild>
-          <Link to="/discussions" className={isActive("/discussions") ? "bg-muted" : ""} onClick={onItemClick}>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Discussions
-          </Link>
-        </MenubarItem>
-        <MenubarItem asChild>
-          <Link to="/blog" className={isActive("/blog") ? "bg-muted" : ""} onClick={onItemClick}>
-            <BookOpen className="mr-2 h-4 w-4" />
-            Blog
-          </Link>
-        </MenubarItem>
-      </MenubarContent>
-    </>
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64">
+        <SheetHeader>
+          <SheetTitle>Navigation</SheetTitle>
+        </SheetHeader>
+        <nav className="mt-6 space-y-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
-}
+};
+
+export default MobileNavigation;
