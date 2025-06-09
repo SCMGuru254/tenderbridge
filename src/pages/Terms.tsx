@@ -1,5 +1,6 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle, Shield } from "lucide-react";
 
 export default function Terms() {
   return (
@@ -8,6 +9,20 @@ export default function Terms() {
       <p className="text-muted-foreground mb-8">
         Last updated: January 9, 2025
       </p>
+
+      <Alert className="mb-8 border-red-200 bg-red-50">
+        <AlertTriangle className="h-4 w-4 text-red-600" />
+        <AlertDescription className="text-red-800">
+          <strong>Important Payment Disclaimer:</strong> SupplyChain_KE does not interfere with, guarantee, or take responsibility for any payments between service providers and clients. We strongly recommend only paying for services after 100% completion and delivery. All financial transactions are solely between the contracting parties.
+        </AlertDescription>
+      </Alert>
+
+      <Alert className="mb-8 border-blue-200 bg-blue-50">
+        <Shield className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <strong>Service Provider Agreement:</strong> By using our platform as a service provider, you agree to charge clients only after 100% delivery of agreed services. Violation of this principle may result in account suspension.
+        </AlertDescription>
+      </Alert>
 
       <Card className="mb-8">
         <CardHeader>
@@ -20,100 +35,108 @@ export default function Terms() {
           <p>
             By accessing or using the Platform, you agree that you have read, understood, and agree to be bound by all of these Terms. If you do not agree with all of these Terms, you are expressly prohibited from using the Platform and must discontinue use immediately.
           </p>
-          <p>
-            We reserve the right, in our sole discretion, to make changes or modifications to these Terms at any time. We will alert you about changes by updating the "Last Updated" date of these Terms, and you waive any right to receive specific notice of each such change.
-          </p>
         </CardContent>
       </Card>
 
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Platform Description</CardTitle>
+          <CardTitle>Platform Liability and Payment Disclaimer</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <h3 className="text-lg font-medium text-red-600">Payment Non-Interference Policy</h3>
           <p>
-            SupplyChain_KE is a specialized career platform focused on supply chain, logistics, procurement, and related fields in Kenya and East Africa. Our services include:
+            SupplyChain_KE operates as a platform connecting service providers with potential clients. We explicitly disclaim any responsibility, liability, or involvement in financial transactions between users.
           </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Job listing aggregation and posting services</li>
-            <li>Career matching and recommendation services</li>
-            <li>ATS CV checking and optimization tools</li>
-            <li>Professional networking and community features</li>
-            <li>Career guidance and industry insights</li>
-            <li>Premium analytics and reporting services</li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>User Registration and Accounts</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>
-            To access certain features of the Platform, you may be required to register for an account. When registering, you agree to:
-          </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Provide true, accurate, current, and complete information</li>
-            <li>Maintain and promptly update your registration information</li>
-            <li>Maintain the security and confidentiality of your login credentials</li>
-            <li>Accept responsibility for all activities under your account</li>
-            <li>Notify us immediately of any unauthorized access or security breaches</li>
-          </ul>
-          <p>
-            We reserve the right to refuse registration or terminate accounts that violate these Terms or contain inappropriate, false, or misleading information.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>User Representations and Warranties</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>By using the Platform, you represent and warrant that:</p>
-          <ol className="list-decimal pl-6 space-y-2">
-            <li>You are at least 18 years of age or have reached the age of majority in your jurisdiction</li>
-            <li>You have the legal capacity to enter into these Terms</li>
-            <li>All information you provide is truthful and accurate</li>
-            <li>You will comply with all applicable laws and regulations</li>
-            <li>You will not use automated systems to access the Platform without permission</li>
-            <li>You will not use the Platform for any illegal, unauthorized, or commercial purposes not expressly permitted</li>
-            <li>You will respect the intellectual property rights of others</li>
-          </ol>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Prohibited Activities</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p>You may not access or use the Platform for any purpose other than that for which we make it available. Prohibited activities include:</p>
           
-          <h3 className="text-lg font-medium">Content Violations</h3>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-medium text-yellow-800 mb-2">Client Protection Guidelines</h4>
+            <ul className="list-disc pl-6 space-y-1 text-yellow-800">
+              <li>Only pay for services after complete delivery and satisfaction</li>
+              <li>Verify service provider credentials and reviews before engagement</li>
+              <li>Use secure payment methods with buyer protection</li>
+              <li>Document all agreements and deliverables in writing</li>
+              <li>Report any fraudulent activity immediately</li>
+            </ul>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 mb-2">Service Provider Obligations</h4>
+            <ul className="list-disc pl-6 space-y-1 text-blue-800">
+              <li>Charge clients only after 100% completion of agreed services</li>
+              <li>Provide clear scope of work and timelines</li>
+              <li>Maintain professional standards and ethical practices</li>
+              <li>Respond to client communications promptly</li>
+              <li>Honor all commitments made during negotiations</li>
+            </ul>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            <strong>Legal Disclaimer:</strong> SupplyChain_KE is not a party to any agreements between users and bears no responsibility for disputes, non-payment, incomplete services, or any other issues arising from user interactions. Users engage at their own risk and must seek legal recourse independently if needed.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Contact Guidelines and User Protection</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <h3 className="text-lg font-medium">Before Contacting Service Providers</h3>
+          <p>
+            Users must read and acknowledge our payment protection guidelines before initiating contact with service providers. This acknowledgment includes understanding:
+          </p>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>Payment should only be made after complete service delivery</li>
+            <li>SupplyChain_KE does not guarantee service quality or outcomes</li>
+            <li>All agreements are between the user and service provider only</li>
+            <li>Users should conduct their own due diligence</li>
+            <li>Dispute resolution is the responsibility of the contracting parties</li>
+          </ol>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-medium text-red-800 mb-2">Important Reminders</h4>
+            <ul className="list-disc pl-6 space-y-1 text-red-800">
+              <li>Never pay 100% upfront for any service</li>
+              <li>Be wary of prices that seem too good to be true</li>
+              <li>Always verify service provider identity and credentials</li>
+              <li>Keep records of all communications and agreements</li>
+              <li>Report suspicious activity to our moderation team</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Content Moderation and Account Deletion</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <h3 className="text-lg font-medium">Reporting and Moderation</h3>
+          <p>
+            We maintain community standards through user reporting and automated moderation:
+          </p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Posting false, misleading, or fraudulent job listings or information</li>
-            <li>Uploading malicious files, viruses, or harmful code</li>
-            <li>Sharing inappropriate, offensive, or discriminatory content</li>
-            <li>Impersonating other individuals or organizations</li>
+            <li>Users can report inappropriate content or suspicious service providers</li>
+            <li>Multiple reports (3+) automatically mark content as spam</li>
+            <li>Reported content is reviewed within 72 hours</li>
+            <li>Service provider accounts with multiple spam reports may be deleted</li>
+            <li>Account deletion is permanent and cannot be reversed</li>
           </ul>
 
-          <h3 className="text-lg font-medium mt-4">Technical Violations</h3>
+          <h3 className="text-lg font-medium mt-6">Account Deletion Policy</h3>
+          <p>
+            Service provider accounts may be scheduled for deletion under the following circumstances:
+          </p>
           <ul className="list-disc pl-6 space-y-2">
-            <li>Attempting to gain unauthorized access to our systems</li>
-            <li>Using automated tools to scrape or harvest data</li>
-            <li>Reverse engineering or attempting to extract source code</li>
-            <li>Interfering with the Platform's operation or security</li>
+            <li>Multiple verified reports of fraudulent activity</li>
+            <li>Violation of our payment ethics guidelines</li>
+            <li>Spam or misleading content</li>
+            <li>Harassment or inappropriate behavior</li>
+            <li>Repeated violations of platform terms</li>
           </ul>
-
-          <h3 className="text-lg font-medium mt-4">Commercial Violations</h3>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Using the Platform for unauthorized commercial purposes</li>
-            <li>Selling or redistributing Platform access or content</li>
-            <li>Posting spam or unsolicited promotional content</li>
-            <li>Competing directly with our services using our data</li>
-          </ul>
+          <p className="text-sm text-muted-foreground mt-2">
+            Account deletion occurs 72 hours after meeting deletion criteria, allowing time for appeals through our support team.
+          </p>
         </CardContent>
       </Card>
 
@@ -122,26 +145,21 @@ export default function Terms() {
           <CardTitle>Payment Terms and Premium Services</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <h3 className="text-lg font-medium">Free Services</h3>
+          <h3 className="text-lg font-medium">Platform Payments</h3>
           <p>
-            Basic job searching, profile creation, and standard job applications are provided free of charge to all users.
-          </p>
-
-          <h3 className="text-lg font-medium mt-4">Premium Services</h3>
-          <p>
-            Certain advanced features require payment, including:
+            All payments to SupplyChain_KE for premium features are processed through PayPal:
           </p>
           <ul className="list-disc pl-6 space-y-2">
             <li>ATS CV Checker and optimization tools</li>
-            <li>Advanced career analytics and insights</li>
             <li>Enhanced profile visibility</li>
+            <li>Advanced analytics and insights</li>
             <li>Priority customer support</li>
-            <li>Premium job alert services</li>
+            <li>Service provider review response capabilities</li>
           </ul>
 
           <h3 className="text-lg font-medium mt-4">Payment Processing</h3>
           <p>
-            All payments are processed securely through PayPal. By making a payment, you agree to PayPal's terms of service. M-Pesa integration will be available soon. Payments are typically one-time fees with lifetime access to the purchased feature.
+            All payments are processed securely through PayPal. By making a payment, you agree to PayPal's terms of service. M-Pesa integration will be available soon.
           </p>
 
           <h3 className="text-lg font-medium mt-4">Refund Policy</h3>

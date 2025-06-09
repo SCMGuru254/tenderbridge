@@ -11,14 +11,14 @@ interface PayPalPaywallProps {
   feature: string;
   price: number;
   currency?: string;
-  onPaymentSuccess?: () => void;
+  description?: string;
 }
 
 export const PayPalPaywall = ({ 
   feature, 
   price, 
   currency = "USD",
-  onPaymentSuccess 
+  description
 }: PayPalPaywallProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { createPayment } = usePayPal();
@@ -74,7 +74,7 @@ export const PayPalPaywall = ({
         </div>
         <CardTitle>Premium Feature</CardTitle>
         <p className="text-muted-foreground">
-          Unlock {feature} to enhance your supply chain career
+          {description || `Unlock ${feature} to enhance your supply chain career`}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">

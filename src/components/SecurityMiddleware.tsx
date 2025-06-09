@@ -1,7 +1,7 @@
 
 import { useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { securityConfig } from '@/config/security';
+import { SECURITY_CONFIG } from '@/config/security';
 import { applySecurityHeaders, rateLimiter } from '@/utils/securityUtils';
 
 interface SecurityMiddlewareProps {
@@ -21,7 +21,7 @@ const SecurityMiddleware = ({ children }: SecurityMiddlewareProps) => {
     // Content Security Policy violation handler
     const handleCSPViolation = (event: SecurityPolicyViolationEvent) => {
       console.warn('CSP Violation:', event.violatedDirective, event.blockedURI);
-      if (securityConfig.reporting.cspViolations) {
+      if (SECURITY_CONFIG.AUDIT.ALERT_ON_SUSPICIOUS_ACTIVITY) {
         // Report violation to monitoring service
         console.log('Reporting CSP violation to monitoring service');
       }

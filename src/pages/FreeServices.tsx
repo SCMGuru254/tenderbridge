@@ -1,149 +1,254 @@
 
-import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, FileText, MessageSquare, Users } from "lucide-react";
-import { useAuth } from '@/hooks/use-auth';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link } from 'react-router-dom';
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, Users, Search, TrendingUp, CheckCircle, FileText } from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { ATSChecker } from "@/components/ATSChecker";
 
 export default function FreeServices() {
-  const { user } = useAuth();
-  const [serviceType, setServiceType] = useState('cv-review');
-
-  // Mock data of available coaches/experts
-  const experts = [
-    { id: 1, name: "Sarah Johnson", specialty: "CV Review", available: true },
-    { id: 2, name: "David Mwangi", specialty: "Interview Coaching", available: true },
-    { id: 3, name: "Grace Otieno", specialty: "Career Guidance", available: false },
-    { id: 4, name: "James Odhiambo", specialty: "CV Review", available: true },
-  ];
-
-  const filterExpertsByType = (type: string) => {
-    switch (type) {
-      case 'cv-review':
-        return experts.filter(expert => expert.specialty === "CV Review" && expert.available);
-      case 'interview-coaching':
-        return experts.filter(expert => expert.specialty === "Interview Coaching" && expert.available);
-      case 'career-guidance':
-        return experts.filter(expert => expert.specialty === "Career Guidance" && expert.available);
-      default:
-        return experts.filter(expert => expert.available);
-    }
-  };
-
-  const filteredExperts = filterExpertsByType(serviceType);
-
   return (
-    <div className="container mx-auto px-4 py-12 mt-8 animate-fade-in">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Free Career Services</h1>
-        <p className="text-muted-foreground mb-8">
-          Access complimentary career services from our partner HR specialists and coaches
-        </p>
+    <div className="container mx-auto px-4 py-12 mt-16 animate-fade-in">
+      <h1 className="text-3xl font-bold mb-2">Free Services</h1>
+      <p className="text-muted-foreground mb-8">
+        Discover the comprehensive free tools and resources available to all SupplyChain_KE members
+      </p>
 
-        <Card className="mb-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary" />
-              How It Works
-            </CardTitle>
-            <CardDescription>
-              Through our rewards program and partnerships, we offer free career services to eligible users
-            </CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Briefcase className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Job Search & Application</CardTitle>
+                <Badge variant="secondary" className="mt-1">Always Free</Badge>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p>
-              Our HR partners provide a limited number of free services each month to the SupplyChain_KE community.
-              You can qualify for these services by:
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Referring the app to 20+ new users (see our <Link to="/rewards" className="text-primary hover:underline">Rewards Program</Link>)</li>
-              <li>Engaging with our partner content (50+ ad views per month)</li>
-              <li>Being selected in our monthly lucky draw for active community members</li>
+          <CardContent>
+            <CardDescription className="mb-4">
+              Access thousands of supply chain and logistics job opportunities across Kenya and East Africa
+            </CardDescription>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Browse unlimited job listings</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Apply to any position</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Save jobs for later</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Job alerts and notifications</span>
+              </li>
             </ul>
-            <p className="mt-4">
-              Services are limited and allocated on a first-come, first-served basis to qualified users.
-            </p>
+            <Button asChild className="w-full mt-4">
+              <NavLink to="/jobs">Browse Jobs</NavLink>
+            </Button>
           </CardContent>
-          {!user && (
-            <CardFooter>
-              <Button asChild>
-                <Link to="/auth">Sign in to check eligibility</Link>
-              </Button>
-            </CardFooter>
-          )}
         </Card>
 
-        <Tabs defaultValue="cv-review" className="mb-8" onValueChange={setServiceType}>
-          <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="cv-review" className="text-center">CV Review</TabsTrigger>
-            <TabsTrigger value="interview-coaching" className="text-center">Interview Coaching</TabsTrigger>
-            <TabsTrigger value="career-guidance" className="text-center">Career Guidance</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="cv-review">
-            <h2 className="text-xl font-medium mb-4">Available CV Review Services</h2>
-            <p className="mb-6">Our HR specialists will review your CV and provide professional feedback to make it stand out to recruiters.</p>
-          </TabsContent>
-          
-          <TabsContent value="interview-coaching">
-            <h2 className="text-xl font-medium mb-4">Available Interview Coaching</h2>
-            <p className="mb-6">Prepare for your next interview with a 30-minute coaching session focused on supply chain role interviews.</p>
-          </TabsContent>
-          
-          <TabsContent value="career-guidance">
-            <h2 className="text-xl font-medium mb-4">Available Career Guidance</h2>
-            <p className="mb-6">Get personalized advice on your supply chain career path and development opportunities.</p>
-          </TabsContent>
-        </Tabs>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          {filteredExperts.length > 0 ? (
-            filteredExperts.map(expert => (
-              <Card key={expert.id} className="relative">
-                <CardHeader>
-                  <CardTitle className="text-lg">{expert.name}</CardTitle>
-                  <CardDescription>{expert.specialty}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm">
-                    Available for one free session this month
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button disabled={!user} className="w-full">
-                    {user ? "Book Free Session" : "Sign in to Book"}
-                  </Button>
-                </CardFooter>
-                {expert.available && (
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      Available
-                    </span>
-                  </div>
-                )}
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-2 flex flex-col items-center justify-center p-12 text-center">
-              <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No Available Experts</h3>
-              <p className="text-muted-foreground mt-2">
-                There are currently no experts available for this service type.
-                Please check back later or try another service.
-              </p>
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Professional Networking</CardTitle>
+                <Badge variant="secondary" className="mt-1">Always Free</Badge>
+              </div>
             </div>
-          )}
-        </div>
-        
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground mb-4">
-            Interested in offering your HR expertise to our community?
-          </p>
-          <Button variant="outline" asChild>
-            <Link to="/forms">Become a Partner</Link>
-          </Button>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="mb-4">
+              Connect with supply chain professionals, join discussions, and build your network
+            </CardDescription>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Create professional profile</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Join industry discussions</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Connect with professionals</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Company reviews and insights</span>
+              </li>
+            </ul>
+            <Button asChild variant="outline" className="w-full mt-4">
+              <NavLink to="/discussions">Join Discussions</NavLink>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Search className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Career Resources</CardTitle>
+                <Badge variant="secondary" className="mt-1">Always Free</Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="mb-4">
+              Access industry insights, career guidance, and professional development resources
+            </CardDescription>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Industry news and insights</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Career guidance articles</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Interview preparation tips</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Salary insights</span>
+              </li>
+            </ul>
+            <Button asChild variant="outline" className="w-full mt-4">
+              <NavLink to="/supply-chain-insights">View Resources</NavLink>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Basic Analytics</CardTitle>
+                <Badge variant="secondary" className="mt-1">Always Free</Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="mb-4">
+              Track your job applications and get basic insights into your job search progress
+            </CardDescription>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Application tracking</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Basic job market insights</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Profile view statistics</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Job matching recommendations</span>
+              </li>
+            </ul>
+            <Button asChild variant="outline" className="w-full mt-4">
+              <NavLink to="/profile">View Profile</NavLink>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <FileText className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">ATS CV Checker</CardTitle>
+                <Badge variant="secondary" className="mt-1">Always Free</Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="mb-4">
+              Optimize your CV for Applicant Tracking Systems with our free analysis tool
+            </CardDescription>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>ATS compatibility score</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Keyword optimization</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Formatting recommendations</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Supply chain specific keywords</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ATS Checker Section */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">Free ATS CV Checker</h2>
+        <ATSChecker />
+      </div>
+
+      <div className="mt-12 p-6 bg-orange-50 rounded-lg border border-orange-200">
+        <h2 className="text-xl font-semibold mb-3">Why Choose SupplyChain_KE?</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="font-medium mb-2">Specialized Focus</h3>
+            <p className="text-sm text-muted-foreground">
+              Unlike generic job boards, we focus exclusively on supply chain, logistics, procurement, 
+              and related fields in Kenya and East Africa.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium mb-2">Local Expertise</h3>
+            <p className="text-sm text-muted-foreground">
+              Deep understanding of the Kenyan job market, salary ranges, and industry requirements 
+              specific to the region.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium mb-2">Community Driven</h3>
+            <p className="text-sm text-muted-foreground">
+              Built by supply chain professionals for supply chain professionals, with features 
+              designed for your specific career needs.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-medium mb-2">Always Free Core Services</h3>
+            <p className="text-sm text-muted-foreground">
+              Job search, networking, and basic career resources will always remain free for all users.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -63,19 +63,24 @@ serve(async (req) => {
       console.error('Error counting reports:', countError);
     }
     
-    // If there are multiple reports (3+), automatically mark as spam
+    // If there are multiple reports (3+), automatically mark as spam and schedule deletion
     if (existingReports && existingReports.length >= 3) {
       await markContentAsSpam(contentId, contentType);
+      
+      // For service provider profiles, schedule account deletion
+      if (contentType === 'profile') {
+        await scheduleAccountDeletion(contentId);
+      }
     }
     
-    // Schedule content for review/deletion in 24 hours
+    // Schedule content for review/deletion in 72 hours (updated from 24 hours)
     await scheduleContentReview(contentId, contentType, reportData.id);
     
     return new Response(
       JSON.stringify({ 
         success: true, 
         reportId: reportData.id,
-        message: 'Report submitted successfully' 
+        message: 'Report submitted successfully. Content will be reviewed within 72 hours.' 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -102,7 +107,7 @@ async function markContentAsSpam(contentId: string, contentType: string) {
     switch (contentType) {
       case 'job':
         tableName = 'scraped_jobs';
-        updateField = 'is_scam'; // Using existing field
+        updateField = 'is_scam';
         break;
       case 'review':
         tableName = 'interview_reviews';
@@ -133,11 +138,37 @@ async function markContentAsSpam(contentId: string, contentType: string) {
   }
 }
 
+async function scheduleAccountDeletion(profileId: string) {
+  try {
+    // Schedule profile/account deletion in 72 hours
+    const deletionTime = new Date();
+    deletionTime.setHours(deletionTime.getHours() + 72);
+    
+    const { error } = await supabase
+      .from('scheduled_deletions')
+      .insert({
+        content_id: profileId,
+        content_type: 'profile',
+        scheduled_for: deletionTime.toISOString(),
+        status: 'pending',
+        reason: 'Multiple spam reports'
+      });
+    
+    if (error) {
+      console.error('Error scheduling account deletion:', error);
+    } else {
+      console.log(`Scheduled account deletion for profile ${profileId} at ${deletionTime}`);
+    }
+  } catch (error) {
+    console.error('Error in scheduleAccountDeletion:', error);
+  }
+}
+
 async function scheduleContentReview(contentId: string, contentType: string, reportId: string) {
   try {
-    // Create a scheduled task for content review in 24 hours
+    // Create a scheduled task for content review in 72 hours (updated from 24)
     const reviewTime = new Date();
-    reviewTime.setHours(reviewTime.getHours() + 24);
+    reviewTime.setHours(reviewTime.getHours() + 72);
     
     const { error } = await supabase
       .from('scheduled_reviews')
