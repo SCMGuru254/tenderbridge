@@ -43,7 +43,7 @@ function useMediaQuery(query: string) {
 export function SiteNavigation() {
   const location = useLocation();
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState("platform");
+  const [activeSection] = useState("platform");
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 

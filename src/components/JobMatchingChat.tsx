@@ -103,9 +103,9 @@ export const JobMatchingChat = () => {
       <div className="mt-4 space-y-2">
         <p className="text-sm text-muted-foreground">Try asking:</p>
         <div className="flex flex-wrap gap-2">
-          {suggestions.map((suggestion, index) => (
+          {suggestions.map((suggestion, suggestionIndex) => (
             <Button
-              key={index}
+              key={suggestionIndex}
               variant="outline"
               size="sm"
               className="text-xs"

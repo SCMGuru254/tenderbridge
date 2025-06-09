@@ -1,6 +1,4 @@
-
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { MessageSquare, Flag, ThumbsUp, Share2, User } from "lucide-react";

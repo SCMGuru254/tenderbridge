@@ -4,7 +4,7 @@ import { JobCard } from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
-import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getRemainingTime } from "@/utils/jobUtils";
+import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline } from "@/utils/jobUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -98,10 +98,10 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
                 title: job.title,
                 company: getCompanyName(job) || null,
                 location: getLocation(job) || null,
-                job_type: job.job_type,
+                job_type: job.job_type || null,
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
-                application_deadline: getDeadline(job),
+                application_deadline: getDeadline(job) || null,
                 social_shares: job.social_shares || {}
               }}
               onSave={() => {
@@ -121,10 +121,10 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
                 title: job.title,
                 company: getCompanyName(job) || null,
                 location: getLocation(job) || null,
-                job_type: job.job_type,
+                job_type: job.job_type || null,
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
-                application_deadline: getDeadline(job),
+                application_deadline: getDeadline(job) || null,
                 social_shares: job.social_shares || {}
               }}
             />
