@@ -17,6 +17,7 @@ interface JobListProps {
 
 export const JobList = ({ jobs, isLoading }: JobListProps) => {
   const isMobile = useIsMobile();
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -116,17 +117,15 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
           ) : (
             <JobCard
               key={job.id}
-              job={{
-                id: job.id,
-                title: job.title,
-                company: getCompanyName(job) || null,
-                location: getLocation(job) || null,
-                job_type: job.job_type || null,
-                category: getJobSource(job),
-                job_url: getJobUrl(job),
-                application_deadline: getDeadline(job) || null,
-                social_shares: job.social_shares || {}
-              }}
+              id={job.id}
+              title={job.title}
+              company={getCompanyName(job) || null}
+              location={getLocation(job) || null}
+              job_type={job.job_type || null}
+              category={getJobSource(job)}
+              job_url={getJobUrl(job)}
+              application_deadline={getDeadline(job) || null}
+              social_shares={job.social_shares || {}}
             />
           )
         ))}

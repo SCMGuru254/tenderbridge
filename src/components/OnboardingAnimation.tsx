@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
@@ -52,11 +53,9 @@ const stepVariants = {
 
 export const OnboardingAnimation = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsAnimating(true);
       setCurrentStep((prevStep) => (prevStep % onboardingSteps.length) + 1);
     }, 5000);
 
@@ -97,3 +96,5 @@ export const OnboardingAnimation = () => {
     </div>
   );
 };
+
+export default OnboardingAnimation;

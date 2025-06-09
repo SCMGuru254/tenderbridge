@@ -1,6 +1,27 @@
 
 import { HfInference } from '@huggingface/inference';
 
+// Security configuration
+export const securityConfig = {
+  csp: {
+    directives: {
+      'default-src': ["'self'"],
+      'script-src': ["'self'", "'unsafe-inline'"],
+      'style-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", "data:", "https:"],
+      'connect-src': ["'self'", "https://api.openai.com", "https://api.supabase.co"]
+    }
+  },
+  rateLimit: {
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+  },
+  reporting: {
+    cspViolations: true,
+    errorReporting: true
+  }
+};
+
 // Validate API keys with better fallback for development mode
 const validateApiKey = (key: string | undefined, service: string, isRequired: boolean = true): string | null => {
   if (!key) {

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion, PanInfo } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +27,7 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
 
   const swipeThreshold = 100;
 
-  const handlePan = (event: any, info: PanInfo) => {
+  const handlePan = (_: any, info: PanInfo) => {
     setX(info.offset.x);
     setIsDragging(true);
   };
@@ -100,7 +101,7 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
             {job.category && <Badge variant="outline">{job.category}</Badge>}
 
             <div className="flex items-center justify-between pt-2">
-              <a href={job.job_url} target="_blank" rel="noopener noreferrer">
+              <a href={job.job_url || undefined} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="ml-1 h-4 w-4" />
                 Apply
               </a>
