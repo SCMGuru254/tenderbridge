@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, Bot, User, Building2, MapPin, Briefcase } from "lucide-react";
+import { Loader2, Send, Building2, MapPin, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -32,7 +33,7 @@ export function JobMatchingChat() {
 
   useEffect(() => {
     // Initial bot message
-    addMessage("Hello! I'm here to help you find relevant jobs. Tell me about your skills and preferences.", 'bot');
+    addMessage("Hello! I'm here to help you find relevant supply chain and logistics jobs. Tell me about your skills and preferences.", 'bot');
   }, []);
 
   const addMessage = (text: string, sender: 'user' | 'bot') => {
@@ -73,7 +74,7 @@ export function JobMatchingChat() {
           job_url: job.job_url || "#"
         }));
         setMatches(jobMatches);
-        addMessage(`I found ${jobMatches.length} jobs that might be a good fit for you!`, 'bot');
+        addMessage(`I found ${jobMatches.length} supply chain and logistics jobs that might be a good fit for you!`, 'bot');
       } else {
         addMessage("I couldn't find any jobs matching your criteria. Please try again with different keywords.", 'bot');
       }
@@ -89,13 +90,13 @@ export function JobMatchingChat() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Job Matching Chat</CardTitle>
+          <CardTitle>Supply Chain Job Matching Chat</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {messages.map(msg => (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                <div className={`p-3 rounded-lg max-w-xs ${msg.sender === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
                   {msg.text}
                 </div>
               </div>
@@ -112,7 +113,7 @@ export function JobMatchingChat() {
           <div className="flex items-center">
             <Input
               type="text"
-              placeholder="Enter your skills and preferences..."
+              placeholder="Enter your supply chain skills and preferences..."
               value={input}
               onChange={e => setInput(e.target.value)}
               className="flex-grow mr-2"
@@ -128,7 +129,7 @@ export function JobMatchingChat() {
       
       {matches.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Recommended Jobs</h3>
+          <h3 className="text-lg font-semibold">Recommended Supply Chain Jobs</h3>
           <div className="grid gap-4">
             {matches.map((job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow">

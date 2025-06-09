@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertCircle } from "lucide-react";
 
 type JobType = "full_time" | "part_time" | "contract" | "internship";
 const HIRING_TIMELINES = [
@@ -121,127 +122,183 @@ const PostJob = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Post a New Job</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Input
-                placeholder="Job Title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Textarea
-                placeholder="Job Description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                placeholder="Location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                placeholder="Salary Range (e.g., KSH 50,000 - 80,000)"
-                value={formData.salary_range}
-                onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
-              />
-            </div>
-            <div>
-              <Select
-                value={formData.job_type}
-                onValueChange={(value: JobType) => setFormData({ ...formData, job_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Job Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full_time">Full Time</SelectItem>
-                  <SelectItem value="part_time">Part Time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Post a New Job</CardTitle>
+              <p className="text-muted-foreground">
+                Create a job posting optimized for supply chain and logistics professionals
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Input
+                    placeholder="Job Title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Textarea
+                    placeholder="Job Description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Salary Range (e.g., KSH 50,000 - 80,000)"
+                    value={formData.salary_range}
+                    onChange={(e) => setFormData({ ...formData, salary_range: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Select
+                    value={formData.job_type}
+                    onValueChange={(value: JobType) => setFormData({ ...formData, job_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Job Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full_time">Full Time</SelectItem>
+                      <SelectItem value="part_time">Part Time</SelectItem>
+                      <SelectItem value="contract">Contract</SelectItem>
+                      <SelectItem value="internship">Internship</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Hiring Timeline */}
-            <div>
-              <label className="block mb-1 text-sm font-medium">Expected Time to Fill Position</label>
-              <Select
-                value={formData.hiring_timeline}
-                onValueChange={(val) => setFormData({ ...formData, hiring_timeline: val, hiring_timeline_custom: "" })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select hiring timeline" />
-                </SelectTrigger>
-                <SelectContent>
-                  {HIRING_TIMELINES.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {formData.hiring_timeline === "custom" && (
-                <Input
-                  placeholder="Custom timeline (e.g. 2 weeks, 3 days, etc)"
-                  className="mt-2"
-                  value={formData.hiring_timeline_custom}
-                  onChange={e =>
-                    setFormData({ ...formData, hiring_timeline_custom: e.target.value })
-                  }
-                  required
-                />
-              )}
-            </div>
+                {/* Hiring Timeline */}
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Expected Time to Fill Position</label>
+                  <Select
+                    value={formData.hiring_timeline}
+                    onValueChange={(val) => setFormData({ ...formData, hiring_timeline: val, hiring_timeline_custom: "" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select hiring timeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HIRING_TIMELINES.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.hiring_timeline === "custom" && (
+                    <Input
+                      placeholder="Custom timeline (e.g. 2 weeks, 3 days, etc)"
+                      className="mt-2"
+                      value={formData.hiring_timeline_custom}
+                      onChange={e =>
+                        setFormData({ ...formData, hiring_timeline_custom: e.target.value })
+                      }
+                      required
+                    />
+                  )}
+                </div>
 
-            {/* Notify Applicants */}
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={formData.notify_applicants}
-                onCheckedChange={(checked) => setFormData({ ...formData, notify_applicants: !!checked })}
-                id="notify-applicants"
-              />
-              <label htmlFor="notify-applicants" className="cursor-pointer">
-                Notify applicants of application stages (recommended)
-              </label>
-            </div>
+                {/* Notify Applicants */}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={formData.notify_applicants}
+                    onCheckedChange={(checked) => setFormData({ ...formData, notify_applicants: !!checked })}
+                    id="notify-applicants"
+                  />
+                  <label htmlFor="notify-applicants" className="cursor-pointer">
+                    Notify applicants of application stages (recommended)
+                  </label>
+                </div>
 
-            <div>
-              <Textarea
-                placeholder="Requirements (one per line)"
-                value={formData.requirements}
-                onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Textarea
-                placeholder="Responsibilities (one per line)"
-                value={formData.responsibilities}
-                onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-                required
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Posting..." : "Post Job"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+                <div>
+                  <Textarea
+                    placeholder="Requirements (one per line)"
+                    value={formData.requirements}
+                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Textarea
+                    placeholder="Responsibilities (one per line)"
+                    value={formData.responsibilities}
+                    onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Posting..." : "Post Job"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                ATS Optimization Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <Badge variant="secondary" className="mt-0.5">Tip</Badge>
+                  <p className="text-sm">Use supply chain keywords like "logistics", "procurement", "inventory management"</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge variant="secondary" className="mt-0.5">Tip</Badge>
+                  <p className="text-sm">Include specific skills and certifications relevant to your industry</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge variant="secondary" className="mt-0.5">Tip</Badge>
+                  <p className="text-sm">Use clear section headers and bullet points for better readability</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-blue-600" />
+                Supply Chain Focus
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-3">
+                Your job will be featured to professionals in:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline">Supply Chain</Badge>
+                <Badge variant="outline">Logistics</Badge>
+                <Badge variant="outline">Procurement</Badge>
+                <Badge variant="outline">Operations</Badge>
+                <Badge variant="outline">Warehouse</Badge>
+                <Badge variant="outline">Distribution</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
