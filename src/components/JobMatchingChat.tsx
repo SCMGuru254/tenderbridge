@@ -1,167 +1,143 @@
-import { useState, useRef, useEffect } from "react";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Send, Bot, User, Briefcase } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Send, Bot, User } from "lucide-react";
 
-interface ChatMessage {
+interface Message {
   id: string;
-  text: string;
+  content: string;
   sender: 'user' | 'bot';
+  timestamp: Date;
 }
 
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  description: string;
-  job_type: string;
-  category: string;
-  job_url: string;
-}
-
-export const JobMatchingChat = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
+const JobMatchingChat = () => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      content: "Hello! I'm here to help you find the perfect supply chain job. Tell me about your experience, skills, and what kind of role you're looking for.",
+      sender: 'bot',
+      timestamp: new Date()
+    }
+  ]);
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [matches, setMatches] = useState<Job[]>([]);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Initial bot message
-    addMessage("Hello! I'm here to help you find relevant supply chain and logistics jobs. Tell me about your skills and preferences.", 'bot');
-  }, []);
-
-  const addMessage = (text: string, sender: 'user' | 'bot') => {
-    setMessages(prev => [...prev, { id: Date.now().toString(), text, sender }]);
-  };
 
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
+    if (!inputValue.trim()) return;
 
-    const userMessage = input.trim();
-    addMessage(userMessage, 'user');
-    setInput("");
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue,
+      sender: 'user',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue("");
     setIsLoading(true);
 
-    try {
-      // Simulate job matching (replace with actual API call)
-      const { data, error } = await supabase
-        .from('scraped_jobs')
-        .select('*')
-        .ilike('description', `%${userMessage}%`)
-        .limit(5);
-
-      if (error) {
-        console.error("Error fetching jobs:", error);
-        addMessage("Sorry, I encountered an error while searching for jobs.", 'bot');
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const jobMatches: Job[] = data.map(job => ({
-          id: job.id,
-          title: job.title,
-          company: job.company || "N/A",
-          location: job.location || "N/A",
-          description: job.description || "N/A",
-          job_type: job.job_type || "N/A",
-          category: job.category || "N/A",
-          job_url: job.job_url || "#"
-        }));
-        setMatches(jobMatches);
-        addMessage(`I found ${jobMatches.length} supply chain and logistics jobs that might be a good fit for you!`, 'bot');
-      } else {
-        addMessage("I couldn't find any jobs matching your criteria. Please try again with different keywords.", 'bot');
-      }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      addMessage("An unexpected error occurred. Please try again later.", 'bot');
-    } finally {
+    // Simulate AI response
+    setTimeout(() => {
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Based on your experience, I can help you find relevant supply chain positions. Let me search for opportunities that match your skills.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
       setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  const handleJobInterest = async (jobTitle: string) => {
-    // Handle job interest logic here
-  };
-
   return (
-    <Card className="w-full max-w-4xl mx-auto h-[600px] flex flex-col">
+    <Card className="w-full max-w-2xl mx-auto h-[600px] flex flex-col">
       <CardHeader>
-        <CardTitle>Supply Chain Job Matching Chat</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="h-5 w-5" />
+          Job Matching Assistant
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {messages.map(msg => (
-            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`p-3 rounded-lg max-w-xs ${msg.sender === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                {msg.text}
+      
+      <CardContent className="flex-1 flex flex-col">
+        <ScrollArea className="flex-1 mb-4">
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex items-start gap-3 ${
+                  message.sender === 'user' ? 'flex-row-reverse' : ''
+                }`}
+              >
+                <div className={`p-2 rounded-full ${
+                  message.sender === 'user' ? 'bg-primary' : 'bg-muted'
+                }`}>
+                  {message.sender === 'user' ? (
+                    <User className="h-4 w-4 text-primary-foreground" />
+                  ) : (
+                    <Bot className="h-4 w-4" />
+                  )}
+                </div>
+                <div
+                  className={`max-w-[80%] p-3 rounded-lg ${
+                    message.sender === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  }`}
+                >
+                  <p className="text-sm">{message.content}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="p-3 rounded-lg bg-gray-100 text-gray-800">
-                <Loader2 className="w-4 h-4 animate-spin" />
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-full bg-muted">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <div className="bg-muted p-3 rounded-lg">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-75"></div>
+                    <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-150"></div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center">
+            )}
+          </div>
+        </ScrollArea>
+        
+        <div className="flex gap-2">
           <Input
-            type="text"
-            placeholder="Enter your supply chain skills and preferences..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            className="flex-grow mr-2"
-            onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Tell me about your skills and job preferences..."
+            disabled={isLoading}
+            className="flex-1"
           />
-          <Button onClick={handleSendMessage} disabled={isLoading}>
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-            Send
+          <Button 
+            onClick={handleSendMessage}
+            disabled={isLoading || !inputValue.trim()}
+            size="icon"
+          >
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>
     </Card>
-    
-    {matches.length > 0 && (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Recommended Supply Chain Jobs</h3>
-        <div className="grid gap-4">
-          {matches.map((job) => (
-            <Card key={job.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle>{job.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Building2 className="h-4 w-4 mr-1" />
-                  <span>{job.company}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span>{job.location}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Briefcase className="h-4 w-4 mr-1" />
-                  <span>{job.job_type}</span>
-                </div>
-                <Badge variant="secondary">{job.category}</Badge>
-                <a href={job.job_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                  View Job
-                </a>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )}
   );
 };
+
+export default JobMatchingChat;
