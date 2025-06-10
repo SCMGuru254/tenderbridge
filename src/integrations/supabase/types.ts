@@ -594,6 +594,158 @@ export type Database = {
         }
         Relationships: []
       }
+      redemption_requests: {
+        Row: {
+          admin_notes: string | null
+          catalog_item_id: string
+          expires_at: string
+          id: string
+          points_spent: number
+          processed_at: string | null
+          request_data: Json
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          catalog_item_id: string
+          expires_at?: string
+          id?: string
+          points_spent: number
+          processed_at?: string | null
+          request_data?: Json
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          catalog_item_id?: string
+          expires_at?: string
+          id?: string
+          points_spent?: number
+          processed_at?: string | null
+          request_data?: Json
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "redemption_requests_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "rewards_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards_catalog: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          item_code: string
+          max_redemptions_per_user: number | null
+          name: string
+          points_required: number
+          stock_available: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_code: string
+          max_redemptions_per_user?: number | null
+          name: string
+          points_required: number
+          stock_available?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          item_code?: string
+          max_redemptions_per_user?: number | null
+          name?: string
+          points_required?: number
+          stock_available?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rewards_points: {
+        Row: {
+          created_at: string
+          current_balance: number
+          id: string
+          lifetime_earned: number
+          lifetime_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rewards_transactions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          points: number
+          reference_id: string | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          points: number
+          reference_id?: string | null
+          source: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          points?: number
+          reference_id?: string | null
+          source?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_jobs: {
         Row: {
           created_at: string
@@ -741,12 +893,59 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achieved_at: string
+          achievement_data: Json
+          achievement_type: string
+          id: string
+          notified: boolean
+          points_awarded: number
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          achievement_data?: Json
+          achievement_type: string
+          id?: string
+          notified?: boolean
+          points_awarded?: number
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          achievement_data?: Json
+          achievement_type?: string
+          id?: string
+          notified?: boolean
+          points_awarded?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_points: {
+        Args: {
+          p_user_id: string
+          p_points: number
+          p_description: string
+          p_source: string
+          p_reference_id?: string
+        }
+        Returns: boolean
+      }
+      process_redemption: {
+        Args: {
+          p_user_id: string
+          p_catalog_item_id: string
+          p_request_data?: Json
+        }
+        Returns: string
+      }
     }
     Enums: {
       job_type: "full_time" | "part_time" | "contract" | "internship"

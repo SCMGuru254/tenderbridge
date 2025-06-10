@@ -32,7 +32,6 @@ const JobCard = ({
         <JobCardHeader 
           title={title} 
           company={company || "Company"} 
-          location={location || "Location not specified"} 
         />
       </CardHeader>
       <CardContent className="space-y-4">
@@ -47,14 +46,23 @@ const JobCard = ({
               {category}
             </Badge>
           )}
+          {location && (
+            <Badge variant="outline" className="text-xs">
+              {location}
+            </Badge>
+          )}
         </div>
         
         <JobMetadata 
-          deadline={application_deadline || null}
-          shares={social_shares || {}}
+          applicationDeadline={application_deadline || null}
+          socialShares={social_shares || {}}
         />
         
-        <JobCardActions jobUrl={job_url || null} />
+        <JobCardActions 
+          jobUrl={job_url || null} 
+          isExternalUrl={!!job_url}
+          category={category || 'Unknown'}
+        />
       </CardContent>
     </Card>
   );

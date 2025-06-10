@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Logo } from './header/Logo';
-import { UserMenu } from './header/UserMenu';
+import UserMenu from './header/UserMenu';
 import { MobileNav } from './header/MobileNav';
 import { DesktopNav } from './header/DesktopNav';
 import { ThemeToggle } from './header/ThemeToggle';
@@ -13,7 +13,8 @@ const navItems = [
   { label: 'Interview Prep', href: '/interview-prep' },
   { label: 'Discussions', href: '/discussions' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Post a Job', href: '/post-job' }
+  { label: 'Post a Job', href: '/post-job' },
+  { label: 'Rewards', href: '/rewards' }
 ];
 
 const Header = () => {

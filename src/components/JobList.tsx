@@ -1,6 +1,5 @@
-
 import { Loader2 } from "lucide-react";
-import { JobCard } from "@/components/job-card/JobCard";
+import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
@@ -107,11 +106,9 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               }}
               onSave={() => {
                 toast.success("Job saved to favorites");
-                // Implement save functionality
               }}
               onShare={() => {
                 toast.success("Job shared");
-                // Implement share functionality
               }}
             />
           ) : (
@@ -120,12 +117,11 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               title={job.title}
               company={getCompanyName(job) || null}
               location={getLocation(job) || null}
-              type={job.job_type || null}
+              job_type={job.job_type || null}
               category={getJobSource(job)}
-              jobUrl={getJobUrl(job)}
-              deadline={getDeadline(job) || null}
-              jobId={job.id}
-              fullJob={job}
+              job_url={getJobUrl(job)}
+              application_deadline={getDeadline(job) || null}
+              social_shares={job.social_shares || {}}
             />
           )
         ))}
