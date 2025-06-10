@@ -1,87 +1,64 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { parseISO, isAfter, subDays } from "date-fns";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface NewsItem {
+export interface ContentItem {
   id: string;
   title: string;
   content: string;
-  source_name?: string;
-  source_url?: string;
-  published_date?: string;
+  type: 'blog' | 'news';
+  tags: string[];
   created_at: string;
-  updated_at: string;
-  tags?: string[];
-  image_url?: string;
+  author?: string;
 }
 
-interface BlogPost extends NewsItem {
-  author_id: string;
-  author?: {
-    full_name: string;
-    avatar_url: string;
-  } | null;
-}
+export const useContentData = () => {
+  const [content, setContent] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const useContentData = (activeTab: string) => {
-  const { data: news, isLoading: isLoadingNews } = useQuery({
-    queryKey: ['supply-chain-news'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('supply_chain_news')
-        .select('*')
-        .order('published_date', { ascending: false });
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const { data: blogPosts } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      
-      return data.map(item => ({
-        ...item,
-        content: item.content ? String(item.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
-        tags: item.tags || []
-      })) as NewsItem[];
-    },
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 15
-  });
+        const { data: newsItems } = await supabase
+          .from('news_items')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-  const { data: blogPostsData = [], isLoading: blogLoading } = useQuery({
-    queryKey: ['blog-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const blogPosts: BlogPost[] = await Promise.all(
-        data.map(async (post) => {
-          const { data: authorData, error: authorError } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', post.author_id)
-            .single();
-          
-          return {
-            ...post,
-            content: post.content ? String(post.content).replace(/<\/?[^>]+(>|$)/g, "") : "",
+        const formattedContent: ContentItem[] = [
+          ...(blogPosts || []).map(post => ({
+            id: post.id,
+            title: post.title,
+            content: post.content,
+            type: 'blog' as const,
             tags: post.tags || [],
-            author: authorError ? null : authorData
-          };
-        })
-      );
-      
-      return blogPosts;
-    }
-  });
+            created_at: post.created_at,
+            author: post.author
+          })),
+          ...(newsItems || []).map(item => ({
+            id: item.id,
+            title: item.title,
+            content: item.content,
+            type: 'news' as const,
+            tags: item.tags || [],
+            created_at: item.created_at
+          }))
+        ];
 
-  return {
-    news,
-    blogPostsData,
-    isLoadingNews,
-    blogLoading
-  };
+        setContent(formattedContent);
+      } catch (error) {
+        console.error('Error fetching content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
+  return { content, loading };
 };
-
-export type { NewsItem, BlogPost };

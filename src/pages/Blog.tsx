@@ -4,16 +4,15 @@ import { Button } from "@/components/ui/button";
 import { PenSquare, RefreshCw } from "lucide-react";
 import { NewsRefreshButton } from "@/components/NewsRefreshButton";
 import { useUser } from "@/hooks/useUser";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
-// Import our refactored components
-import { FilterControls } from "@/components/blog/FilterControls";
-import { ContentList } from "@/components/blog/ContentList";
+// Import our refactored components using default imports
+import FilterControls from "@/components/blog/FilterControls";
+import ContentList from "@/components/blog/ContentList";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { CreatePostDialog } from "@/components/blog/CreatePostDialog";
 import { TenderzvilleNewsList } from "@/components/blog/TenderzvilleNewsList";
-import { CronJobSetup } from "@/components/blog/CronJobSetup";
+import CronJobSetup from "@/components/blog/CronJobSetup";
 
 const supplyChainTags = [
   "Logistics", "Procurement", "Inventory", "Warehousing", "Transportation",
@@ -24,7 +23,6 @@ const supplyChainTags = [
 
 const Blog = () => {
   const { user } = useUser();
-  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("news");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -130,10 +128,7 @@ const Blog = () => {
           />
 
           {activeTab === "tenderzville" ? (
-            <TenderzvilleNewsList 
-              searchTerm={searchTerm}
-              selectedTags={selectedTags}
-            />
+            <TenderzvilleNewsList />
           ) : (
             <ContentList 
               activeTab={activeTab}

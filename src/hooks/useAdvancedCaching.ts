@@ -1,67 +1,38 @@
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { QueryClient } from '@tanstack/react-query';
 
-// Advanced caching configuration for high-scale applications
+// Cache configuration for different data types
 export const CACHE_CONFIG = {
-  // Job data caching - critical for performance with 100k+ users
   JOBS: {
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-    refetchInterval: 1000 * 60 * 10, // 10 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
     retry: 3,
-    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10000)
+    retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
   },
-  
-  // User data caching - less frequent updates
-  USER: {
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    gcTime: 1000 * 60 * 60, // 1 hour
-    retry: 2,
-    retryDelay: 1000
-  },
-  
-  // Static data caching - very long cache times
   STATIC: {
-    staleTime: 1000 * 60 * 60, // 1 hour
-    gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    retry: 1
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    retry: 2,
+  },
+  USER_DATA: {
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
   }
 };
 
-export function useAdvancedCaching() {
-  const queryClient = useQueryClient();
-
-  // Prefetch commonly accessed data
-  const prefetchJobData = useCallback(async () => {
-    await queryClient.prefetchQuery({
-      queryKey: ['posted-jobs'],
-      staleTime: CACHE_CONFIG.JOBS.staleTime,
-    });
-    
-    await queryClient.prefetchQuery({
-      queryKey: ['scraped-jobs'],
-      staleTime: CACHE_CONFIG.JOBS.staleTime,
-    });
-  }, [queryClient]);
-
-  // Invalidate stale data strategically
-  const invalidateJobData = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['posted-jobs'] });
-    queryClient.invalidateQueries({ queryKey: ['scraped-jobs'] });
-  }, [queryClient]);
-
-  // Batch invalidations for better performance
-  const batchInvalidate = useCallback((keys: string[][]) => {
-    keys.forEach(key => {
-      queryClient.invalidateQueries({ queryKey: key });
-    });
-  }, [queryClient]);
-
-  return {
-    prefetchJobData,
-    invalidateJobData,
-    batchInvalidate,
-    queryClient
-  };
-}
+// Create optimized query client
+export const createOptimizedQueryClient = () => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: CACHE_CONFIG.JOBS.staleTime,
+        gcTime: CACHE_CONFIG.JOBS.gcTime,
+        refetchOnWindowFocus: false,
+        retry: CACHE_CONFIG.JOBS.retry,
+        retryDelay: CACHE_CONFIG.JOBS.retryDelay,
+      },
+    },
+  });
+};

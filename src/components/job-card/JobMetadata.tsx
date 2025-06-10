@@ -32,12 +32,14 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
 
   // Type-safe property access
   const getCompany = (job: PostedJob | ScrapedJob): string => {
-    if ('company' in job) return job.company || 'Company not specified';
+    if ('company' in job && job.company) {
+      return typeof job.company === 'string' ? job.company : 'Company not specified';
+    }
     return 'Company not specified';
   };
 
   const getPostedAt = (job: PostedJob | ScrapedJob): string | null => {
-    if ('posted_at' in job) return job.posted_at;
+    if ('posted_at' in job && job.posted_at) return job.posted_at;
     return job.created_at;
   };
 
@@ -47,7 +49,7 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
   };
 
   const getTags = (job: PostedJob | ScrapedJob): string[] => {
-    if ('skills' in job && job.skills) return job.skills;
+    if ('skills' in job && job.skills && Array.isArray(job.skills)) return job.skills;
     return [];
   };
 

@@ -1,75 +1,88 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, Globe, BarChart3, Clock } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { TrendingUp } from "lucide-react";
 
-interface NewsStats {
-  articlesAnalyzed: number;
-  positiveSentiment: number;
-  negativeSentiment: number;
-  neutralSentiment: number;
-  lastUpdated: string;
+interface NewsInsight {
+  id: string;
+  title: string;
+  summary: string;
+  category: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  relevanceScore: number;
 }
 
 const AgentNewsAnalyzer = () => {
-  const [newsStats, setNewsStats] = useState<NewsStats>({
-    articlesAnalyzed: 0,
-    positiveSentiment: 0,
-    negativeSentiment: 0,
-    neutralSentiment: 0,
-    lastUpdated: ''
-  });
+  const [insights] = useState<NewsInsight[]>([
+    {
+      id: "1",
+      title: "Supply Chain Disruption Alert",
+      summary: "Global shipping delays affecting East Africa trade routes",
+      category: "Logistics",
+      sentiment: "negative",
+      relevanceScore: 92
+    },
+    {
+      id: "2",
+      title: "Digital Transformation Opportunities",
+      summary: "New blockchain solutions emerging in supply chain tracking",
+      category: "Technology",
+      sentiment: "positive",
+      relevanceScore: 85
+    }
+  ]);
 
-  useEffect(() => {
-    // Simulate loading news analysis stats
-    setNewsStats({
-      articlesAnalyzed: 235,
-      positiveSentiment: 68,
-      negativeSentiment: 15,
-      neutralSentiment: 17,
-      lastUpdated: '2 hours ago'
-    });
-  }, []);
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-600';
+      case 'negative': return 'text-red-600';
+      default: return 'text-gray-600';
+    }
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Supply Chain News Analysis
-          <Badge variant="outline">
-            <Clock className="h-4 w-4 mr-2" />
-            Updated {newsStats.lastUpdated}
-          </Badge>
-        </CardTitle>
-        <CardDescription>Insights from the latest industry news</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <div className="text-2xl font-bold">{newsStats.articlesAnalyzed}</div>
-            <p className="text-sm text-muted-foreground">Articles Analyzed</p>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{newsStats.positiveSentiment}%</div>
-            <p className="text-sm text-muted-foreground">Positive Sentiment</p>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{newsStats.negativeSentiment}%</div>
-            <p className="text-sm text-muted-foreground">Negative Sentiment</p>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{newsStats.neutralSentiment}%</div>
-            <p className="text-sm text-muted-foreground">Neutral Sentiment</p>
-          </div>
-        </div>
-        
-        <Button variant="secondary" className="w-full">
-          <TrendingUp className="h-4 w-4 mr-2" />
-          View Detailed Analysis
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            News Analysis
+          </CardTitle>
+          <CardDescription>AI-powered insights from supply chain news</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px]">
+            <div className="space-y-4">
+              {insights.map((insight) => (
+                <Card key={insight.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-sm font-medium">{insight.title}</CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        {insight.category}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-2">{insight.summary}</p>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs font-medium ${getSentimentColor(insight.sentiment)}`}>
+                        {insight.sentiment.toUpperCase()}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Relevance: {insight.relevanceScore}%
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
