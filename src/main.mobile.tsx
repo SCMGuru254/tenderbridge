@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { Capacitor } from '@capacitor/core';
-import { StatusBar } from '@capacitor/status-bar';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 const initializeMobile = async () => {
   if (Capacitor.isNativePlatform()) {
     // Set status bar style
-    await StatusBar.setStyle({ style: 'DARK' });
+    await StatusBar.setStyle({ style: Style.Dark });
     await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
     
     // Hide splash screen after a delay
@@ -52,4 +52,4 @@ initializeMobile().then(() => {
       </QueryClientProvider>
     </React.StrictMode>,
   );
-}); 
+});

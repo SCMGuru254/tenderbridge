@@ -5,10 +5,6 @@ import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Trophy } from 'lucide-react';
 
-interface UserPoints {
-  current_balance: number;
-}
-
 const PointsDisplay = () => {
   const { user } = useUser();
   const [points, setPoints] = useState<number>(0);

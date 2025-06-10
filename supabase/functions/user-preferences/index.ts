@@ -9,7 +9,7 @@ import {
   getUserNotifications,
   markNotificationAsRead,
   createNotification
-} from "../scrape-jobs/services/userPreferences.ts";
+} from "./services/userPreferences.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests

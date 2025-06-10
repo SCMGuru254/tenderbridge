@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
-import { Shield, AlertTriangle } from "lucide-react";
+import { Shield, AlertTriangle, Linkedin } from "lucide-react";
 import { validateInput, secureValidate } from "@/utils/inputValidation";
 import { checkRateLimit, resetRateLimiter } from "@/utils/rateLimiter";
 
@@ -106,7 +105,6 @@ const Auth = () => {
     }
     
     // Check rate limiting
-    // In production, you'd use the user's IP address as an identifier
     const rateKey = `auth_${email}`;
     const rateCheck = checkRateLimit(rateKey);
     
@@ -174,6 +172,28 @@ const Auth = () => {
     }
   };
 
+  const handleLinkedInSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Format the strength message
   const getStrengthText = () => {
     if (passwordStrength < 40) return "Weak";
@@ -191,8 +211,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <div className="flex items-center gap-2 mb-4">
           <Shield className="h-5 w-5 text-primary" />
           <h2 className="text-2xl font-bold text-center">
@@ -202,7 +222,7 @@ const Auth = () => {
         
         {/* Rate limit warning */}
         {attemptsLeft !== null && attemptsLeft < 3 && !blockedUntil && (
-          <Alert variant="warning" className="mb-4 bg-amber-50 border-amber-200">
+          <Alert variant="default" className="mb-4 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertTitle>Login attempt {6 - attemptsLeft} of 5</AlertTitle>
             <AlertDescription>
@@ -223,6 +243,26 @@ const Auth = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* LinkedIn Sign In */}
+        <Button 
+          onClick={handleLinkedInSignIn}
+          disabled={isLoading || !!blockedUntil}
+          variant="outline"
+          className="w-full mb-4 flex items-center gap-2"
+        >
+          <Linkedin className="h-4 w-4" />
+          {isLoading ? "Loading..." : "Continue with LinkedIn"}
+        </Button>
+
+        <div className="relative mb-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white dark:bg-gray-800 px-2 text-muted-foreground">Or continue with email</span>
+          </div>
+        </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           {isSignUp && (
@@ -280,7 +320,7 @@ const Auth = () => {
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${getStrengthColor()}`}
+                    className={`h-full transition-all duration-300 ${getStrengthColor()}`}
                     style={{ width: `${passwordStrength}%` }}
                   ></div>
                 </div>
@@ -299,7 +339,7 @@ const Auth = () => {
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
           >
             {isSignUp
               ? "Already have an account? Sign in"

@@ -41,7 +41,7 @@ export const useRewards = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('award_points', {
+      const { error } = await supabase.rpc('award_points', {
         p_user_id: user.id,
         p_points: pointsToAward,
         p_description: description,

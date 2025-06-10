@@ -1,19 +1,24 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
+import { useRewards } from '@/hooks/useRewards';
+import { Trophy, Star, Calendar, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
-import { Trophy, Star, Gift, History, Award } from 'lucide-react';
 
-interface UserPoints {
-  current_balance: number;
-  lifetime_earned: number;
-  lifetime_spent: number;
+interface CatalogItem {
+  id: string;
+  name: string;
+  description: string;
+  points_required: number;
+  category: string;
+  is_active: boolean;
+  metadata: any;
 }
 
 interface Transaction {
@@ -21,18 +26,8 @@ interface Transaction {
   transaction_type: string;
   points: number;
   description: string;
-  source: string;
   created_at: string;
-}
-
-interface CatalogItem {
-  id: string;
-  item_code: string;
-  name: string;
-  description: string;
-  points_required: number;
-  category: string;
-  is_active: boolean;
+  source: string;
 }
 
 interface Achievement {
@@ -40,134 +35,124 @@ interface Achievement {
   achievement_type: string;
   achievement_data: any;
   points_awarded: number;
-  achieved_at: string;
-  notified: boolean;
+  created_at: string;
 }
 
 const RewardsSystem = () => {
   const { user } = useUser();
-  const [userPoints, setUserPoints] = useState<UserPoints | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const { points, awardDailyLoginPoints, fetchUserPoints } = useRewards();
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      fetchUserData();
+      fetchCatalogItems();
+      fetchTransactions();
+      fetchAchievements();
+      
+      // Award daily login points
+      awardDailyLoginPoints();
     }
   }, [user]);
 
-  const fetchUserData = async () => {
+  const fetchCatalogItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rewards_catalog')
+        .select('*')
+        .eq('is_active', true)
+        .order('points_required');
+
+      if (error) throw error;
+      setCatalogItems(data || []);
+    } catch (error) {
+      console.error('Error fetching catalog items:', error);
+    }
+  };
+
+  const fetchTransactions = async () => {
     if (!user) return;
 
     try {
-      // Fetch user points
-      const { data: pointsData } = await supabase
-        .from('rewards_points')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      setUserPoints(pointsData);
-
-      // Fetch transactions
-      const { data: transactionsData } = await supabase
+      const { data, error } = await supabase
         .from('rewards_transactions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      setTransactions(transactionsData || []);
+      if (error) throw error;
+      setTransactions(data || []);
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
 
-      // Fetch catalog items
-      const { data: catalogData } = await supabase
-        .from('rewards_catalog')
-        .select('*')
-        .eq('is_active', true)
-        .order('points_required');
+  const fetchAchievements = async () => {
+    if (!user) return;
 
-      setCatalogItems(catalogData || []);
-
-      // Fetch achievements
-      const { data: achievementsData } = await supabase
+    try {
+      const { data, error } = await supabase
         .from('user_achievements')
         .select('*')
         .eq('user_id', user.id)
-        .order('achieved_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
-      setAchievements(achievementsData || []);
-
+      if (error) throw error;
+      setAchievements(data || []);
     } catch (error) {
-      console.error('Error fetching rewards data:', error);
-      toast.error('Failed to load rewards data');
+      console.error('Error fetching achievements:', error);
+    }
+  };
+
+  const handleRedemption = async (itemId: string) => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.rpc('process_redemption', {
+        p_user_id: user.id,
+        p_catalog_item_id: itemId,
+        p_request_data: {}
+      });
+
+      if (error) throw error;
+      
+      toast.success('Redemption request submitted successfully!');
+      await fetchUserPoints();
+      await fetchTransactions();
+    } catch (error: any) {
+      console.error('Error processing redemption:', error);
+      toast.error(`Redemption failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRedeem = async (catalogItem: CatalogItem) => {
-    if (!user || !userPoints) return;
-
-    if (userPoints.current_balance < catalogItem.points_required) {
-      toast.error('Insufficient points for this redemption');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('process_redemption', {
-        p_user_id: user.id,
-        p_catalog_item_id: catalogItem.id,
-        p_request_data: {}
-      });
-
-      if (error) throw error;
-
-      toast.success(`Successfully redeemed ${catalogItem.name}! Your request will be processed within 72 hours.`);
-      fetchUserData(); // Refresh data
-    } catch (error: any) {
-      console.error('Redemption error:', error);
-      toast.error(error.message || 'Failed to process redemption');
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
-  const awardTestPoints = async (points: number, description: string) => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase.rpc('award_points', {
-        p_user_id: user.id,
-        p_points: points,
-        p_description: description,
-        p_source: 'manual_test'
-      });
-
-      if (error) throw error;
-
-      toast.success(`Awarded ${points} points!`);
-      fetchUserData();
-    } catch (error: any) {
-      console.error('Award points error:', error);
-      toast.error('Failed to award points');
-    }
+  const getProgressToNextLevel = () => {
+    const levels = [0, 100, 500, 1000, 2500, 5000];
+    const currentLevel = levels.findIndex(level => points < level) - 1;
+    const nextLevel = levels[currentLevel + 1];
+    
+    if (!nextLevel) return { progress: 100, nextLevel: 'Max Level' };
+    
+    const progress = ((points - levels[currentLevel]) / (nextLevel - levels[currentLevel])) * 100;
+    return { progress, nextLevel };
   };
+
+  const { progress, nextLevel } = getProgressToNextLevel();
 
   if (!user) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
-          <p>Please sign in to view your rewards</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p>Loading rewards data...</p>
+        <CardContent className="p-6">
+          <p className="text-center text-muted-foreground">Please sign in to view your rewards.</p>
         </CardContent>
       </Card>
     );
@@ -179,37 +164,21 @@ const RewardsSystem = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Your Points Balance
+            <Trophy className="h-5 w-5" />
+            Your Rewards Balance
           </CardTitle>
+          <CardDescription>
+            Earn points through platform engagement and redeem them for valuable rewards
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{userPoints?.current_balance || 0}</p>
-              <p className="text-sm text-muted-foreground">Current Balance</p>
+          <div className="text-3xl font-bold text-primary mb-4">{points} Points</div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Progress to next level</span>
+              <span>{typeof nextLevel === 'number' ? `${nextLevel} pts` : nextLevel}</span>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{userPoints?.lifetime_earned || 0}</p>
-              <p className="text-sm text-muted-foreground">Total Earned</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">{userPoints?.lifetime_spent || 0}</p>
-              <p className="text-sm text-muted-foreground">Total Spent</p>
-            </div>
-          </div>
-          
-          {/* Test buttons for development */}
-          <div className="mt-4 space-x-2">
-            <Button size="sm" onClick={() => awardTestPoints(10, 'Test: Job application')}>
-              Test +10 pts
-            </Button>
-            <Button size="sm" onClick={() => awardTestPoints(50, 'Test: Profile completion')}>
-              Test +50 pts
-            </Button>
-            <Button size="sm" onClick={() => awardTestPoints(100, 'Test: Referral bonus')}>
-              Test +100 pts
-            </Button>
+            <Progress value={progress} className="h-2" />
           </div>
         </CardContent>
       </Card>
@@ -222,31 +191,27 @@ const RewardsSystem = () => {
         </TabsList>
 
         <TabsContent value="catalog" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {catalogItems.map((item) => (
               <Card key={item.id}>
                 <CardHeader>
                   <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <Badge variant="outline">{item.category}</Badge>
+                  <CardDescription>{item.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">{item.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-primary">{item.points_required} pts</span>
-                    <Button 
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Star className="h-3 w-3" />
+                      {item.points_required} pts
+                    </Badge>
+                    <Button
+                      onClick={() => handleRedemption(item.id)}
+                      disabled={loading || points < item.points_required}
                       size="sm"
-                      disabled={!userPoints || userPoints.current_balance < item.points_required}
-                      onClick={() => handleRedeem(item)}
                     >
-                      Redeem
+                      {points < item.points_required ? 'Insufficient Points' : 'Redeem'}
                     </Button>
                   </div>
-                  {userPoints && (
-                    <Progress 
-                      value={(userPoints.current_balance / item.points_required) * 100} 
-                      className="mt-2"
-                    />
-                  )}
                 </CardContent>
               </Card>
             ))}
@@ -256,57 +221,66 @@ const RewardsSystem = () => {
         <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Recent Transactions
-              </CardTitle>
+              <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {transactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{transaction.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(transaction.created_at).toLocaleDateString()} • {transaction.source}
-                      </p>
+                  <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-full ${
+                        transaction.transaction_type === 'earn' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {transaction.transaction_type === 'earn' ? '+' : '-'}
+                      </div>
+                      <div>
+                        <p className="font-medium">{transaction.description}</p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {formatDate(transaction.created_at)}
+                        </p>
+                      </div>
                     </div>
-                    <span className={`font-bold ${transaction.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {transaction.points > 0 ? '+' : ''}{transaction.points} pts
-                    </span>
+                    <div className={`font-bold ${
+                      transaction.transaction_type === 'earn' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {transaction.transaction_type === 'earn' ? '+' : '-'}{Math.abs(transaction.points)} pts
+                    </div>
                   </div>
                 ))}
+                {transactions.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">No transactions yet</p>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="achievements" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {achievements.map((achievement) => (
               <Card key={achievement.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-yellow-500" />
-                    {achievement.achievement_type.replace('_', ' ').toUpperCase()}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(achievement.achieved_at).toLocaleDateString()}
-                    </span>
-                    <Badge variant="secondary">+{achievement.points_awarded} pts</Badge>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-yellow-100 text-yellow-600">
+                      <Trophy className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{achievement.achievement_type.replace('_', ' ').toUpperCase()}</p>
+                      <p className="text-sm text-muted-foreground">{formatDate(achievement.created_at)}</p>
+                    </div>
+                    <Badge className="flex items-center gap-1">
+                      <CreditCard className="h-3 w-3" />
+                      +{achievement.points_awarded}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
             ))}
-            
             {achievements.length === 0 && (
-              <Card className="col-span-full">
-                <CardContent className="p-6 text-center">
-                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No achievements yet. Keep engaging to earn your first achievement!</p>
+              <Card className="md:col-span-2">
+                <CardContent className="p-6">
+                  <p className="text-center text-muted-foreground">No achievements yet. Keep using the platform to earn achievements!</p>
                 </CardContent>
               </Card>
             )}
