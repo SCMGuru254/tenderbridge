@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Mail, MailOpen, Reply } from "lucide-react";
+import { MailOpen, Reply } from "lucide-react";
 
 interface Message {
   id: string;
@@ -16,6 +17,8 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   onReply: (messageId: string) => void;
+  filter?: string;
+  currentUserId?: any;
 }
 
 export const MessageList = ({ messages, onReply }: MessageListProps) => {
@@ -78,3 +81,5 @@ export const MessageList = ({ messages, onReply }: MessageListProps) => {
     </Card>
   );
 };
+
+export default MessageList;

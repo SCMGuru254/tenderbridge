@@ -3,92 +3,55 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 
-interface DiscussionFormProps {
-  onDiscussionCreated?: () => void;
+export interface DiscussionFormProps {
+  onSuccess?: () => void;
 }
 
-const PREDEFINED_TAGS = [
-  "Career Advice",
-  "Job Search",
-  "Interview Tips",
-  "Supply Chain",
-  "Logistics",
-  "Procurement",
-  "Networking",
-  "Industry News",
-  "Salary Discussion",
-  "Work-Life Balance"
-];
-
-export const DiscussionForm = ({ onDiscussionCreated }: DiscussionFormProps) => {
+export const DiscussionForm = ({ onSuccess }: DiscussionFormProps) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const addTag = (tag: string) => {
-    if (!selectedTags.includes(tag) && selectedTags.length < 5) {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
-  };
+  const { user } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error("You must be logged in to create a discussion");
+      return;
+    }
+
     if (!title.trim() || !content.trim()) {
-      toast.error("Please fill in both title and content");
+      toast.error("Please fill in all fields");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error("You must be logged in to create a discussion");
-        return;
-      }
-
       const { error } = await supabase
         .from('discussions')
         .insert({
           title: title.trim(),
           content: content.trim(),
-          author_id: user.id,
-          tags: selectedTags,
-          created_at: new Date().toISOString()
+          author_id: user.id
         });
 
-      if (error) {
-        console.error('Error creating discussion:', error);
-        toast.error("Failed to create discussion");
-        return;
-      }
+      if (error) throw error;
 
-      // Reset form
+      toast.success("Discussion created successfully!");
       setTitle("");
       setContent("");
-      setSelectedTags([]);
-      
-      toast.success("Discussion created successfully!");
-      
-      if (onDiscussionCreated) {
-        onDiscussionCreated();
-      }
+      onSuccess?.();
     } catch (error) {
-      console.error('Error:', error);
-      toast.error("An unexpected error occurred");
+      console.error('Error creating discussion:', error);
+      toast.error("Failed to create discussion. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -102,52 +65,26 @@ export const DiscussionForm = ({ onDiscussionCreated }: DiscussionFormProps) => 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <Label htmlFor="title">Title</Label>
             <Input
-              placeholder="Discussion title..."
+              id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              maxLength={200}
+              placeholder="What would you like to discuss?"
+              required
             />
           </div>
           
           <div>
+            <Label htmlFor="content">Content</Label>
             <Textarea
-              placeholder="What would you like to discuss?"
+              id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={4}
-              maxLength={2000}
+              placeholder="Share your thoughts..."
+              rows={6}
+              required
             />
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium mb-2">Add Tags (select up to 5)</h4>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {PREDEFINED_TAGS.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant={selectedTags.includes(tag) ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-primary/80"
-                  onClick={() => addTag(tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            
-            {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                    {tag}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => removeTag(tag)}
-                    />
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
 
           <Button 
@@ -162,3 +99,5 @@ export const DiscussionForm = ({ onDiscussionCreated }: DiscussionFormProps) => 
     </Card>
   );
 };
+
+export default DiscussionForm;

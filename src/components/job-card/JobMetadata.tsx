@@ -35,12 +35,13 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
     if ('company' in job && job.company) {
       return typeof job.company === 'string' ? job.company : 'Company not specified';
     }
+    // For PostedJob, we need to get company from company_id relationship
     return 'Company not specified';
   };
 
   const getPostedAt = (job: PostedJob | ScrapedJob): string | null => {
-    if ('posted_at' in job && job.posted_at) return job.posted_at;
-    return job.created_at;
+    if ('created_at' in job && job.created_at) return job.created_at;
+    return null;
   };
 
   const getDeadline = (job: PostedJob | ScrapedJob): string | null => {

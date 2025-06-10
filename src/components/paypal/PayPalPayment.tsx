@@ -12,7 +12,7 @@ export const PayPalPayment = () => {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [description, setDescription] = useState('');
-  const { createPayment, capturePayment, loading } = usePayPal();
+  const { createPayment, loading } = usePayPal();
 
   const handleCreatePayment = async () => {
     if (!amount || parseFloat(amount) <= 0) {
@@ -119,3 +119,5 @@ export const PayPalPayment = () => {
     </Card>
   );
 };
+
+export default PayPalPayment;

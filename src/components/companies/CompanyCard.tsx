@@ -2,65 +2,74 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users, ExternalLink } from "lucide-react";
+import { MapPin, Globe, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 
-interface CompanyCardProps {
-  id: string;
-  name: string;
-  location?: string;
-  description?: string;
-  website?: string;
-  verificationStatus?: 'verified' | 'pending' | 'rejected';
-  onClick?: () => void;
+export interface CompanyCardProps {
+  company: {
+    id: string;
+    name: string;
+    description?: string | null;
+    location?: string | null;
+    website?: string | null;
+    verification_status?: string | null;
+  };
 }
 
-const CompanyCard = ({ 
-  name, 
-  location, 
-  description, 
-  website, 
-  verificationStatus = 'pending',
-  onClick 
-}: CompanyCardProps) => {
+export const CompanyCard = ({ company }: CompanyCardProps) => {
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
+    <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{name}</CardTitle>
-          <Badge 
-            variant={verificationStatus === 'verified' ? 'default' : 'secondary'}
-            className="text-xs"
-          >
-            {verificationStatus}
-          </Badge>
+          <CardTitle className="text-xl">{company.name}</CardTitle>
+          {company.verification_status && (
+            <Badge variant={company.verification_status === "verified" ? "secondary" : "outline"}>
+              {company.verification_status}
+            </Badge>
+          )}
         </div>
-        {location && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4" />
-            {location}
-          </div>
-        )}
       </CardHeader>
-      <CardContent>
-        {description && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-            {description}
+      <CardContent className="space-y-4">
+        {company.description && (
+          <p className="text-muted-foreground line-clamp-3">
+            {company.description}
           </p>
         )}
         
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+          {company.location && (
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span>{company.location}</span>
+            </div>
+          )}
+          
+          {company.website && (
+            <div className="flex items-center gap-1">
+              <Globe className="h-4 w-4" />
+              <a 
+                href={company.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Website
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between items-center pt-4">
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
-            <span>Supply Chain Team</span>
+            <span>View Profile</span>
           </div>
           
-          {website && (
-            <Button variant="ghost" size="sm" asChild>
-              <a href={website} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          )}
+          <Button asChild size="sm">
+            <Link to={`/companies/${company.id}`}>
+              View Details
+            </Link>
+          </Button>
         </div>
       </CardContent>
     </Card>

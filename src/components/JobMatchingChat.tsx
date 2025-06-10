@@ -1,55 +1,78 @@
 
 import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Bot, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MessageCircle, Send, Bot, User } from "lucide-react";
 
-interface Message {
+interface ChatMessage {
   id: string;
   content: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  jobSuggestions?: Array<{
+    title: string;
+    company: string;
+    location: string;
+    match: number;
+  }>;
 }
 
-const JobMatchingChat = () => {
-  const [messages, setMessages] = useState<Message[]>([
+export const JobMatchingChat = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
-      content: "Hello! I'm here to help you find the perfect supply chain job. Tell me about your experience, skills, and what kind of role you're looking for.",
+      content: "Hello! I'm your AI job matching assistant. Tell me about your skills and preferences, and I'll help you find the perfect job opportunities!",
       sender: 'bot',
       timestamp: new Date()
     }
   ]);
-  const [inputValue, setInputValue] = useState("");
+  
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputMessage.trim()) return;
 
-    const userMessage: Message = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: inputMessage,
       sender: 'user',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
+    setInputMessage("");
     setIsLoading(true);
 
     // Simulate AI response
     setTimeout(() => {
-      const botMessage: Message = {
+      const botResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: "Based on your experience, I can help you find relevant supply chain positions. Let me search for opportunities that match your skills.",
+        content: "Based on your skills, I found some great opportunities for you! Here are some jobs that match your profile:",
         sender: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        jobSuggestions: [
+          {
+            title: "Supply Chain Analyst",
+            company: "Tech Corp",
+            location: "Nairobi, Kenya",
+            match: 92
+          },
+          {
+            title: "Logistics Coordinator", 
+            company: "Global Logistics",
+            location: "Mombasa, Kenya",
+            match: 88
+          }
+        ]
       };
-      setMessages(prev => [...prev, botMessage]);
+
+      setMessages(prev => [...prev, botResponse]);
       setIsLoading(false);
-    }, 1000);
+    }, 1500);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -60,57 +83,81 @@ const JobMatchingChat = () => {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto h-[600px] flex flex-col">
+    <Card className="h-[600px] flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          Job Matching Assistant
+          <MessageCircle className="h-5 w-5" />
+          AI Job Matcher
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col">
-        <ScrollArea className="flex-1 mb-4">
+      <CardContent className="flex-1 flex flex-col p-0">
+        <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex items-start gap-3 ${
-                  message.sender === 'user' ? 'flex-row-reverse' : ''
-                }`}
+                className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`p-2 rounded-full ${
-                  message.sender === 'user' ? 'bg-primary' : 'bg-muted'
-                }`}>
-                  {message.sender === 'user' ? (
-                    <User className="h-4 w-4 text-primary-foreground" />
-                  ) : (
-                    <Bot className="h-4 w-4" />
+                {message.sender === 'bot' && (
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-blue-600" />
+                  </div>
+                )}
+                
+                <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-first' : ''}`}>
+                  <div
+                    className={`rounded-lg p-3 ${
+                      message.sender === 'user'
+                        ? 'bg-primary text-primary-foreground ml-auto'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                  </div>
+                  
+                  {message.jobSuggestions && (
+                    <div className="mt-2 space-y-2">
+                      {message.jobSuggestions.map((job, index) => (
+                        <Card key={index} className="p-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-medium text-sm">{job.title}</h4>
+                              <p className="text-xs text-muted-foreground">{job.company}</p>
+                              <p className="text-xs text-muted-foreground">{job.location}</p>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">
+                              {job.match}% match
+                            </Badge>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
                   )}
-                </div>
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    message.sender === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
+                  
+                  <p className="text-xs text-muted-foreground mt-1">
                     {message.timestamp.toLocaleTimeString()}
                   </p>
                 </div>
+
+                {message.sender === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="h-4 w-4 text-gray-600" />
+                  </div>
+                )}
               </div>
             ))}
+            
             {isLoading && (
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-full bg-muted">
-                  <Bot className="h-4 w-4" />
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-blue-600" />
                 </div>
-                <div className="bg-muted p-3 rounded-lg">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-75"></div>
-                    <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-150"></div>
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -118,22 +165,23 @@ const JobMatchingChat = () => {
           </div>
         </ScrollArea>
         
-        <div className="flex gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Tell me about your skills and job preferences..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button 
-            onClick={handleSendMessage}
-            disabled={isLoading || !inputValue.trim()}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="p-4 border-t">
+          <div className="flex gap-2">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Tell me about your skills and job preferences..."
+              disabled={isLoading}
+            />
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={!inputMessage.trim() || isLoading}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
