@@ -235,7 +235,6 @@ function cleanDescription(description: string): string {
   
   return cleaned;
 }
-}
 
 function determineJobType(description: string): string {
   const lowerDesc = description.toLowerCase();
