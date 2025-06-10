@@ -8,7 +8,8 @@ export const useJobDeduplication = (jobs: (PostedJob | ScrapedJob)[]) => {
     const uniqueJobs: (PostedJob | ScrapedJob)[] = [];
 
     for (const job of jobs) {
-      const key = `${job.title.toLowerCase().trim()}-${(job.company || 'unknown').toLowerCase().trim()}`;
+      const company = 'company' in job ? job.company || 'unknown' : 'unknown';
+      const key = `${job.title.toLowerCase().trim()}-${company.toLowerCase().trim()}`;
       
       if (!seen.has(key)) {
         seen.add(key);

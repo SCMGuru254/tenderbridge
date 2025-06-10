@@ -30,6 +30,27 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
     return types[type] || type;
   };
 
+  // Type-safe property access
+  const getCompany = (job: PostedJob | ScrapedJob): string => {
+    if ('company' in job) return job.company || 'Company not specified';
+    return 'Company not specified';
+  };
+
+  const getPostedAt = (job: PostedJob | ScrapedJob): string | null => {
+    if ('posted_at' in job) return job.posted_at;
+    return job.created_at;
+  };
+
+  const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
+    if ('application_deadline' in job) return job.application_deadline || null;
+    return null;
+  };
+
+  const getTags = (job: PostedJob | ScrapedJob): string[] => {
+    if ('skills' in job && job.skills) return job.skills;
+    return [];
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
@@ -40,7 +61,7 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
         
         <div className="flex items-center gap-1">
           <Building className="h-3 w-3" />
-          <span>{job.company || 'Company not specified'}</span>
+          <span>{getCompany(job)}</span>
         </div>
         
         {job.job_type && (
@@ -54,31 +75,31 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        {job.posted_at && (
+        {getPostedAt(job) && (
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>Posted: {formatDate(job.posted_at)}</span>
+            <span>Posted: {formatDate(getPostedAt(job))}</span>
           </div>
         )}
         
-        {job.deadline && (
+        {getDeadline(job) && (
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>Deadline: {formatDate(job.deadline)}</span>
+            <span>Deadline: {formatDate(getDeadline(job))}</span>
           </div>
         )}
       </div>
 
-      {job.tags && job.tags.length > 0 && (
+      {getTags(job).length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {job.tags.slice(0, 3).map((tag, index) => (
+          {getTags(job).slice(0, 3).map((tag: string, index: number) => (
             <Badge key={index} variant="outline" className="text-xs">
               {tag}
             </Badge>
           ))}
-          {job.tags.length > 3 && (
+          {getTags(job).length > 3 && (
             <Badge variant="outline" className="text-xs">
-              +{job.tags.length - 3} more
+              +{getTags(job).length - 3} more
             </Badge>
           )}
         </div>

@@ -1,10 +1,9 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GraduationCap, TrendingUp, Users, Target } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 
 interface CareerAdvice {
   id: string;
@@ -15,7 +14,7 @@ interface CareerAdvice {
 }
 
 const AgentCareerAdvisor = () => {
-  const [adviceList, setAdviceList] = useState<CareerAdvice[]>([
+  const [adviceList] = useState<CareerAdvice[]>([
     {
       id: "1",
       title: "Upskill in Data Analytics",

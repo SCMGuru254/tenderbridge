@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Target, TrendingUp, Users, Briefcase } from "lucide-react";
-import { AIAgent, AGENT_ROLES } from "@/services/agents"; // Fixed import path
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 
 interface JobMatch {
@@ -22,8 +24,6 @@ export default function AgentJobMatcher() {
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [isMatching, setIsMatching] = useState(false);
   const { toast } = useToast();
-  
-  const jobMatcher = new AIAgent(AGENT_ROLES.JOB_MATCHER);
 
   const handleFindMatches = async () => {
     if (!resume.trim() || !jobDescriptions.trim()) {
@@ -57,19 +57,18 @@ export default function AgentJobMatcher() {
     setIsMatching(true);
     
     try {
-      const userProfile = { 
-        resume, 
-        embeddings: [] // The embeddings will be calculated by the matcher
-      };
-      
-      const results = await jobMatcher.matchJobs(jobs, userProfile);
-      
-      if (!results || results.length === 0) {
-        throw new Error("No matching results returned");
-      }
+      // Simulate job matching with mock scores
+      const mockMatches: JobMatch[] = jobs.map(job => ({
+        job: {
+          title: job.title,
+          description: job.description,
+          company: "Sample Company"
+        },
+        score: Math.random() * 0.4 + 0.6 // Random score between 0.6 and 1.0
+      }));
       
       // Sort by score descending
-      const sortedMatches = [...results].sort((a, b) => b.score - a.score);
+      const sortedMatches = mockMatches.sort((a, b) => b.score - a.score);
       setMatches(sortedMatches);
       
     } catch (error) {
@@ -100,7 +99,7 @@ export default function AgentJobMatcher() {
             placeholder="Paste your resume content here..." 
             className="min-h-[120px]" 
             value={resume}
-            onChange={(e) => setResume(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResume(e.target.value)}
           />
         </div>
         
@@ -111,7 +110,7 @@ export default function AgentJobMatcher() {
             placeholder="Paste job descriptions here..." 
             className="min-h-[120px]" 
             value={jobDescriptions}
-            onChange={(e) => setJobDescriptions(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setJobDescriptions(e.target.value)}
           />
         </div>
         

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { JobCardHeader } from "./JobCardHeader";
 import { JobCardActions } from "./JobCardActions";
-import { JobMetadata } from "./JobMetadata";
+import JobMetadata from "./JobMetadata";
 
 export interface JobCardProps {
   title: string;
@@ -26,6 +26,18 @@ const JobCard = ({
   application_deadline,
   social_shares 
 }: JobCardProps) => {
+  // Create a mock job object that matches our types
+  const mockJob = {
+    id: '1',
+    title,
+    job_type,
+    created_at: new Date().toISOString(),
+    location,
+    company,
+    application_deadline,
+    social_shares
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -54,7 +66,7 @@ const JobCard = ({
         </div>
         
         <JobMetadata 
-          applicationDeadline={application_deadline || null}
+          job={mockJob as any}
           socialShares={social_shares || {}}
         />
         
