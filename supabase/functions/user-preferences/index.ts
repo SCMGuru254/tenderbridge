@@ -1,5 +1,6 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../scrape-jobs/utils/cors.ts";
+import { corsHeaders } from "./utils/cors.ts";
 import {
   toggleFavorite,
   setJobReminder,
