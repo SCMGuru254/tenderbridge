@@ -4,12 +4,10 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileView from "@/components/ProfileView";
 import ProfileEdit from "@/components/ProfileEdit";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { PencilIcon } from "lucide-react";
 
 export default function Profile() {
   const { id } = useParams();
@@ -37,10 +35,10 @@ export default function Profile() {
         setUserId(user.id);
         
         // If no ID is provided in URL, use current user's ID
-        const profileId = id || user.id;
+        const currentProfileId = id || user.id;
         
         // Check if viewing own profile
-        if (user.id === profileId) {
+        if (user.id === currentProfileId) {
           setIsCurrentUser(true);
         }
         
@@ -77,8 +75,6 @@ export default function Profile() {
       </Alert>
     );
   }
-  
-  const profileId = id || userId;
   
   return (
     <div className="container mx-auto px-4 py-8">

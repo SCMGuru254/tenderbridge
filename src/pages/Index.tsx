@@ -9,11 +9,11 @@ const Index = () => {
     <div className="min-h-screen">
       <OnboardingAnimation />
       
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">What We Offer</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-foreground">What We Offer</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               SupplyChain_KE provides comprehensive tools and resources for supply chain professionals in Kenya.
             </p>
           </div>
@@ -51,8 +51,8 @@ const Index = () => {
                   <div className={`mx-auto rounded-full p-3 w-fit ${feature.color} mb-4`}>
                     <Icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <h3 className="text-lg font-medium mb-2 text-foreground">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </div>
               );
             })}
@@ -60,17 +60,17 @@ const Index = () => {
         </div>
       </section>
       
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted/50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Start Your Journey Today</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4 text-foreground">Start Your Journey Today</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Join thousands of supply chain professionals in Kenya and take your career to the next level.
             </p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-4">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
               <NavLink to="/jobs">
                 Browse Jobs <ArrowRight className="ml-2 h-4 w-4" />
               </NavLink>
