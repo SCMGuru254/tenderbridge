@@ -99,6 +99,19 @@ class RateLimiter {
     
     return Math.max(0, resetTime - Date.now());
   }
+
+  reset(): void {
+    this.requestLogs.clear();
+  }
 }
 
 export const rateLimiter = new RateLimiter();
+
+// Export additional functions needed by other components
+export const checkRateLimit = (key: string, identifier?: string): Promise<boolean> => {
+  return rateLimiter.checkLimit(key, identifier);
+};
+
+export const resetRateLimiter = (): void => {
+  rateLimiter.reset();
+};

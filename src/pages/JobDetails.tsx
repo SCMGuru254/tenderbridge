@@ -1,113 +1,122 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Building2, 
-  DollarSign, 
-  ExternalLink,
-  Bookmark,
-  Share2,
-  ArrowLeft,
-  AlertTriangle
-} from "lucide-react";
-import { jobService } from "@/services/jobService";
-import { useUser } from "@/hooks/useUser";
+import { ArrowLeft, MapPin, Calendar, Briefcase, ExternalLink, Flag, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@/hooks/useUser";
 import type { PostedJob, ScrapedJob } from "@/types/jobs";
+import { getCompanyName, getLocation, getJobUrl, getJobSource } from "@/utils/jobUtils";
 
-export default function JobDetails() {
+const JobDetails = () => {
   const { id, type } = useParams<{ id: string; type: 'posted' | 'scraped' }>();
   const navigate = useNavigate();
   const { user } = useUser();
   const [job, setJob] = useState<PostedJob | ScrapedJob | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saved, setSaved] = useState(false);
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     if (id && type) {
-      loadJobDetails(id, type);
+      fetchJob();
     }
   }, [id, type]);
 
-  const loadJobDetails = async (jobId: string, jobType: 'posted' | 'scraped') => {
+  const fetchJob = async () => {
     try {
       setLoading(true);
-      const jobData = await jobService.getJobById(jobId, jobType);
-      setJob(jobData);
+      const table = type === 'posted' ? 'jobs' : 'scraped_jobs';
+      
+      const { data, error } = await supabase
+        .from(table)
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setJob(data);
     } catch (error) {
-      console.error('Error loading job details:', error);
-      toast("Failed to load job details");
+      console.error('Error fetching job:', error);
+      toast.error("Failed to load job details");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveJob = async () => {
+  const handleApply = async () => {
     if (!user) {
-      toast("Please sign in to save jobs");
+      toast.error("Please sign in to apply for jobs");
+      navigate("/auth");
       return;
     }
-    
-    setSaved(!saved);
-    toast(saved ? "Job removed from saved" : "Job saved successfully");
+
+    if (!job) return;
+
+    const jobUrl = getJobUrl(job);
+    if (jobUrl) {
+      window.open(jobUrl, '_blank');
+      return;
+    }
+
+    // Handle internal application for posted jobs
+    if (type === 'posted') {
+      try {
+        setApplying(true);
+        
+        const { error } = await supabase
+          .from('job_applications')
+          .insert({
+            job_id: job.id,
+            applicant_id: user.id,
+            status: 'pending'
+          });
+
+        if (error) throw error;
+        
+        toast.success("Application submitted successfully!");
+      } catch (error) {
+        console.error('Error applying:', error);
+        toast.error("Failed to submit application");
+      } finally {
+        setApplying(false);
+      }
+    }
   };
 
   const handleShare = async () => {
-    try {
-      if (navigator.share) {
+    const shareUrl = window.location.href;
+    
+    if (navigator.share) {
+      try {
         await navigator.share({
           title: job?.title,
           text: `Check out this job: ${job?.title}`,
-          url: window.location.href,
+          url: shareUrl,
         });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        toast("Link copied to clipboard");
+      } catch (error) {
+        // User cancelled sharing or error occurred
+        copyToClipboard(shareUrl);
       }
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
-
-  const handleApply = () => {
-    if (!job) return;
-    
-    const applyUrl = (job as any).apply_url || (job as any).source_url || (job as any).job_url;
-    if (applyUrl) {
-      window.open(applyUrl, '_blank');
     } else {
-      toast("No application link available");
+      copyToClipboard(shareUrl);
     }
   };
 
-  const handleReport = async (reason: string) => {
-    if (!user || !job) return;
-    
-    try {
-      await jobService.reportJob(job.id, reason, user.id);
-      setReportDialogOpen(false);
-      toast("Job reported successfully");
-    } catch (error) {
-      toast("Failed to report job");
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success("Link copied to clipboard!");
+    });
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-12 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-          </div>
+      <div className="container mx-auto px-4 py-12 mt-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -115,226 +124,175 @@ export default function JobDetails() {
 
   if (!job) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">Job Not Found</h1>
-          <p className="text-muted-foreground mb-8">
-            The job you're looking for doesn't exist or has been removed.
-          </p>
-          <Button onClick={() => navigate('/jobs')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Jobs
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 py-12 mt-8 text-center">
+        <h2 className="text-2xl font-bold mb-4">Job Not Found</h2>
+        <p className="mb-8">The job you're looking for doesn't exist or has been removed.</p>
+        <Button onClick={() => navigate("/jobs")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Jobs
+        </Button>
       </div>
     );
   }
 
-  const isPostedJob = (job: PostedJob | ScrapedJob): job is PostedJob => {
-    return 'requirements' in job;
-  };
-
-  const formatSalary = (salary: string | number | null | undefined) => {
-    if (!salary) return "Salary not specified";
-    return typeof salary === 'string' ? salary : `$${salary.toLocaleString()}`;
-  };
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "Not specified";
-    return new Date(dateString).toLocaleDateString();
-  };
+  const jobCategory = getJobSource(job);
+  const company = getCompanyName(job);
+  const location = getLocation(job);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/jobs')}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Jobs
-          </Button>
-          
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{job.title}</h1>
-              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-                {(job as any).company && (
-                  <div className="flex items-center gap-1">
-                    <Building2 className="h-4 w-4" />
-                    <span>{typeof (job as any).company === 'string' ? (job as any).company : (job as any).company?.name || 'Unknown Company'}</span>
+    <div className="container mx-auto px-4 py-12 mt-8">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate("/jobs")}
+        className="mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Jobs
+      </Button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl mb-2">{job.title}</CardTitle>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {company && (
+                      <Badge variant="secondary">
+                        <Briefcase className="mr-1 h-3 w-3" />
+                        {company}
+                      </Badge>
+                    )}
+                    {location && (
+                      <Badge variant="outline">
+                        <MapPin className="mr-1 h-3 w-3" />
+                        {location}
+                      </Badge>
+                    )}
+                    <Badge variant="outline">{jobCategory}</Badge>
                   </div>
-                )}
-                {job.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{job.location}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>Posted {formatDate((job as any).posted_at || job.created_at)}</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleShare}>
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Flag className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleSaveJob}>
-                <Bookmark className={`h-4 w-4 mr-2 ${saved ? 'fill-current' : ''}`} />
-                {saved ? 'Saved' : 'Save'}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleShare}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setReportDialogOpen(true)}>
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Report
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Job Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Description</CardTitle>
-              </CardHeader>
-              <CardContent>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Job Description</h3>
                 <div className="prose max-w-none">
                   <p className="whitespace-pre-wrap">{job.description}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Requirements - Only for posted jobs */}
-            {isPostedJob(job) && (job as PostedJob).requirements && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Requirements</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose max-w-none">
-                    <p className="whitespace-pre-wrap">{(job as PostedJob).requirements}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              {type === 'posted' && (job as PostedJob).requirements && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Requirements</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    {(job as PostedJob).requirements?.map((req, index) => (
+                      <li key={index}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {/* Responsibilities - Only for posted jobs */}
-            {isPostedJob(job) && (job as PostedJob).responsibilities && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Responsibilities</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose max-w-none">
-                    <p className="whitespace-pre-wrap">{(job as PostedJob).responsibilities}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              {type === 'posted' && (job as PostedJob).responsibilities && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Responsibilities</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    {(job as PostedJob).responsibilities?.map((resp, index) => (
+                      <li key={index}>{resp}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {/* Skills - Only for posted jobs */}
-            {isPostedJob(job) && (job as any).skills && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Required Skills</CardTitle>
-                </CardHeader>
-                <CardContent>
+              {type === 'scraped' && (job as ScrapedJob).skills && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Required Skills</h3>
                   <div className="flex flex-wrap gap-2">
-                    {(job as any).skills.split(',').map((skill: string, index: number) => (
-                      <Badge key={index} variant="secondary">
-                        {skill.trim()}
-                      </Badge>
+                    {(job as ScrapedJob).skills?.map((skill, index) => (
+                      <Badge key={index} variant="outline">{skill}</Badge>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Apply Button */}
-            <Card>
-              <CardContent className="p-6">
-                <Button 
-                  onClick={handleApply}
-                  className="w-full mb-4"
-                  size="lg"
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Apply Now
-                </Button>
-                
-                <Separator className="my-4" />
-                
-                {/* Job Details */}
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Job Details</h4>
-                    <div className="space-y-2 text-sm">
-                      {job.job_type && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Type:</span>
-                          <Badge variant="outline">{job.job_type}</Badge>
-                        </div>
-                      )}
-                      
-                      {(job as any).salary && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Salary:</span>
-                          <span className="font-medium">{formatSalary((job as any).salary)}</span>
-                        </div>
-                      )}
-                      
-                      {(job as any).deadline && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Deadline:</span>
-                          <span>{formatDate((job as any).deadline)}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Posted:</span>
-                        <span>{formatDate((job as any).posted_at || job.created_at)}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Tags/Categories */}
-            {((job as any).tags || job.category) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tags</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {job.category && (
-                      <Badge variant="secondary">{job.category}</Badge>
-                    )}
-                    {(job as any).tags && (job as any).tags.length > 0 && (
-                      (job as any).tags.map((tag: string, index: number) => (
-                        <Badge key={index} variant="outline">{tag}</Badge>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Job Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">
+                  Posted: {new Date(job.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              
+              {job.job_type && (
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{job.job_type}</span>
+                </div>
+              )}
+
+              {'salary_range' in job && job.salary_range && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Salary: {job.salary_range}</span>
+                </div>
+              )}
+
+              {'application_deadline' in job && job.application_deadline && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    Deadline: {new Date(job.application_deadline).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <Button 
+                className="w-full mb-3" 
+                onClick={handleApply}
+                disabled={applying}
+              >
+                {getJobUrl(job) ? (
+                  <>
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Apply on {jobCategory}
+                  </>
+                ) : (
+                  applying ? "Applying..." : "Apply Now"
+                )}
+              </Button>
+              
+              <p className="text-xs text-muted-foreground text-center">
+                {getJobUrl(job) 
+                  ? "You'll be redirected to the external application page"
+                  : "Your application will be sent directly to the employer"
+                }
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default JobDetails;

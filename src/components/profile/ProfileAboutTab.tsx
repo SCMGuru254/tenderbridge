@@ -1,42 +1,42 @@
 
-import React from "react";
-import { Mail, User } from "lucide-react";
-import { Profile } from "@/types/profiles";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProfileAboutTabProps {
-  profile: Profile | null;
+  profile: any;
 }
 
-const ProfileAboutTab = ({ profile }: ProfileAboutTabProps) => {
-  if (!profile) return null;
-  
+export const ProfileAboutTab = ({ profile }: ProfileAboutTabProps) => {
   return (
-    <div className="space-y-4">
-      {profile?.bio && (
-        <div>
-          <h3 className="font-medium mb-2">Bio</h3>
-          <p className="text-sm text-gray-600">{profile.bio}</p>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {profile?.email && (
-          <div>
-            <h3 className="font-medium mb-1">Email</h3>
-            <p className="text-sm text-gray-600 flex items-center gap-2">
-              <Mail className="h-4 w-4" /> {profile.email}
-            </p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>About</CardTitle>
+          <CardDescription>Professional information and background</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {profile?.bio ? (
+              <p>{profile.bio}</p>
+            ) : (
+              <p className="text-muted-foreground">No bio available</p>
+            )}
+            
+            {profile?.company && (
+              <div>
+                <h4 className="font-medium">Company</h4>
+                <p className="text-muted-foreground">{profile.company}</p>
+              </div>
+            )}
+            
+            {profile?.position && (
+              <div>
+                <h4 className="font-medium">Position</h4>
+                <p className="text-muted-foreground">{profile.position}</p>
+              </div>
+            )}
           </div>
-        )}
-        {profile?.role && (
-          <div>
-            <h3 className="font-medium mb-1">Role</h3>
-            <p className="text-sm text-gray-600 capitalize">{profile.role.replace('_', ' ')}</p>
-          </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-export default ProfileAboutTab;

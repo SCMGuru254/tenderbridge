@@ -40,3 +40,78 @@ export const isRecentJob = (dateString: string | null | undefined, daysThreshold
   
   return diffDays <= daysThreshold;
 };
+
+// Additional utility functions needed by components
+export const getCompanyName = (job: PostedJob | ScrapedJob): string | null => {
+  if ('company' in job && job.company) {
+    return typeof job.company === 'string' ? job.company : job.company.toString();
+  }
+  return null;
+};
+
+export const getLocation = (job: PostedJob | ScrapedJob): string | null => {
+  return job.location || null;
+};
+
+export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
+  if ('job_url' in job) {
+    return job.job_url || null;
+  }
+  return null;
+};
+
+export const getJobSource = (job: PostedJob | ScrapedJob): string => {
+  if ('source' in job && job.source) {
+    return job.source;
+  }
+  return 'Posted Job';
+};
+
+export const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
+  if ('application_deadline' in job) {
+    return job.application_deadline || null;
+  }
+  return null;
+};
+
+export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
+  const deadline = getDeadline(job);
+  if (!deadline) return false;
+  
+  const deadlineDate = new Date(deadline);
+  const now = new Date();
+  return deadlineDate < now;
+};
+
+export interface JobFilterParams {
+  searchTerm?: string;
+  category?: string | null;
+}
+
+export const filterJobs = (
+  jobs: (PostedJob | ScrapedJob)[] | undefined,
+  filters: JobFilterParams
+): (PostedJob | ScrapedJob)[] => {
+  if (!jobs) return [];
+  
+  let filtered = [...jobs];
+  
+  if (filters.searchTerm) {
+    const searchLower = filters.searchTerm.toLowerCase();
+    filtered = filtered.filter(job => 
+      job.title.toLowerCase().includes(searchLower) ||
+      job.description?.toLowerCase().includes(searchLower) ||
+      job.location?.toLowerCase().includes(searchLower) ||
+      getCompanyName(job)?.toLowerCase().includes(searchLower)
+    );
+  }
+  
+  if (filters.category) {
+    filtered = filtered.filter(job => {
+      const jobCategory = getJobSource(job);
+      return jobCategory.toLowerCase().includes(filters.category!.toLowerCase());
+    });
+  }
+  
+  return filtered;
+};
