@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { toast } from "sonner";
 
 interface Payout {
@@ -68,16 +69,9 @@ export const PayPalPayouts = () => {
       setPayouts([payout, ...payouts]);
       setNewPayout({ recipient: "", amount: "", description: "" });
       
-      toast({
-        title: "Payout created",
-        description: "Your payout has been submitted for processing.",
-      });
+      toast("Payout created successfully!");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create payout. Please try again.",
-      });
+      toast("Failed to create payout. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -137,12 +131,7 @@ export const PayPalPayouts = () => {
             disabled={isCreating || !newPayout.recipient || !newPayout.amount}
             className="w-full md:w-auto"
           >
-            {isCreating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Payout...
-              </>
-            ) : (
+            {isCreating ? "Creating Payout..." : (
               <>
                 <Send className="mr-2 h-4 w-4" />
                 Create Payout

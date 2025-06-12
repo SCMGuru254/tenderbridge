@@ -6,13 +6,36 @@ import { Button } from "@/components/ui/button";
 import { MessageList } from "@/components/messaging/MessageList";
 import { ComposeMessage } from "@/components/messaging/ComposeMessage";
 import { useNavigate } from "react-router-dom";
-import { Mail, Inbox, Send, PenSquare } from "lucide-react";
+import { Inbox, Send, PenSquare } from "lucide-react";
 
 const MessagesPage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("inbox");
   const [composing, setComposing] = useState(false);
+
+  // Mock messages data - in a real app, this would come from your backend
+  const mockMessages = [
+    {
+      id: "1",
+      sender: "agent" as const,
+      content: "Welcome to our platform! How can we help you today?",
+      timestamp: new Date().toISOString(),
+      isRead: false
+    },
+    {
+      id: "2", 
+      sender: "user" as const,
+      content: "I'm looking for job opportunities in supply chain management.",
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      isRead: true
+    }
+  ];
+
+  const handleReply = (messageId: string) => {
+    console.log('Reply to message:', messageId);
+    setComposing(true);
+  };
 
   if (!user) {
     return (
@@ -61,17 +84,29 @@ const MessagesPage = () => {
             <Send className="h-4 w-4 mr-2" /> Sent
           </TabsTrigger>
           <TabsTrigger value="all">
-            <Mail className="h-4 w-4 mr-2" /> All Messages
+            <Send className="h-4 w-4 mr-2" /> All Messages
           </TabsTrigger>
         </TabsList>
         <TabsContent value="inbox">
-          <MessageList filter="received" currentUserId={user.id} />
+          <MessageList 
+            messages={mockMessages} 
+            onReply={handleReply}
+            currentUserId={user.id}
+          />
         </TabsContent>
         <TabsContent value="sent">
-          <MessageList filter="sent" currentUserId={user.id} />
+          <MessageList 
+            messages={mockMessages.filter(msg => msg.sender === 'user')} 
+            onReply={handleReply}
+            currentUserId={user.id}
+          />
         </TabsContent>
         <TabsContent value="all">
-          <MessageList filter="all" currentUserId={user.id} />
+          <MessageList 
+            messages={mockMessages} 
+            onReply={handleReply}
+            currentUserId={user.id}
+          />
         </TabsContent>
       </Tabs>
     </div>

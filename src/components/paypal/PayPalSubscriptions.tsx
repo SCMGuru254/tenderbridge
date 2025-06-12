@@ -1,9 +1,7 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { usePayPal } from "@/hooks/usePayPal";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface Subscription {
   id: string;
@@ -17,7 +15,7 @@ interface Subscription {
 }
 
 export const PayPalSubscriptions = () => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([
+  const [subscriptions] = useState<Subscription[]>([
     {
       id: "1",
       planName: "Pro Plan",
@@ -40,8 +38,6 @@ export const PayPalSubscriptions = () => {
     }
   ]);
 
-  const { loading } = usePayPal();
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-green-600 bg-green-100';
@@ -52,7 +48,6 @@ export const PayPalSubscriptions = () => {
   };
 
   return (
-    
     <div className="space-y-6">
       <Card>
         <CardHeader>

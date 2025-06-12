@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { newsService, SupplyChainNews } from '@/services/newsService';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function SupplyChainInsights() {
   const [news, setNews] = useState<SupplyChainNews[]>([]);
@@ -166,7 +166,7 @@ export default function SupplyChainInsights() {
                           </a>
                         </CardTitle>
                         <CardDescription>
-                          {formatDistanceToNow(new Date(item.published_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
                         </CardDescription>
                       </div>
                       <Badge variant="secondary">{item.source_name}</Badge>

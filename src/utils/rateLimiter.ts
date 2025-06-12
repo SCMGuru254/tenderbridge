@@ -1,182 +1,104 @@
-// Mobile-friendly rate limiter using local storage
-class MobileRateLimiter {
-  private prefix: string;
-  private maxRequests: number;
-  private window: number; // in milliseconds
-  private isStorageAvailable: boolean;
 
-  constructor(options: { prefix: string; limit: number; window: number }) {
-    this.prefix = options.prefix;
-    this.maxRequests = options.limit;
-    this.window = options.window;
-    // Check if storage is available
-    this.isStorageAvailable = this.checkStorageAvailability();
+interface RateLimitConfig {
+  windowSize: number; // in milliseconds
+  maxRequests: number;
+}
+
+interface RequestLog {
+  timestamp: number;
+  count: number;
+}
+
+class RateLimiter {
+  private limits: Map<string, RateLimitConfig> = new Map();
+  private requestLogs: Map<string, RequestLog[]> = new Map();
+
+  constructor() {
+    // Default rate limits
+    this.limits.set('api_calls', { windowSize: 60000, maxRequests: 100 }); // 100 per minute
+    this.limits.set('job_search', { windowSize: 10000, maxRequests: 10 }); // 10 per 10 seconds
+    this.limits.set('news_fetch', { windowSize: 300000, maxRequests: 5 }); // 5 per 5 minutes
   }
 
-  private checkStorageAvailability(): boolean {
-    try {
-      const testKey = '__storage_test__';
-      localStorage.setItem(testKey, testKey);
-      localStorage.removeItem(testKey);
-      return true;
-    } catch (e) {
-      console.warn('localStorage not available, using in-memory rate limiting');
-      return false;
-    }
+  setLimit(key: string, config: RateLimitConfig): void {
+    this.limits.set(key, config);
   }
 
-  private getStorageKey(identifier: string): string {
-    return `${this.prefix}:${identifier}`;
-  }
+  async checkLimit(key: string, identifier: string = 'default'): Promise<boolean> {
+    const config = this.limits.get(key);
+    if (!config) return true; // No limit configured
 
-  // In-memory fallback storage
-  private static memoryStore: Record<string, string> = {};
-
-  private getStoredItem(key: string): string | null {
-    if (this.isStorageAvailable) {
-      return localStorage.getItem(key);
-    }
-    return MobileRateLimiter.memoryStore[key] || null;
-  }
-
-  private setStoredItem(key: string, value: string): void {
-    if (this.isStorageAvailable) {
-      localStorage.setItem(key, value);
-    } else {
-      MobileRateLimiter.memoryStore[key] = value;
-    }
-  }
-
-  private removeStoredItem(key: string): void {
-    if (this.isStorageAvailable) {
-      localStorage.removeItem(key);
-    } else {
-      delete MobileRateLimiter.memoryStore[key];
-    }
-  }
-
-  async limit(identifier: string) {
-    const key = this.getStorageKey(identifier);
+    const logKey = `${key}_${identifier}`;
     const now = Date.now();
     
-    // Get existing record from storage
-    const stored = this.getStoredItem(key);
-    let record = stored ? JSON.parse(stored) : { count: 0, resetAt: now + this.window };
+    if (!this.requestLogs.has(logKey)) {
+      this.requestLogs.set(logKey, []);
+    }
+
+    const logs = this.requestLogs.get(logKey)!;
     
-    // Reset if window has passed
-    if (now > record.resetAt) {
-      record = { count: 0, resetAt: now + this.window };
+    // Remove expired logs
+    const validLogs = logs.filter(log => now - log.timestamp < config.windowSize);
+    
+    // Count total requests in the window
+    const totalRequests = validLogs.reduce((sum, log) => sum + log.count, 0);
+    
+    if (totalRequests >= config.maxRequests) {
+      return false; // Rate limit exceeded
     }
 
-    // Increment count
-    record.count++;
-    this.setStoredItem(key, JSON.stringify(record));
+    // Add current request
+    validLogs.push({ timestamp: now, count: 1 });
+    this.requestLogs.set(logKey, validLogs);
+    
+    return true;
+  }
 
-    return {
-      success: record.count <= this.maxRequests,
-      limit: this.maxRequests,
-      remaining: Math.max(0, this.maxRequests - record.count),
-      reset: record.resetAt
-    };
+  getStoredItem(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.warn('Error accessing localStorage:', error);
+      return null;
+    }
+  }
+
+  setStoredItem(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.warn('Error setting localStorage:', error);
+    }
+  }
+
+  getRemainingRequests(key: string, identifier: string = 'default'): number {
+    const config = this.limits.get(key);
+    if (!config) return Infinity;
+
+    const logKey = `${key}_${identifier}`;
+    const now = Date.now();
+    
+    const logs = this.requestLogs.get(logKey) || [];
+    const validLogs = logs.filter(log => now - log.timestamp < config.windowSize);
+    const totalRequests = validLogs.reduce((sum, log) => sum + log.count, 0);
+    
+    return Math.max(0, config.maxRequests - totalRequests);
+  }
+
+  getTimeUntilReset(key: string, identifier: string = 'default'): number {
+    const config = this.limits.get(key);
+    if (!config) return 0;
+
+    const logKey = `${key}_${identifier}`;
+    const logs = this.requestLogs.get(logKey) || [];
+    
+    if (logs.length === 0) return 0;
+    
+    const oldestLog = logs[0];
+    const resetTime = oldestLog.timestamp + config.windowSize;
+    
+    return Math.max(0, resetTime - Date.now());
   }
 }
 
-// Simplified rate limiters for mobile
-export const rateLimiters = {
-  api: {
-    async getInstance() {
-      return new MobileRateLimiter({
-        prefix: "api",
-        limit: 100,
-        window: 60 * 60 * 1000 // 1 hour
-      });
-    }
-  },
-  
-  socialMedia: {
-    async getInstance() {
-      return new MobileRateLimiter({
-        prefix: "social",
-        limit: 30,
-        window: 60 * 60 * 1000 // 1 hour
-      });
-    }
-  },
-
-  // Simplified auth rate limiting
-  auth: {
-    MAX_ATTEMPTS: 5,
-    TIME_WINDOW: 5 * 60 * 1000, // 5 minutes
-    BLOCK_DURATION: 15 * 60 * 1000, // 15 minutes
-  }
-};
-
-// Mobile-friendly auth rate limiting
-export function checkRateLimit(identifier: string): { 
-  blocked: boolean; 
-  attemptsLeft: number;
-  blockExpires?: Date;
-} {
-  const key = `auth:${identifier}`;
-  const now = Date.now();
-  
-  const stored = localStorage.getItem(key);
-  let record = stored ? JSON.parse(stored) : { 
-    count: 0, 
-    firstAttempt: now,
-    blocked: false 
-  };
-
-  // Check if blocked
-  if (record.blocked) {
-    if (record.blockExpires && now > record.blockExpires) {
-      record = { count: 1, firstAttempt: now, blocked: false };
-      localStorage.setItem(key, JSON.stringify(record));
-      return { blocked: false, attemptsLeft: rateLimiters.auth.MAX_ATTEMPTS - 1 };
-    }
-    return { 
-      blocked: true, 
-      attemptsLeft: 0,
-      blockExpires: record.blockExpires ? new Date(record.blockExpires) : undefined
-    };
-  }
-
-  // Check time window
-  if (now - record.firstAttempt > rateLimiters.auth.TIME_WINDOW) {
-    record = { count: 1, firstAttempt: now, blocked: false };
-  } else {
-    record.count++;
-    if (record.count >= rateLimiters.auth.MAX_ATTEMPTS) {
-      record.blocked = true;
-      record.blockExpires = now + rateLimiters.auth.BLOCK_DURATION;
-    }
-  }
-
-  localStorage.setItem(key, JSON.stringify(record));
-  
-  return {
-    blocked: record.blocked,
-    attemptsLeft: Math.max(0, rateLimiters.auth.MAX_ATTEMPTS - record.count),
-    blockExpires: record.blockExpires ? new Date(record.blockExpires) : undefined
-  };
-}
-
-export function resetRateLimiter(identifier: string): void {
-  localStorage.removeItem(`auth:${identifier}`);
-}
-
-export function cleanupExpiredRateLimits(): void {
-  const now = Date.now();
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key?.startsWith('auth:') || key?.startsWith('api:') || key?.startsWith('social:')) {
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        const record = JSON.parse(stored);
-        if (record.blockExpires && now > record.blockExpires) {
-          localStorage.removeItem(key);
-        }
-      }
-    }
-  }
-}
+export const rateLimiter = new RateLimiter();

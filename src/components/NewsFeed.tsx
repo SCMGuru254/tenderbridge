@@ -30,7 +30,7 @@ export const NewsFeed = () => {
   // Convert SupplyChainNews to NewsItem format for analysis
   const convertToNewsItem = (item: SupplyChainNews) => ({
     ...item,
-    published_at: item.published_at || new Date().toISOString()
+    published_at: item.published_date || new Date().toISOString()
   });
 
   const analyzeNews = async (item: SupplyChainNews) => {
@@ -115,7 +115,7 @@ export const NewsFeed = () => {
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">
-                    {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'Recent'}
+                    {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Recent'}
                   </span>
                   {item.source_url && (
                     <Button variant="outline" size="sm" asChild>
