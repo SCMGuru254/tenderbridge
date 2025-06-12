@@ -1,6 +1,4 @@
-
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 
 const onboardingSteps = [
@@ -70,26 +68,16 @@ export const OnboardingAnimation = () => {
 
   return (
     <div className="relative h-48 overflow-hidden rounded-md bg-muted p-6">
-      <motion.div
+      <div
         className="absolute inset-0 flex items-center justify-center"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
       >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={currentOnboardingStep.id}
-            className="text-center"
-            variants={stepVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <h3 className="text-lg font-semibold">{currentOnboardingStep.title}</h3>
-            <p className="text-sm text-muted-foreground">{currentOnboardingStep.description}</p>
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
+        <div
+          className="text-center"
+        >
+          <h3 className="text-lg font-semibold">{currentOnboardingStep.title}</h3>
+          <p className="text-sm text-muted-foreground">{currentOnboardingStep.description}</p>
+        </div>
+      </div>
       <div className="absolute bottom-2 right-2">
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>

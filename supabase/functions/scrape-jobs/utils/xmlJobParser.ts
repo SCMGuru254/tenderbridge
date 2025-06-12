@@ -1,4 +1,3 @@
-
 import { Job } from "../types/job.ts";
 import { hasSupplyChainKeywords } from "./jobFilters.ts";
 import { parseXmlFeed } from "./xmlParser.ts";
@@ -143,6 +142,26 @@ function parseCustomItems(items: any[]): Job[] {
       if (!hasSupplyChainKeywords(title) && !hasSupplyChainKeywords(description)) {
         continue;
       }
+
+      // Extract skills from description if not provided
+      const skills = item.skills || extractSkillsFromDescription(description);
+      
+      // Determine if job is remote
+      const isRemote = item.is_remote || 
+        (description.toLowerCase().includes('remote') || 
+         description.toLowerCase().includes('work from home'));
+      
+      // Extract experience level if not provided
+      const experienceLevel = item.experience_level || 
+        extractExperienceLevel(description);
+      
+      // Extract salary if not provided
+      const salary = item.salary || 
+        extractSalaryFromDescription(description);
+      
+      // Extract employment type if not provided
+      const employmentType = item.employment_type || 
+        determineEmploymentType(description);
       
       scrapedJobs.push({
         title,
@@ -154,7 +173,16 @@ function parseCustomItems(items: any[]): Job[] {
         job_url: item.link || "",
         application_url: item.link || "",
         deadline: item.deadline || calculateDeadline(item.pubDate || ""),
-        tags: extractSupplyChainKeywords(title + " " + description)
+        tags: extractSupplyChainKeywords(title + " " + description),
+        salary: salary,
+        experience_level: experienceLevel,
+        skills: skills,
+        employment_type: employmentType,
+        is_remote: isRemote,
+        company_website: item.company_website || extractCompanyWebsite(description),
+        company_description: item.company_description || extractCompanyDescription(description),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
     } catch (error) {
       console.error("Error parsing custom item:", error);
@@ -283,4 +311,102 @@ function extractSupplyChainKeywords(text: string): string[] {
   }
   
   return result;
+}
+
+// Helper functions for extracting additional information
+function extractSkillsFromDescription(description: string): string[] {
+  const skills: string[] = [];
+  const skillPatterns = [
+    /required skills:?\s*([^.]*)/i,
+    /skills required:?\s*([^.]*)/i,
+    /qualifications:?\s*([^.]*)/i,
+    /requirements:?\s*([^.]*)/i
+  ];
+  
+  for (const pattern of skillPatterns) {
+    const match = description.match(pattern);
+    if (match && match[1]) {
+      const skillList = match[1].split(/[,;]/).map(s => s.trim());
+      skills.push(...skillList);
+    }
+  }
+  
+  return [...new Set(skills)]; // Remove duplicates
+}
+
+function extractExperienceLevel(description: string): string | null {
+  const experiencePatterns = [
+    /(\d+)\+?\s*years?\s+experience/i,
+    /experience:?\s*(\d+)\+?\s*years?/i,
+    /(\d+)\+?\s*years?\s+in\s+the\s+field/i
+  ];
+  
+  for (const pattern of experiencePatterns) {
+    const match = description.match(pattern);
+    if (match && match[1]) {
+      return `${match[1]} years`;
+    }
+  }
+  
+  return null;
+}
+
+function extractSalaryFromDescription(description: string): string | null {
+  const salaryPatterns = [
+    /salary:?\s*([^.]*)/i,
+    /compensation:?\s*([^.]*)/i,
+    /pay:?\s*([^.]*)/i,
+    /KSH\s*(\d+(?:,\d+)*(?:\.\d+)?)/i,
+    /KES\s*(\d+(?:,\d+)*(?:\.\d+)?)/i
+  ];
+  
+  for (const pattern of salaryPatterns) {
+    const match = description.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+  }
+  
+  return null;
+}
+
+function determineEmploymentType(description: string): string | null {
+  const types = {
+    full_time: /full\s*-?\s*time/i,
+    part_time: /part\s*-?\s*time/i,
+    contract: /contract|temporary|fixed\s*term/i,
+    internship: /intern|internship|trainee/i,
+    freelance: /freelance|consultant|self\s*-?\s*employed/i
+  };
+  
+  for (const [type, pattern] of Object.entries(types)) {
+    if (pattern.test(description)) {
+      return type;
+    }
+  }
+  
+  return null;
+}
+
+function extractCompanyWebsite(description: string): string | null {
+  const websitePattern = /(?:visit|website|web):?\s*(https?:\/\/[^\s]+)/i;
+  const match = description.match(websitePattern);
+  return match ? match[1] : null;
+}
+
+function extractCompanyDescription(description: string): string | null {
+  const companyPatterns = [
+    /about\s+the\s+company:?\s*([^.]*)/i,
+    /company\s+description:?\s*([^.]*)/i,
+    /about\s+us:?\s*([^.]*)/i
+  ];
+  
+  for (const pattern of companyPatterns) {
+    const match = description.match(pattern);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+  }
+  
+  return null;
 }

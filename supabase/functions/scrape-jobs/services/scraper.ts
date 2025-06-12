@@ -1,4 +1,3 @@
-
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
 import { JobSite } from "../types/jobSite.ts";
 import { Job } from "../types/job.ts";
@@ -179,7 +178,6 @@ export async function scrapeJobSites(jobSites: JobSite[], options: any = {}) {
 }
 
 async function scrapeJobsFromHtml(html: string, site: JobSite): Promise<Job[]> {
-  // Implementation for HTML scraping
   const jobs: Job[] = [];
   
   try {
@@ -195,6 +193,16 @@ async function scrapeJobsFromHtml(html: string, site: JobSite): Promise<Job[]> {
         const company = element.querySelector(site.selectors?.company || '.company, .employer')?.textContent?.trim();
         const location = element.querySelector(site.selectors?.location || '.location, .job-location')?.textContent?.trim();
         const description = element.querySelector(site.selectors?.description || '.description, .job-description')?.textContent?.trim();
+        const salary = element.querySelector(site.selectors?.salary || '.salary, .compensation, .pay')?.textContent?.trim();
+        const experience = element.querySelector(site.selectors?.experience || '.experience, .requirements, .qualifications')?.textContent?.trim();
+        const skills = Array.from(element.querySelectorAll(site.selectors?.skills || '.skills li, .requirements li, .qualifications li'))
+          .map(el => el.textContent?.trim())
+          .filter(Boolean);
+        const employmentType = element.querySelector(site.selectors?.employmentType || '.employment-type, .job-type')?.textContent?.trim();
+        const deadline = element.querySelector(site.selectors?.deadline || '.deadline, .closing-date')?.textContent?.trim();
+        const isRemote = element.querySelector(site.selectors?.remote || '.remote, .work-location')?.textContent?.toLowerCase().includes('remote');
+        const companyWebsite = element.querySelector(site.selectors?.companyWebsite || '.company-website, .website')?.getAttribute('href');
+        const companyDescription = element.querySelector(site.selectors?.companyDescription || '.company-description, .about-company')?.textContent?.trim();
         
         if (title && hasSupplyChainKeywords(title + ' ' + (description || ''))) {
           const job: Job = {
@@ -204,7 +212,17 @@ async function scrapeJobsFromHtml(html: string, site: JobSite): Promise<Job[]> {
             description: description || '',
             source: site.name,
             job_url: site.url,
-            tags: extractKeywordsFromText(title + ' ' + (description || ''))
+            tags: extractKeywordsFromText(title + ' ' + (description || '')),
+            salary: salary || null,
+            experience_level: experience || null,
+            skills: skills.length > 0 ? skills : null,
+            employment_type: employmentType || null,
+            deadline: deadline || null,
+            is_remote: isRemote || false,
+            company_website: companyWebsite || null,
+            company_description: companyDescription || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           };
           
           jobs.push(job);

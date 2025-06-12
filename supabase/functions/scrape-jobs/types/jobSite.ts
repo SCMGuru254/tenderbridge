@@ -1,4 +1,3 @@
-
 export interface JobSite {
   url: string;
   source: string;
@@ -10,9 +9,23 @@ export interface JobSite {
     jobLink: string;
     jobType: string | null;
     deadline: string | null;
+    salary: string | null;
+    experience: string | null;
+    skills: string | null;
+    employmentType: string | null;
+    remote: string | null;
+    companyWebsite: string | null;
+    companyDescription: string | null;
+    description: string | null;
   };
   keywords?: string[];
   isXmlFeed?: boolean;
   useDirectXmlParser?: boolean; // Flag to use our custom XML parser
   feedType?: 'rss' | 'job' | 'custom'; // Different XML feed formats
+  retryAttempts?: number;
+  timeout?: number;
+  rateLimit?: {
+    requestsPerMinute: number;
+    delayBetweenRequests: number;
+  };
 }

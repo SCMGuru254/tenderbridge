@@ -1,9 +1,10 @@
-
 import { useState } from "react";
-import { motion, PanInfo } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, MapPin, Heart, ExternalLink } from "lucide-react";
+import { analytics } from "@/utils/analytics";
+import { performanceMonitor } from "@/utils/performance";
+import { errorHandler } from "@/utils/errorHandling";
 
 interface SwipeableJobCardProps {
   job: {
@@ -22,52 +23,52 @@ interface SwipeableJobCardProps {
 }
 
 export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps) {
-  const [x, setX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
 
-  const swipeThreshold = 100;
-
-  const handlePan = (_: any, info: PanInfo) => {
-    setX(info.offset.x);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    performanceMonitor.startMeasure('job-card-swipe');
     setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    analytics.trackUserAction('job-card-swipe-start', job.id);
   };
 
-  const handlePanEnd = () => {
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentTouch = e.touches[0].clientX;
+    setCurrentX(currentTouch - startX);
+  };
+
+  const handleTouchEnd = () => {
     setIsDragging(false);
-    if (Math.abs(x) > swipeThreshold) {
-      if (x > 0) {
-        onSave();
-      } else {
-        onShare();
+    const swipeThreshold = 100;
+    
+    try {
+      if (Math.abs(currentX) > swipeThreshold) {
+        if (currentX > 0) {
+          onSave();
+          analytics.trackUserAction('job-saved', job.id);
+        } else {
+          onShare();
+          analytics.trackUserAction('job-shared', job.id);
+        }
       }
+      
+      setCurrentX(0);
+      performanceMonitor.endMeasure('job-card-swipe');
+    } catch (error) {
+      errorHandler.handleError(error, 'USER_ACTION');
     }
-    setX(0);
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  };
-
-  const dragTransition = {
-    type: "spring",
-    stiffness: 260,
-    damping: 20,
   };
 
   return (
-    <motion.div
-      className="relative"
-      style={{ x: x }}
-      drag="x"
-      dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.8}
-      onPan={handlePan}
-      onPanEnd={handlePanEnd}
-      transition={isDragging ? dragTransition : { duration: 0.3 }}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
+    <div
+      className="relative transition-transform duration-300 ease-out"
+      style={{ transform: `translateX(${currentX}px)` }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
@@ -101,7 +102,12 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
             {job.category && <Badge variant="outline">{job.category}</Badge>}
 
             <div className="flex items-center justify-between pt-2">
-              <a href={job.job_url || undefined} target="_blank" rel="noopener noreferrer">
+              <a 
+                href={job.job_url || undefined} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={() => analytics.trackUserAction('job-apply-click', job.id)}
+              >
                 <ExternalLink className="ml-1 h-4 w-4" />
                 Apply
               </a>
@@ -109,6 +115,6 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

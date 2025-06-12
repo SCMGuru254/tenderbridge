@@ -1,4 +1,3 @@
-
 export interface Job {
   title: string;
   company: string;
@@ -12,4 +11,15 @@ export interface Job {
   salary?: string | null;
   tags?: string[] | null;
   image_url?: string | null;
+  experience_level?: string | null;
+  skills?: string[] | null;
+  employment_type?: string | null;
+  education_requirements?: string | null;
+  benefits?: string[] | null;
+  is_remote?: boolean;
+  application_instructions?: string | null;
+  company_website?: string | null;
+  company_description?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }

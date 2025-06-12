@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
-import Parser from 'rss-parser';
-
-const rssParser = new Parser();
+import { cache } from '@/utils/cache';
+import { analytics } from '@/utils/analytics';
+import { performanceMonitor } from '@/utils/performance';
+import { errorHandler } from '@/utils/errorHandling';
 
 export interface SupplyChainNews {
   id: string;
@@ -18,9 +19,18 @@ export interface SupplyChainNews {
 export class NewsService {
   private baseUrl = 'https://newsapi.org/v2';
   private apiKey = process.env.NEWS_API_KEY || '';
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   async getNews(): Promise<SupplyChainNews[]> {
     try {
+      performanceMonitor.startMeasure('fetch-news');
+      
+      const cachedNews = cache.get<SupplyChainNews[]>('news');
+      if (cachedNews) {
+        analytics.trackUserAction('news-cache-hit');
+        return cachedNews;
+      }
+
       const { data, error } = await supabase
         .from('supply_chain_news')
         .select('*')
@@ -28,17 +38,27 @@ export class NewsService {
         .limit(20);
 
       if (error) throw error;
-      return data || [];
+
+      const news = data || [];
+      cache.set('news', news, { ttl: this.CACHE_TTL });
+      analytics.trackUserAction('news-fetch-success', `count:${news.length}`);
+      
+      return news;
     } catch (error) {
-      console.error('Error fetching news:', error);
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
       return [];
+    } finally {
+      performanceMonitor.endMeasure('fetch-news');
     }
   }
 
   async fetchAndStoreNews(): Promise<{ success: boolean; count: number; message?: string }> {
     try {
+      performanceMonitor.startMeasure('fetch-store-news');
+
       if (!this.apiKey) {
-        return { success: false, count: 0, message: 'News API key not configured' };
+        throw new Error('News API key not configured');
       }
 
       const keywords = ['supply chain', 'logistics', 'procurement', 'inventory management'];
@@ -74,6 +94,9 @@ export class NewsService {
 
       if (error) throw error;
 
+      cache.delete('news'); // Invalidate cache
+      analytics.trackUserAction('news-store-success', `count:${data?.length || 0}`);
+
       return { 
         success: true, 
         count: data?.length || 0,
@@ -81,37 +104,58 @@ export class NewsService {
       };
 
     } catch (error) {
-      console.error('Error fetching and storing news:', error);
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
       return { 
         success: false, 
         count: 0, 
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       };
+    } finally {
+      performanceMonitor.endMeasure('fetch-store-news');
     }
   }
 
   async fetchRSSFeed(url: string): Promise<SupplyChainNews[]> {
     try {
-      const feed = await rssParser.parseURL(url);
+      performanceMonitor.startMeasure('fetch-rss');
       
-      if (!feed.items || !Array.isArray(feed.items)) {
-        return [];
+      const response = await fetch(url);
+      const text = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, "text/xml");
+      
+      const items = xmlDoc.getElementsByTagName("item");
+      const news: SupplyChainNews[] = [];
+
+      for (let i = 0; i < Math.min(items.length, 10); i++) {
+        const item = items[i];
+        const title = item.getElementsByTagName("title")[0]?.textContent || 'Untitled';
+        const content = item.getElementsByTagName("description")[0]?.textContent || '';
+        const link = item.getElementsByTagName("link")[0]?.textContent || '';
+        const pubDate = item.getElementsByTagName("pubDate")[0]?.textContent || new Date().toISOString();
+        
+        news.push({
+          id: `rss-${Date.now()}-${i}`,
+          title,
+          content,
+          source_name: xmlDoc.getElementsByTagName("title")[0]?.textContent || 'RSS Feed',
+          source_url: link,
+          published_date: pubDate,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          tags: this.extractTags(title + ' ' + content)
+        });
       }
 
-      return feed.items.slice(0, 10).map((item: any, index: number) => ({
-        id: `rss-${Date.now()}-${index}`,
-        title: item.title || 'Untitled',
-        content: item.contentSnippet || item.content || '',
-        source_name: feed.title || 'RSS Feed',
-        source_url: item.link || '',
-        published_date: item.pubDate || new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        tags: this.extractTags((item.title || '') + ' ' + (item.contentSnippet || ''))
-      }));
+      analytics.trackUserAction('rss-fetch-success', `count:${news.length}`);
+      return news;
     } catch (error) {
-      console.error('Error parsing RSS feed:', error);
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
       return [];
+    } finally {
+      performanceMonitor.endMeasure('fetch-rss');
     }
   }
 
@@ -128,9 +172,12 @@ export class NewsService {
 
   async analyzeNews(newsItem: { title: string; content: string }): Promise<any> {
     try {
-      // Simple analysis - in production, you'd use AI services
+      performanceMonitor.startMeasure('analyze-news');
+      
       const sentiment = this.analyzeSentiment(newsItem.title + ' ' + newsItem.content);
       const categories = this.categorizeNews(newsItem.title + ' ' + newsItem.content);
+      
+      analytics.trackUserAction('news-analysis', `sentiment:${sentiment}`);
       
       return {
         sentiment,
@@ -138,8 +185,11 @@ export class NewsService {
         summary: newsItem.content.slice(0, 200) + '...'
       };
     } catch (error) {
-      console.error('Error analyzing news:', error);
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
       return null;
+    } finally {
+      performanceMonitor.endMeasure('analyze-news');
     }
   }
 
