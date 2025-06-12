@@ -13,11 +13,11 @@ import {
   getHiringDecisions,
   recordHiringDecision 
 } from "@/services/profileService";
-import ProfileHeader from "./profile/ProfileHeader";
-import ProfileAboutTab from "./profile/ProfileAboutTab";
-import ProfileViewsTab from "./profile/ProfileViewsTab";
-import HiringDecisionsTab from "./profile/HiringDecisionsTab";
-import RecordDecisionTab from "./profile/RecordDecisionTab";
+import { ProfileHeader } from "./profile/ProfileHeader";
+import { ProfileAboutTab } from "./profile/ProfileAboutTab";
+import { ProfileViewsTab } from "./profile/ProfileViewsTab";
+import { HiringDecisionsTab } from "./profile/HiringDecisionsTab";
+import { RecordDecisionTab } from "./profile/RecordDecisionTab";
 
 const ProfileViewComponent = () => {
   const { id } = useParams<{ id: string }>();
@@ -144,7 +144,7 @@ const ProfileViewComponent = () => {
     <div className="container mx-auto p-4 md:p-8 animate-fade-in">
       <Card className="mb-8">
         <CardHeader>
-          <ProfileHeader profile={profile} currentUserId={user?.id || null} />
+          <ProfileHeader profile={profile} />
         </CardHeader>
         
         <CardContent>
