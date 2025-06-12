@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Search, Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { JobCard } from "@/components/JobCard";
+import { getCompanyName } from "@/utils/jobUtils";
 import type { JobType } from "@/types/jobs";
 
 const SavedJobsDashboard = () => {
@@ -50,8 +50,9 @@ const SavedJobsDashboard = () => {
   }, []);
 
   const filteredJobs = savedJobs.filter(job => {
+    const companyName = getCompanyName(job);
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ('company' in job ? job.company?.toLowerCase().includes(searchTerm.toLowerCase()) : false);
+                         (companyName && companyName.toLowerCase().includes(searchTerm.toLowerCase()));
     
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "recent") {
@@ -83,7 +84,7 @@ const SavedJobsDashboard = () => {
     } else {
       return {
         ...baseProps,
-        company: job.posted_by || null,
+        company: getCompanyName(job) || null,
         location: job.location || null,
         job_url: null
       };

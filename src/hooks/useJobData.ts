@@ -12,14 +12,25 @@ export const useJobData = () => {
   const { 
     data: postedJobs, 
     isLoading: isLoadingPosted, 
-    refetch: refetchPostedJobs 
+    refetch: refetchPostedJobs,
+    error: postedJobsError
   } = usePostedJobs();
 
   const { 
     data: scrapedJobs, 
     isLoading: isLoadingScraped, 
-    refetch: refetchScrapedJobs 
+    refetch: refetchScrapedJobs,
+    error: scrapedJobsError
   } = useScrapedJobs();
+
+  // Add debugging logs
+  useEffect(() => {
+    console.log('useJobData - Posted jobs:', postedJobs?.length || 0);
+    console.log('useJobData - Scraped jobs:', scrapedJobs?.length || 0);
+    console.log('useJobData - Active tab:', activeTab);
+    console.log('useJobData - Posted jobs error:', postedJobsError);
+    console.log('useJobData - Scraped jobs error:', scrapedJobsError);
+  }, [postedJobs, scrapedJobs, activeTab, postedJobsError, scrapedJobsError]);
 
   // Combine and filter jobs based on the active tab
   useEffect(() => {
@@ -42,6 +53,9 @@ export const useJobData = () => {
         }
         
         setAllJobs(combinedJobs);
+      } else {
+        console.log("No jobs available from either source");
+        setAllJobs([]);
       }
     }
   }, [activeTab, postedJobs, scrapedJobs]);
@@ -57,5 +71,9 @@ export const useJobData = () => {
     setActiveTab,
     refetchPostedJobs,
     refetchScrapedJobs,
+    errors: {
+      postedJobsError,
+      scrapedJobsError
+    }
   };
 };
