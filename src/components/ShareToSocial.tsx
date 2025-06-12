@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -78,15 +78,6 @@ export const ShareToSocial = ({ jobTitle, jobUrl, company }: ShareToSocialProps)
     }
   };
 
-  const getPlatformBadgeColor = (platform: string) => {
-    switch (platform) {
-      case 'twitter': return 'bg-blue-500 text-white';
-      case 'facebook': return 'bg-blue-600 text-white';
-      case 'linkedin': return 'bg-blue-700 text-white';
-      default: return 'bg-gray-500 text-white';
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -131,60 +122,51 @@ export const ShareToSocial = ({ jobTitle, jobUrl, company }: ShareToSocialProps)
           />
         </div>
         
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={() => handleShare('twitter')}
-              disabled={isSharing}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Twitter className="h-4 w-4" />
-              Twitter
-              {shareCount.twitter > 0 && (
-                <Badge className={getPlatformBadgeColor('twitter')}>
-                  {shareCount.twitter}
-                </Badge>
-              )}
-            </Button>
-            
-            <Button
-              onClick={() => handleShare('facebook')}
-              disabled={isSharing}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Facebook className="h-4 w-4" />
-              Facebook
-              {shareCount.facebook > 0 && (
-                <Badge className={getPlatformBadgeColor('facebook')}>
-                  {shareCount.facebook}
-                </Badge>
-              )}
-            </Button>
-            
-            <Button
-              onClick={() => handleShare('linkedin')}
-              disabled={isSharing}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Linkedin className="h-4 w-4" />
-              LinkedIn
-              {shareCount.linkedin > 0 && (
-                <Badge className={getPlatformBadgeColor('linkedin')}>
-                  {shareCount.linkedin}
-                </Badge>
-              )}
-            </Button>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => handleShare('twitter')}
+            disabled={isSharing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Twitter className="h-4 w-4" />
+            Twitter
+            {shareCount.twitter > 0 && (
+              <Badge variant="secondary">
+                {shareCount.twitter}
+              </Badge>
+            )}
+          </Button>
           
-          <div className="flex flex-wrap gap-1">
-            <Badge variant="secondary">Available Platforms</Badge>
-            <Badge className={getPlatformBadgeColor('twitter')}>Twitter</Badge>
-            <Badge className={getPlatformBadgeColor('facebook')}>Facebook</Badge>
-            <Badge className={getPlatformBadgeColor('linkedin')}>LinkedIn</Badge>
-          </div>
+          <Button
+            onClick={() => handleShare('facebook')}
+            disabled={isSharing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Facebook className="h-4 w-4" />
+            Facebook
+            {shareCount.facebook > 0 && (
+              <Badge variant="secondary">
+                {shareCount.facebook}
+              </Badge>
+            )}
+          </Button>
+          
+          <Button
+            onClick={() => handleShare('linkedin')}
+            disabled={isSharing}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Linkedin className="h-4 w-4" />
+            LinkedIn
+            {shareCount.linkedin > 0 && (
+              <Badge variant="secondary">
+                {shareCount.linkedin}
+              </Badge>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

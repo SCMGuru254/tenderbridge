@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Search, Calendar, ExternalLink, Trash2 } from "lucide-react";
 import { JobCard } from "@/components/JobCard";
 import { getCompanyName } from "@/utils/jobUtils";
@@ -25,7 +25,6 @@ const SavedJobsDashboard = () => {
         location: "Nairobi, Kenya",
         company: "East African Logistics",
         description: "Lead supply chain operations across East Africa",
-        posted_by: "HR Department",
         is_active: true,
         updated_at: "2024-01-15T00:00:00Z",
         salary_range: "KSh 150,000 - 200,000",
@@ -39,7 +38,6 @@ const SavedJobsDashboard = () => {
         location: "Mombasa, Kenya",
         company: "Port Authority",
         description: "Handle procurement for port operations",
-        posted_by: "Procurement Team",
         is_active: true,
         updated_at: "2024-01-10T00:00:00Z",
         salary_range: "KSh 120,000 - 150,000",

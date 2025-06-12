@@ -2,7 +2,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AlertCircle, Building, Globe, MapPin } from "lucide-react";
+import { AlertCircle, Globe, MapPin, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CompanyReviews } from "@/components/companies/CompanyReviews";
@@ -62,14 +62,17 @@ export default function CompanyProfile() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{company.name}</h1>
-            {company.verification_status && (
-              <Badge variant={company.verification_status === "verified" ? "secondary" : 
-                              company.verification_status === "pending" ? "outline" : "default"}>
-                {company.verification_status.charAt(0).toUpperCase() + company.verification_status.slice(1)}
-              </Badge>
-            )}
+          <div className="flex items-center gap-3">
+            <Building className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{company.name}</h1>
+              {company.verification_status && (
+                <Badge variant={company.verification_status === "verified" ? "secondary" : 
+                                company.verification_status === "pending" ? "outline" : "default"}>
+                  {company.verification_status.charAt(0).toUpperCase() + company.verification_status.slice(1)}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 

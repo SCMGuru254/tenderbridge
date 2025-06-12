@@ -116,30 +116,34 @@ const Discussions = () => {
     }
   };
 
+  const isUserLoggedIn = !!user;
+
   return (
     <div className="container mx-auto px-4 py-12 mt-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Supply Chain Discussions</h1>
         
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Start Discussion
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Create New Discussion</DialogTitle>
-              <DialogDescription>
-                Share your thoughts, questions, or insights with the supply chain community.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4">
-              <DiscussionForm onSuccess={handleCreateSuccess} />
-            </div>
-          </DialogContent>
-        </Dialog>
+        {isUserLoggedIn && (
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Start Discussion
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Create New Discussion</DialogTitle>
+                <DialogDescription>
+                  Share your thoughts, questions, or insights with the supply chain community.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4">
+                <DiscussionForm onSuccess={handleCreateSuccess} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 mb-8">
@@ -155,6 +159,12 @@ const Discussions = () => {
                 <TabsTrigger value="latest">Latest</TabsTrigger>
                 <TabsTrigger value="popular">Popular</TabsTrigger>
               </TabsList>
+              <TabsContent value="latest" className="mt-4">
+                <p className="text-sm text-muted-foreground">Most recent discussions</p>
+              </TabsContent>
+              <TabsContent value="popular" className="mt-4">
+                <p className="text-sm text-muted-foreground">Most engaged discussions</p>
+              </TabsContent>
             </Tabs>
             
             <div className="flex w-full sm:w-auto gap-2">
@@ -211,12 +221,14 @@ const Discussions = () => {
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
               <h3 className="text-xl font-medium mb-2">No discussions found</h3>
               <p className="mb-6">Be the first to start a discussion about supply chain topics</p>
-              <Button 
-                onClick={() => setCreateDialogOpen(true)}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Start a Discussion
-              </Button>
+              {isUserLoggedIn && (
+                <Button 
+                  onClick={() => setCreateDialogOpen(true)}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Start a Discussion
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid gap-6">
