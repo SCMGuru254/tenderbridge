@@ -4,7 +4,11 @@ export interface BaseJob {
   title: string;
   job_type?: string;
   created_at: string;
-  social_shares?: Record<string, any>;
+  skills?: string[];
+  tags?: string[];
+  is_remote?: boolean;
+  experience_level?: string;
+  social_shares?: Record<string, string | number>;
 }
 
 export interface PostedJob extends BaseJob {

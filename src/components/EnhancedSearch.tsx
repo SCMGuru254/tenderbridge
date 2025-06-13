@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,12 +25,12 @@ export const EnhancedSearch = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Search suggestions based on supply chain terms
-  const supplyChainTerms = [
+  const supplyChainTerms = useMemo(() => [
     'logistics optimization', 'supply chain disruption', 'inventory management',
     'freight transportation', 'warehouse automation', 'procurement strategy',
     'distribution networks', 'cold chain logistics', 'last mile delivery',
     'sustainable supply chain', 'digital transformation', 'supply chain visibility'
-  ];
+  ], []);
 
   // Generate search suggestions
   const suggestions = useMemo(() => {
@@ -40,7 +39,7 @@ export const EnhancedSearch = ({
     return supplyChainTerms.filter(term =>
       term.toLowerCase().includes(searchTerm.toLowerCase())
     ).slice(0, 5);
-  }, [searchTerm]);
+  }, [searchTerm, supplyChainTerms]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

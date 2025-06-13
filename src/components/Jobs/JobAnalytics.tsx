@@ -17,12 +17,9 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
   const [analytics, setAnalytics] = useState<JobAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const loadAnalytics = React.useCallback(async () => {
+    if (!jobId) return;
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [jobId]);
-
-  const loadAnalytics = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -34,7 +31,11 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [jobId]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   if (isLoading) {
     return (
@@ -130,4 +131,4 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
       </div>
     </div>
   );
-}; 
+};

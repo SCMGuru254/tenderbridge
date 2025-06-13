@@ -1,198 +1,82 @@
-import { supabase } from '@/integrations/supabase/client';
-import { cache } from '@/utils/cache';
-import { analytics } from '@/utils/analytics';
-import { performanceMonitor } from '@/utils/performance';
-import { errorHandler } from '@/utils/errorHandling';
-import type { JobAlert } from './jobService';
-
-export interface Notification {
-  id: string;
-  user_id: string;
-  title: string;
-  message: string;
-  type: 'job_alert' | 'application_update' | 'system' | 'message';
-  is_read: boolean;
-  created_at?: string;
-  updated_at?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface NotificationSubscription {
-  unsubscribe: () => void;
-}
+import { supabase } from '@/lib/supabaseClient';
+import { JobAlert } from '@/types/jobs';
+import { Notification, NotificationType } from '@/types/notifications';
 
 export class NotificationService {
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private static instance: NotificationService;
 
-  async getNotifications(userId: string): Promise<Notification[]> {
-    try {
-      performanceMonitor.startMeasure('fetch-notifications');
-      
-      const cacheKey = `notifications-${userId}`;
-      const cachedNotifications = cache.get<Notification[]>(cacheKey);
-      if (cachedNotifications) {
-        analytics.trackUserAction('notifications-cache-hit');
-        return cachedNotifications;
-      }
+  private constructor() {}
 
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const notifications = data || [];
-      cache.set(cacheKey, notifications, { ttl: this.CACHE_TTL });
-      analytics.trackUserAction('notifications-fetch-success', `count:${notifications.length}`);
-      
-      return notifications;
-    } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
-      return [];
-    } finally {
-      performanceMonitor.endMeasure('fetch-notifications');
+  static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
     }
+    return NotificationService.instance;
   }
 
-  async createNotification(notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>): Promise<Notification | null> {
+  async createNotification(userId: string, notification: Omit<Notification, 'id' | 'createdAt'>) {
     try {
-      performanceMonitor.startMeasure('create-notification');
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .insert(notification)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Invalidate cache
-      cache.delete(`notifications-${notification.user_id}`);
-      analytics.trackUserAction('notification-create-success');
-      
-      return data;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return null;
-    } finally {
-      performanceMonitor.endMeasure('create-notification');
-    }
-  }
-
-  async markAsRead(notificationId: string): Promise<boolean> {
-    try {
-      performanceMonitor.startMeasure('mark-notification-read');
-
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
+        .insert([{ ...notification, user_id: userId }]);
 
       if (error) throw error;
-
-      analytics.trackUserAction('notification-mark-read');
-      return true;
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return false;
-    } finally {
-      performanceMonitor.endMeasure('mark-notification-read');
-    }
-  }
-
-  async markAllAsRead(userId: string): Promise<boolean> {
-    try {
-      performanceMonitor.startMeasure('mark-all-notifications-read');
-
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', userId)
-        .eq('is_read', false);
-
-      if (error) throw error;
-
-      // Invalidate cache
-      cache.delete(`notifications-${userId}`);
-      analytics.trackUserAction('notifications-mark-all-read');
-      
-      return true;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return false;
-    } finally {
-      performanceMonitor.endMeasure('mark-all-notifications-read');
-    }
-  }
-
-  async deleteNotification(notificationId: string): Promise<boolean> {
-    try {
-      performanceMonitor.startMeasure('delete-notification');
-
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      analytics.trackUserAction('notification-delete');
-      return true;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return false;
-    } finally {
-      performanceMonitor.endMeasure('delete-notification');
+      console.error('Error creating notification:', error);
+      throw error;
     }
   }
 
   async getUnreadCount(userId: string): Promise<number> {
     try {
-      performanceMonitor.startMeasure('fetch-unread-count');
-      
-      const cacheKey = `unread-count-${userId}`;
-      const cachedCount = cache.get<number>(cacheKey);
-      if (cachedCount !== undefined) {
-        analytics.trackUserAction('unread-count-cache-hit');
-        return cachedCount;
-      }
-
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('notifications')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact' })
         .eq('user_id', userId)
         .eq('is_read', false);
 
       if (error) throw error;
-
-      const unreadCount = count || 0;
-      cache.set(cacheKey, unreadCount, { ttl: this.CACHE_TTL });
-      analytics.trackUserAction('unread-count-fetch-success');
-      
-      return unreadCount;
+      return data?.length ?? 0;
     } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
+      console.error('Error getting unread count:', error);
       return 0;
-    } finally {
-      performanceMonitor.endMeasure('fetch-unread-count');
+    }
+  }
+
+  async markAsRead(notificationId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }
+
+  async markAllAsRead(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
     }
   }
 
   async processJobAlerts(): Promise<void> {
     try {
-      // Get all active job alerts
       const { data: alerts, error } = await supabase
         .from('job_alerts')
-        .select('*')
-        .eq('is_active', true);
+        .select('*');
 
       if (error) throw error;
 
@@ -205,7 +89,7 @@ export class NotificationService {
     } catch (error) {
       console.error('Error processing job alerts:', error);
     }
-  },
+  }
 
   private shouldTriggerAlert(alert: JobAlert): boolean {
     const now = new Date();
@@ -225,131 +109,28 @@ export class NotificationService {
       default:
         return false;
     }
-  },
+  }
 
   private async triggerJobAlert(alert: JobAlert): Promise<void> {
     try {
-      // Get matching jobs
-      const { data: jobs, error } = await supabase
-        .from('scraped_jobs')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Filter jobs based on alert criteria
-      const matchingJobs = jobs.filter(job => {
-        const searchParams = alert.searchParams;
-        return (
-          (!searchParams.category || job.title.toLowerCase().includes(searchParams.category.toLowerCase())) &&
-          (!searchParams.location || job.location?.toLowerCase().includes(searchParams.location.toLowerCase())) &&
-          (!searchParams.jobType || job.job_type === searchParams.jobType) &&
-          (!searchParams.isRemote || job.is_remote === searchParams.isRemote)
-        );
+      // Create a notification for the job alert
+      await this.createNotification(alert.userId, {
+        type: 'job_alert' as NotificationType,
+        title: 'New Job Matches',
+        message: `New jobs matching your alert "${alert.name}" are available.`,
+        userId: alert.userId,
+        isRead: false
       });
 
-      if (matchingJobs.length > 0) {
-        // Create notification for matching jobs
-        await this.createNotification({
-          user_id: alert.userId,
-          type: 'job_alert',
-          title: 'New Jobs Matching Your Alert',
-          message: `Found ${matchingJobs.length} new jobs matching your search criteria.`,
-          metadata: {
-            jobs: matchingJobs,
-            alertId: alert.id
-          },
-          is_read: false
-        });
+      // Update the last triggered timestamp
+      const { error } = await supabase
+        .from('job_alerts')
+        .update({ lastTriggered: new Date().toISOString() })
+        .eq('id', alert.id);
 
-        // Update last triggered timestamp
-        await supabase
-          .from('job_alerts')
-          .update({ last_triggered: new Date().toISOString() })
-          .eq('id', alert.id);
-      }
+      if (error) throw error;
     } catch (error) {
       console.error('Error triggering job alert:', error);
     }
-  },
-
-  async sendApplicationUpdateNotification(
-    userId: string,
-    applicationId: string,
-    status: string,
-    jobTitle: string
-  ): Promise<void> {
-    try {
-      await this.createNotification({
-        user_id: userId,
-        type: 'application_update',
-        title: 'Application Status Updated',
-        message: `Your application for "${jobTitle}" has been ${status}.`,
-        metadata: {
-          applicationId,
-          status,
-          jobTitle
-        },
-        is_read: false
-      });
-    } catch (error) {
-      console.error('Error sending application update notification:', error);
-    }
-  },
-
-  async sendJobMatchNotification(
-    userId: string,
-    jobId: string,
-    jobTitle: string,
-    matchScore: number
-  ): Promise<void> {
-    try {
-      await this.createNotification({
-        user_id: userId,
-        type: 'job_match',
-        title: 'New Job Match',
-        message: `We found a job that matches your profile: "${jobTitle}" (${Math.round(matchScore * 100)}% match).`,
-        metadata: {
-          jobId,
-          jobTitle,
-          matchScore
-        },
-        is_read: false
-      });
-    } catch (error) {
-      console.error('Error sending job match notification:', error);
-    }
-  },
-
-  subscribeToNotifications(
-    userId: string,
-    callback: (notifications: Notification[]) => void
-  ): NotificationSubscription {
-    const subscription = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
-        },
-        async () => {
-          // Reload notifications when changes occur
-          const notifications = await this.getNotifications(userId);
-          callback(notifications);
-        }
-      )
-      .subscribe();
-
-    return {
-      unsubscribe: () => {
-        subscription.unsubscribe();
-      }
-    };
   }
 }
-
-export const notificationService = new NotificationService(); 

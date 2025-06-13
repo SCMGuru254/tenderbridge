@@ -14,18 +14,13 @@ export const JobAlertsList: React.FC = () => {
   const [alerts, setAlerts] = useState<JobAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      loadAlerts();
-    }
-  }, [user]);
-
   const loadAlerts = async () => {
+    if (!user) return;
+    
     try {
       setIsLoading(true);
       setError(null);
-      const data = await jobService.getJobAlerts(user!.id);
+      const data = await jobService.getJobAlerts(user.id);
       setAlerts(data);
     } catch (err) {
       setError('Failed to load job alerts');
@@ -34,6 +29,10 @@ export const JobAlertsList: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadAlerts();
+  }, [user]);
 
   const handleToggleAlert = async (alertId: string, isActive: boolean) => {
     try {
@@ -176,4 +175,4 @@ export const JobAlertsList: React.FC = () => {
       </div>
     </div>
   );
-}; 
+};

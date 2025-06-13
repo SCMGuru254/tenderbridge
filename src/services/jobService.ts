@@ -3,8 +3,8 @@ import type { PostedJob, ScrapedJob } from '@/types/jobs';
 import { socialMediaService } from './socialMediaService';
 import { cache } from '@/utils/cache';
 import { analytics } from '@/utils/analytics';
-import { performanceMonitor } from '@/utils/performance';
-import { errorHandler } from '@/utils/errorHandling';
+import { performanceMonitor } from '@/utils/performanceMonitor';
+import { errorHandler } from '@/utils/errors';
 
 export interface JobFilters {
   category?: string;
@@ -48,12 +48,21 @@ export interface JobApplication {
 }
 
 export interface JobAnalytics {
-  totalViews: number;
-  uniqueViewers: number;
+  jobId: string;
+  views: number;
   applications: number;
-  saveCount: number;
-  shareCount: number;
+  shares: number;
+  saves: number;
   averageTimeSpent: number;
+  uniqueVisitors: number;
+  applicationConversionRate: number;
+  sourceBreakdown: Record<string, number>;
+  trend: {
+    date: string;
+    views: number;
+    applications: number;
+  }[];
+  updatedAt: string;
 }
 
 export interface Job {
@@ -356,6 +365,57 @@ export class JobService {
       return false;
     } finally {
       performanceMonitor.endMeasure('delete-alert');
+    }
+  }
+
+  async getJobAnalytics(jobId: string): Promise<JobAnalytics> {
+    try {
+      performanceMonitor.startTimer('getJobAnalytics');
+
+      // Get analytics data from Supabase
+      const { data, error } = await supabase
+        .from('job_analytics')
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
+
+      if (error) throw error;
+
+      // Get trending data
+      const { data: trendData, error: trendError } = await supabase
+        .from('job_analytics_daily')
+        .select('date, views, applications')
+        .eq('job_id', jobId)
+        .order('date', { ascending: true })
+        .limit(30);
+
+      if (trendError) throw trendError;
+
+      // Calculate averages and rates
+      const applicationConversionRate = data.applications > 0 
+        ? (data.applications / data.views) * 100 
+        : 0;
+
+      const analytics: JobAnalytics = {
+        jobId,
+        views: data.views,
+        applications: data.applications,
+        shares: data.shares,
+        saves: data.saves,
+        averageTimeSpent: data.average_time_spent,
+        uniqueVisitors: data.unique_visitors,
+        applicationConversionRate,
+        sourceBreakdown: data.source_breakdown,
+        trend: trendData,
+        updatedAt: data.updated_at
+      };
+
+      return analytics;
+    } catch (error) {
+      console.error('Error fetching job analytics:', error);
+      throw new Error('Failed to fetch job analytics');
+    } finally {
+      performanceMonitor.endTimer('getJobAnalytics');
     }
   }
 }
