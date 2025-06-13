@@ -1,4 +1,3 @@
-
 # Pending Tasks - TenderBridge Job Portal
 
 ## 🚨 Critical (Blocks Production)
@@ -43,7 +42,7 @@
 
 ### 1. Advanced Job Features
 - **Job Recommendations**
-  - ML-based job matching
+  - ML-based job matching (backend logic and UI integration needed)
   - User preference learning
   - Priority: Low
   - ETA: 1-2 weeks
@@ -63,10 +62,37 @@
   - ETA: 1 week
 
 - **Social Features**
-  - Job sharing to social media
-  - Referral system
+  - Job sharing to social media (UI and backend integration needed)
+  - Referral system (UI and backend integration needed)
   - Priority: Low
   - ETA: 1-2 weeks
+
+- **UI Polish**
+  - More detailed error messages
+  - Enhanced loading animations
+  - Priority: Low
+  - ETA: 1 week
+
+---
+
+## 📄 Document Generator Improvements
+
+- **Additional Templates**
+  - Add more document/CV templates
+  - Priority: Medium
+  - ETA: 1 week
+- **File Processing**
+  - Improve file upload/processing reliability
+  - Priority: Medium
+  - ETA: 1 week
+- **24-hour Document Cleanup**
+  - Implement scheduled cleanup of generated documents
+  - Priority: Medium
+  - ETA: 1 week
+- **CV-to-Job Matching**
+  - Integrate CV parsing and job matching logic
+  - Priority: Medium
+  - ETA: 2 weeks
 
 ---
 
@@ -84,6 +110,11 @@
   - Offline job browsing
   - Priority: Low
   - ETA: 1-2 weeks
+
+- **Android/iOS Styling**
+  - Platform-specific UI improvements
+  - Priority: Low
+  - ETA: 1 week
 
 ---
 
@@ -116,6 +147,7 @@
 - **Performance Monitoring**
   - Error tracking
   - Performance metrics
+  - Integrate with external monitoring service (e.g., New Relic, Datadog)
   - Priority: Medium
   - ETA: 3-4 days
 
@@ -150,6 +182,7 @@
 1. Component refactoring for better maintainability
 2. User analytics implementation
 3. Performance monitoring setup
+4. Document generator improvements
 
 ### Medium Term (Next Month)
 1. Advanced job features
@@ -165,14 +198,16 @@
 
 ## 📋 Task Tracking
 
-| Task | Priority | Status | ETA | Owner |
-|------|----------|--------|-----|-------|
-| TypeScript Config Fix | Critical | Blocked | TBD | Platform Team |
-| SiteNavigation Refactor | Medium | Pending | 3h | Development |
-| User Analytics | Medium | Pending | 1w | Development |
-| Advanced Filtering | Medium | Pending | 1w | Development |
-| Performance Monitoring | Medium | Pending | 3d | Development |
-| Job Recommendations | Low | Pending | 2w | Development |
+| Task                        | Priority | Status   | ETA  | Owner         |
+|-----------------------------|----------|----------|------|--------------|
+| TypeScript Config Fix       | Critical | Blocked  | TBD  | Platform Team |
+| SiteNavigation Refactor     | Medium   | Pending  | 3h   | Development   |
+| User Analytics              | Medium   | Pending  | 1w   | Development   |
+| Advanced Filtering          | Medium   | Pending  | 1w   | Development   |
+| Performance Monitoring      | Medium   | Pending  | 3d   | Development   |
+| Job Recommendations         | Low      | Pending  | 2w   | Development   |
+| Document Generator Upgrades | Medium   | Pending  | 2w   | Development   |
+| Social/Referral Features    | Low      | Pending  | 2w   | Development   |
 
 ---
 

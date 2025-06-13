@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { withSecurity } from "../middleware/security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Input validation
+function validateQuestion(question: string): boolean {
+  return typeof question === 'string' && 
+         question.length > 0 && 
+         question.length <= 500;
+}
 
 // Supply chain interview topics and best practices
 const SUPPLY_CHAIN_TOPICS = {
@@ -47,12 +50,7 @@ const INTERVIEW_BEST_PRACTICES = [
 ];
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
+  return withSecurity(req, async (req) => {
     const { question } = await req.json();
     
     // Identify relevant topics from the question

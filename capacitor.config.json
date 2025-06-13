@@ -1,6 +1,6 @@
 {
-  "appId": "ke.supplychain.app",
-  "appName": "SupplyChain_KE",
+  "appId": "com.tenderbridge.app",
+  "appName": "TenderBridge",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "plugins": {
@@ -12,27 +12,41 @@
       "androidScaleType": "CENTER_CROP",
       "showSpinner": true,
       "splashFullScreen": true,
-      "splashImmersive": true
+      "splashImmersive": true,
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#4338CA"
     },
     "StatusBar": {
       "backgroundColor": "#ffffff",
       "style": "dark"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
     }
   },
   "server": {
     "androidScheme": "https",
-    "cleartext": true
+    "iosScheme": "https",
+    "hostname": "app.tenderbridge.com",
+    "cleartext": false
   },
   "android": {
-    "allowMixedContent": true,
+    "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": false
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#ffffff",
+    "minSdkVersion": 22,
+    "targetSdkVersion": 33
   },
   "ios": {
     "contentInset": "always",
     "allowsLinkPreview": true,
     "scrollEnabled": true,
     "webViewAllowFileAccess": true,
-    "webViewAllowUniversalAccessFromFileURLs": true
+    "webViewAllowUniversalAccessFromFileURLs": true,
+    "backgroundColor": "#ffffff",
+    "scheme": "tenderbridge",
+    "minimumVersion": "13.0",
+    "preferredContentMode": "mobile"
   }
 }

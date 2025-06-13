@@ -1,117 +1,115 @@
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { RATE_LIMIT_CONFIG } from './securityConstants';
 
-interface RateLimitConfig {
-  windowSize: number; // in milliseconds
-  maxRequests: number;
+type RateLimitKey = keyof typeof RATE_LIMIT_CONFIG;
+
+interface RateLimitResult {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
 }
 
-interface RequestLog {
-  timestamp: number;
-  count: number;
-}
-
-class RateLimiter {
-  private limits: Map<string, RateLimitConfig> = new Map();
-  private requestLogs: Map<string, RequestLog[]> = new Map();
+export class EnhancedRateLimiter {
+  private redis: Redis;
+  private limiters: Map<RateLimitKey, Ratelimit> = new Map();
 
   constructor() {
-    // Default rate limits
-    this.limits.set('api_calls', { windowSize: 60000, maxRequests: 100 }); // 100 per minute
-    this.limits.set('job_search', { windowSize: 10000, maxRequests: 10 }); // 10 per 10 seconds
-    this.limits.set('news_fetch', { windowSize: 300000, maxRequests: 5 }); // 5 per 5 minutes
+    this.redis = Redis.fromEnv();
+    this.initializeLimiters();
   }
 
-  setLimit(key: string, config: RateLimitConfig): void {
-    this.limits.set(key, config);
-  }
-
-  async checkLimit(key: string, identifier: string = 'default'): Promise<boolean> {
-    const config = this.limits.get(key);
-    if (!config) return true; // No limit configured
-
-    const logKey = `${key}_${identifier}`;
-    const now = Date.now();
-    
-    if (!this.requestLogs.has(logKey)) {
-      this.requestLogs.set(logKey, []);
+  private getDurationInMs(durationStr: string): number {
+    const [value, unit] = durationStr.split(' ');
+    const timeValue = parseInt(value);
+    switch (unit) {
+      case 's':
+        return timeValue * 1000;
+      case 'm':
+        return timeValue * 60 * 1000;
+      case 'h':
+        return timeValue * 60 * 60 * 1000;
+      case 'd':
+        return timeValue * 24 * 60 * 60 * 1000;
+      default:
+        return timeValue; // assume milliseconds
     }
-
-    const logs = this.requestLogs.get(logKey)!;
-    
-    // Remove expired logs
-    const validLogs = logs.filter(log => now - log.timestamp < config.windowSize);
-    
-    // Count total requests in the window
-    const totalRequests = validLogs.reduce((sum, log) => sum + log.count, 0);
-    
-    if (totalRequests >= config.maxRequests) {
-      return false; // Rate limit exceeded
-    }
-
-    // Add current request
-    validLogs.push({ timestamp: now, count: 1 });
-    this.requestLogs.set(logKey, validLogs);
-    
-    return true;
   }
 
-  getStoredItem(key: string): string | null {
+  private initializeLimiters() {
+    // Initialize rate limiters for different endpoints/actions
+    (Object.entries(RATE_LIMIT_CONFIG) as [RateLimitKey, typeof RATE_LIMIT_CONFIG[RateLimitKey]][]).forEach(([key, config]) => {
+      const durationMs = this.getDurationInMs(config.duration);
+      
+      this.limiters.set(key, new Ratelimit({
+        redis: this.redis,
+        limiter: Ratelimit.slidingWindow(config.points, `${durationMs}ms`),
+        analytics: true,
+        prefix: `ratelimit:${key.toLowerCase()}`,
+      }));
+    });
+  }
+
+  async checkLimit(key: RateLimitKey, identifier: string): Promise<RateLimitResult> {
+    const limiter = this.limiters.get(key);
+    if (!limiter) {
+      // Fall back to default limiter if specific one not found
+      const defaultLimiter = this.limiters.get('DEFAULT');
+      if (!defaultLimiter) {
+        return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
+      }
+      return this.processLimit(defaultLimiter, identifier);
+    }
+    return this.processLimit(limiter, identifier);
+  }
+
+  private async processLimit(limiter: Ratelimit, identifier: string): Promise<RateLimitResult> {
     try {
-      return localStorage.getItem(key);
+      const result = await limiter.limit(identifier);
+      return {
+        success: result.success,
+        limit: result.limit,
+        remaining: result.remaining,
+        reset: result.reset,
+      };
     } catch (error) {
-      console.warn('Error accessing localStorage:', error);
-      return null;
+      console.error('Rate limit check failed:', error);
+      // Fail open is usually not recommended for security features,
+      // but in this case a temporary failure shouldn't block all users
+      return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
     }
   }
 
-  setStoredItem(key: string, value: string): void {
+  // Get current rate limit status without incrementing
+  async getRateLimitStatus(key: RateLimitKey, identifier: string): Promise<RateLimitResult> {
+    const limiter = this.limiters.get(key);
+    if (!limiter) {
+      return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
+    }
+
     try {
-      localStorage.setItem(key, value);
+      const result = await this.redis.get(`ratelimit:${key.toLowerCase()}:${identifier}`);
+      if (!result) {
+        return {
+          success: true,
+          limit: RATE_LIMIT_CONFIG[key].points,
+          remaining: RATE_LIMIT_CONFIG[key].points,
+          reset: 0,
+        };
+      }
+      const { remaining, reset } = JSON.parse(result as string);
+      return {
+        success: remaining > 0,
+        limit: RATE_LIMIT_CONFIG[key].points,
+        remaining,
+        reset,
+      };
     } catch (error) {
-      console.warn('Error setting localStorage:', error);
+      console.error('Failed to get rate limit status:', error);
+      return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
     }
-  }
-
-  getRemainingRequests(key: string, identifier: string = 'default'): number {
-    const config = this.limits.get(key);
-    if (!config) return Infinity;
-
-    const logKey = `${key}_${identifier}`;
-    const now = Date.now();
-    
-    const logs = this.requestLogs.get(logKey) || [];
-    const validLogs = logs.filter(log => now - log.timestamp < config.windowSize);
-    const totalRequests = validLogs.reduce((sum, log) => sum + log.count, 0);
-    
-    return Math.max(0, config.maxRequests - totalRequests);
-  }
-
-  getTimeUntilReset(key: string, identifier: string = 'default'): number {
-    const config = this.limits.get(key);
-    if (!config) return 0;
-
-    const logKey = `${key}_${identifier}`;
-    const logs = this.requestLogs.get(logKey) || [];
-    
-    if (logs.length === 0) return 0;
-    
-    const oldestLog = logs[0];
-    const resetTime = oldestLog.timestamp + config.windowSize;
-    
-    return Math.max(0, resetTime - Date.now());
-  }
-
-  reset(): void {
-    this.requestLogs.clear();
   }
 }
 
-export const rateLimiter = new RateLimiter();
-
-// Export additional functions needed by other components
-export const checkRateLimit = (key: string, identifier?: string): Promise<boolean> => {
-  return rateLimiter.checkLimit(key, identifier);
-};
-
-export const resetRateLimiter = (): void => {
-  rateLimiter.reset();
-};
+export const rateLimiter = new EnhancedRateLimiter();

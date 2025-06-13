@@ -30,7 +30,6 @@ const Auth = () => {
       navigate("/");
     }
   };
-
   const handleSignIn = async () => {
     if (isBlocked) {
       toast.error("Too many failed attempts. Please try again later.");
@@ -39,13 +38,32 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          action: 'signin'
+        }),
       });
 
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Rate limit exceeded
+          setIsBlocked(true);
+          const retryAfter = response.headers.get('Retry-After');
+          toast.error(`Too many attempts. Please try again in ${retryAfter} seconds.`);
+        } else if (response.status === 423) {
+          // Account locked
+          setIsBlocked(true);
+          toast.error(`Account temporarily locked. ${data.error}`);
+        } else if (response.status === 401) {
           const newAttemptsLeft = attemptsLeft - 1;
           setAttemptsLeft(newAttemptsLeft);
           
@@ -56,14 +74,22 @@ const Auth = () => {
             toast.error(`Invalid credentials. ${newAttemptsLeft} attempts remaining.`);
           }
         } else {
-          toast.error(error.message);
+          toast.error(data.error || 'Sign in failed');
         }
         return;
       }
 
       if (data.user) {
-        toast.success("Successfully signed in!");
-        navigate("/");
+        // Update the Supabase session
+        const { data: sessionData } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+
+        if (sessionData.session) {
+          toast.success("Successfully signed in!");
+          navigate("/");
+        }
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -72,22 +98,37 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
   const handleSignUp = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          action: 'signup'
+        }),
       });
 
-      if (error) {
-        toast.error(error.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          // Rate limit exceeded
+          setIsBlocked(true);
+          const retryAfter = response.headers.get('Retry-After');
+          toast.error(`Too many attempts. Please try again in ${retryAfter} seconds.`);
+        } else if (response.status === 400) {
+          // Validation error
+          toast.error(data.error);
+        } else {
+          toast.error(data.error || 'Sign up failed');
+        }
         return;
       }
 
