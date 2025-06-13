@@ -1,87 +1,76 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { AgentRole, AgentMessage, AgentContext } from './agents/types';
 
-/**
- * Agent roles for various AI functionalities
- */
-export const AGENT_ROLES = {
-  NEWS_ANALYZER: 'news-analyzer',
-  JOB_MATCHER: 'job-matcher',
-  CAREER_ADVISOR: 'career-advisor',
-  SOCIAL_MEDIA: 'social-media',
-  DOCUMENT_GENERATOR: 'document-generator'
-} as const;
+export class AIAgentService {
+  private agents: Map<AgentRole, any> = new Map();
+  private activeAgent: AgentRole | null = null;
 
-export type AgentRole = typeof AGENT_ROLES[keyof typeof AGENT_ROLES];
+  constructor() {
+    this.initializeAgents();
+  }
 
-// Agent event bus for component communication
-export const agentEventBus = {
-  events: new Map<string, Function[]>(),
-  
-  subscribe(event: string, callback: Function) {
-    if (!this.events.has(event)) {
-      this.events.set(event, []);
+  private initializeAgents() {
+    // Initialize different agent types
+    const roles: AgentRole[] = ['career_advisor', 'job_matcher', 'news_analyzer', 'social_media'];
+    
+    roles.forEach(role => {
+      const context: AgentContext = {
+        preferences: {},
+        history: []
+      };
+      
+      this.agents.set(role, {
+        role,
+        context,
+        isActive: false
+      });
+    });
+  }
+
+  async activateAgent(agentRole: AgentRole): Promise<void> {
+    // Deactivate current agent
+    if (this.activeAgent) {
+      const currentAgent = this.agents.get(this.activeAgent);
+      if (currentAgent) {
+        currentAgent.isActive = false;
+      }
     }
-    this.events.get(event)!.push(callback);
-  },
-  
-  publish(event: string, data: any) {
-    if (!this.events.has(event)) return;
-    this.events.get(event)!.forEach(callback => callback(data));
-  },
-  
-  unsubscribe(event: string, callback: Function) {
-    if (!this.events.has(event)) return;
-    const callbacks = this.events.get(event)!;
-    this.events.set(event, callbacks.filter(cb => cb !== callback));
-  }
-};
 
-/**
- * AI Agent class for handling various AI-powered functionality
- */
-export class AIAgent {
-  private role: AgentRole;
-  
-  constructor(role: AgentRole) {
-    this.role = role;
-  }
-  
-  /**
-   * Process news content for analysis
-   */
-  async processNews(newsContent: { title: string; content: string }): Promise<string> {
-    try {
-      // In production, this would call the Supabase Edge Function
-      // For now, we'll return a simplified analysis
-      return `Key insights from "${newsContent.title}": 
-        This news discusses supply chain trends and may impact logistics operations in Kenya.`;
-    } catch (error) {
-      console.error('Error analyzing news:', error);
-      return 'Unable to analyze news content';
+    // Activate new agent
+    const newAgent = this.agents.get(agentRole);
+    if (newAgent) {
+      newAgent.isActive = true;
+      this.activeAgent = agentRole;
     }
   }
-  
-  /**
-   * Match jobs with user profile
-   */
-  async matchJobs(jobs: any[], userProfile: any): Promise<any[]> {
-    // Simple matching algorithm for demo purposes
-    return jobs.map(job => ({
-      ...job,
-      matchScore: Math.random() * 100,
-      matchReason: 'Skills and experience match'
-    }));
+
+  async processMessage(message: string, context?: AgentContext): Promise<AgentMessage> {
+    if (!this.activeAgent) {
+      throw new Error('No active agent');
+    }
+
+    const agent = this.agents.get(this.activeAgent);
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
+
+    // Process message with the active agent
+    return {
+      id: Date.now().toString(),
+      content: `${this.activeAgent} processed: ${message}`,
+      role: this.activeAgent,
+      timestamp: Date.now(),
+      confidence: 0.8
+    };
   }
-  
-  /**
-   * Analyze career path based on user profile
-   */
-  async analyzeCareerPath(careerQuery: any): Promise<string> {
-    return `Based on your current role as ${careerQuery.currentRole} with ${careerQuery.yearsExperience} years of experience, 
-      focusing on ${careerQuery.interests.join(', ')} could lead to career advancement in the supply chain sector.`;
+
+  getActiveAgent(): AgentRole | null {
+    return this.activeAgent;
+  }
+
+  getAllAgents(): AgentRole[] {
+    return Array.from(this.agents.keys());
   }
 }
 
-// Export a singleton instance for the social media agent
-export const socialMediaAgent = new AIAgent(AGENT_ROLES.SOCIAL_MEDIA);
+export const aiAgentService = new AIAgentService();

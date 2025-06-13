@@ -1,28 +1,23 @@
 
-import type { SocialPost } from '../socialMediaService';
+export type AgentRole = 'career_advisor' | 'job_matcher' | 'news_analyzer' | 'social_media';
 
-export interface Message {
-  from: string;
-  to: string;
-  content: any;
-  type: 'request' | 'response' | 'broadcast';
+export interface AgentMessage {
+  id: string;
+  content: string;
+  role: AgentRole;
   timestamp: number;
+  confidence: number;
+  metadata?: Record<string, any>;
 }
 
-export interface AgentRole {
+export interface AgentContext {
+  userId?: string;
+  preferences?: Record<string, any>;
+  history?: AgentMessage[];
+}
+
+export interface AgentCapability {
   name: string;
   description: string;
-  model: string;
-}
-
-export interface AnalysisResult {
-  engagementRate: number;
-  reach: number;
-  recommendations: string[];
-}
-
-export interface GrowthStrategy {
-  strategy: string;
-  actionItems: string[];
-  timeline: string;
+  enabled: boolean;
 }
