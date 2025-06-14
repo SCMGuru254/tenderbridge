@@ -20,8 +20,10 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   
   console.log("JobList - jobs received:", jobs);
   console.log("JobList - isLoading:", isLoading);
+  console.log("JobList - jobs length:", jobs?.length);
   
   if (isLoading) {
+    console.log("JobList - Showing loading state");
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="w-8 h-8 animate-spin" />
@@ -30,7 +32,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   }
 
   if (!jobs || jobs.length === 0) {
-    console.log("JobList - No jobs to display");
+    console.log("JobList - No jobs to display, jobs:", jobs);
     return (
       <div className="text-center text-gray-500 py-12">
         No jobs found matching your criteria
@@ -40,6 +42,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
 
   // Only filter out jobs with severe formatting issues
   const filteredJobs = jobs.filter(job => {
+    console.log("JobList - Processing job:", job.title, "from source:", getJobSource(job));
+    
     // Skip jobs without critical information
     if (!job.title || (job.title.trim() === '')) {
       console.log("JobList - Filtering out job without title:", job);
@@ -56,6 +60,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   });
 
   console.log("JobList - Filtered jobs count:", filteredJobs.length);
+  console.log("JobList - Original jobs count:", jobs.length);
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -73,7 +78,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   }, {} as Record<string, (PostedJob | ScrapedJob)[]>);
 
   // Display sources to help with debugging
-  console.log("Original job sources:", 
+  console.log("JobList - Job sources:", 
     Object.entries(jobsBySource).map(([source, jobs]) => 
       `${source}: ${jobs.length} jobs`
     )
@@ -100,8 +105,11 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
-          // Properly convert string | null to string | undefined
+          // Convert null to undefined for proper type handling
           const deadlineValue = deadline === null ? undefined : deadline;
+          
+          console.log("JobList - Rendering job:", job.title, "deadline:", deadlineValue);
+          
           return isMobile ? (
             <SwipeableJobCard
               key={job.id}
