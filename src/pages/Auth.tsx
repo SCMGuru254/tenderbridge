@@ -8,8 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const Auth = () => {
@@ -34,7 +33,7 @@ const Auth = () => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -44,10 +43,8 @@ const Auth = () => {
         return;
       }
 
-      if (data.user) {
-        toast.success("Successfully signed in!");
-        navigate("/");
-      }
+      toast.success("Successfully signed in!");
+      navigate("/");
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error("An unexpected error occurred");
@@ -59,7 +56,7 @@ const Auth = () => {
   const handleSignUp = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -75,9 +72,7 @@ const Auth = () => {
         return;
       }
 
-      if (data.user) {
-        toast.success("Account created! Please check your email to verify your account.");
-      }
+      toast.success("Account created! Please check your email to verify your account.");
     } catch (error) {
       console.error("Sign up error:", error);
       toast.error("An unexpected error occurred");
@@ -89,7 +84,7 @@ const Auth = () => {
   const handleLinkedInSignIn = async () => {
     setSocialLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
           redirectTo: `${window.location.origin}/`,

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkIcon, BriefcaseIcon, UserIcon, SettingsIcon, TrendingUpIcon } from "lucide-react";
+import { BookmarkIcon, BriefcaseIcon, UserIcon, TrendingUpIcon } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";

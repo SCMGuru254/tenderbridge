@@ -105,8 +105,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
-          // Fix TypeScript error by ensuring proper type
-          const deadlineValue = deadline || undefined;
+          // Convert null to undefined to match expected type
+          const deadlineValue = deadline === null ? undefined : deadline;
           
           console.log("JobList - Rendering job:", job.title, "deadline:", deadlineValue);
           
