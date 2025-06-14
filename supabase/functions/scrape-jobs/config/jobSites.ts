@@ -3,70 +3,86 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
-    // BrighterMonday - Working selectors
+    // BrighterMonday - Updated with working URL
     {
-      url: "https://www.brightermonday.co.ke/search/jobs/supply-chain-logistics",
+      url: "https://www.brightermonday.co.ke/jobs?q=supply+chain",
       source: "BrighterMonday",
       selectors: {
-        jobContainer: ".search-card, .job-list-item, .vacancy-item",
-        title: ".job-title a, .position-title, h3 a",
-        company: ".company-name, .employer-name, .company",
+        jobContainer: ".job-item, .job-card, .search-result-item, article",
+        title: "h2 a, h3 a, .job-title, .title",
+        company: ".company, .employer, .company-name",
         location: ".location, .job-location, .area",
-        jobLink: "a",
+        jobLink: "h2 a, h3 a, .job-title a",
         jobType: ".job-type, .employment-type",
         deadline: ".deadline, .expiry-date"
       },
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'distribution'],
-      retryAttempts: 3,
-      timeout: 30000
+      retryAttempts: 2,
+      timeout: 25000
     },
     
-    // MyJobMag - Working selectors
+    // MyJobMag - Updated with correct URL structure
     {
-      url: "https://www.myjobmag.co.ke/jobs/logistics-supply-chain",
+      url: "https://www.myjobmag.co.ke/search/jobs?q=supply+chain",
       source: "MyJobMag", 
       selectors: {
-        jobContainer: ".job-item, .job-listing, .vacancy-card",
-        title: ".job-title, .title, h2 a",
+        jobContainer: ".job-card, .job-item, .listing-item, article",
+        title: "h2 a, h3 a, .job-title, .title",
         company: ".company, .employer, .company-name",
         location: ".location, .job-location, .area",
-        jobLink: "a"
+        jobLink: "h2 a, h3 a, .job-title a"
       },
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'operations'],
-      retryAttempts: 3,
-      timeout: 30000
+      retryAttempts: 2,
+      timeout: 25000
     },
     
-    // PigiaMe Jobs - Alternative local source
+    // Fuzu - Working Kenyan job site
     {
-      url: "https://www.pigiame.co.ke/jobs/logistics-transport",
-      source: "PigiaMe",
+      url: "https://www.fuzu.com/kenya/jobs?search=supply+chain",
+      source: "Fuzu",
       selectors: {
-        jobContainer: ".listing-item, .job-card, .ad-item",
-        title: ".listing-title a, .job-title, h3 a",
-        company: ".company-name, .poster-name, .business-name",
-        location: ".location, .area, .region",
-        jobLink: "a"
+        jobContainer: ".job-card, .job-item, .listing, article",
+        title: "h2 a, h3 a, .job-title, .title",
+        company: ".company, .employer, .company-name",
+        location: ".location, .job-location, .area",
+        jobLink: "h2 a, h3 a, .job-title a"
       },
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'transport'],
       retryAttempts: 2,
       timeout: 25000
     },
 
-    // Corporate Staffing - Known working site
+    // JobsInKenya - Alternative local source
     {
-      url: "https://www.corporatestaffing.co.ke/job-category/logistics-supply-chain/",
-      source: "CorporateStaffing",
+      url: "https://www.jobsinkenya.co.ke/search?q=logistics",
+      source: "JobsInKenya",
       selectors: {
-        jobContainer: ".job-listing, .position-card, .vacancy-item",
-        title: ".job-title a, .position-title, h3 a",
+        jobContainer: ".job-listing, .job-card, .vacancy-item, article",
+        title: "h2 a, h3 a, .job-title, .title",
         company: ".company-name, .employer, .client-name",
         location: ".location, .job-location, .area",
-        jobLink: "a"
+        jobLink: "h2 a, h3 a, .job-title a"
       },
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse'],
       retryAttempts: 2,
       timeout: 25000
+    },
+
+    // Glassdoor Kenya - More lenient scraping
+    {
+      url: "https://www.glassdoor.com/Job/kenya-supply-chain-jobs-SRCH_IL.0,5_IN117_KO6,18.htm",
+      source: "Glassdoor",
+      selectors: {
+        jobContainer: "[data-test='jobListing'], .react-job-listing, .job-search-card, article",
+        title: "a[data-test='job-title'], .job-title, h2 a",
+        company: "[data-test='employer-name'], .company, .employer",
+        location: ".location, [data-test='job-location']",
+        jobLink: "a[data-test='job-title'], .job-title a"
+      },
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse'],
+      retryAttempts: 1,
+      timeout: 20000
     }
   ];
 };
