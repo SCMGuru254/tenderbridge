@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,6 @@ import { Bell, Plus } from 'lucide-react';
 
 const JobAlertsPage = () => {
   const [showForm, setShowForm] = useState(false);
-
-  const handleSuccess = () => {
-    setShowForm(false);
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-  };
 
   return (
     <div className="container mx-auto p-6">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { Connection, SkillEndorsement, ProfessionalRecommendation, ConnectionSuggestion } from '@/types/networking';
+import { Connection, ProfessionalRecommendation, ConnectionSuggestion } from '@/types/networking';
 
 interface NetworkingConnection {
   id: string;
@@ -27,7 +27,7 @@ interface SkillEndorsementData {
 export const useNetworking = () => {
   const { user } = useAuth();
   const [connections, setConnections] = useState<NetworkingConnection[]>([]);
-  const [endorsements, setEndorsements] = useState<SkillEndorsementData[]>([]);
+  const [endorsements, setEndorsements] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchConnections = async () => {
@@ -112,9 +112,9 @@ export const useNetworking = () => {
   };
 };
 
-export const useConnections = (userId: string) => {
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export const useConnections = (_userId: string) => {
+  const connections: Connection[] = [];
+  const isLoading = false;
 
   const sendConnectionRequest = async (targetId: string) => {
     try {
@@ -139,7 +139,7 @@ export const useConnections = (userId: string) => {
 
 export const useConnectionSuggestions = (userId: string) => {
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -171,7 +171,7 @@ export const useEndorsements = (userId: string) => {
 
 export const useRecommendations = (userId: string) => {
   const [recommendations, setRecommendations] = useState<ProfessionalRecommendation[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const writeRecommendation = async (data: Partial<ProfessionalRecommendation>) => {
     try {

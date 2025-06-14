@@ -64,11 +64,10 @@ export const useCommunity = () => {
 };
 
 export const useCommunities = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
-    setLoading(true);
     setError(null);
     try {
       let query = supabase
@@ -96,7 +95,6 @@ export const useCommunities = () => {
       setError('Failed to fetch communities');
       return [];
     } finally {
-      setLoading(false);
     }
   };
 
