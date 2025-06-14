@@ -17,47 +17,62 @@ export const usePostedJobs = () => {
       trackNetworkRequest();
       
       try {
-        console.log("🔍 usePostedJobs - Making Supabase query to 'jobs' table...");
+        console.log("🔍 usePostedJobs - Testing basic connection to Supabase...");
         
-        // First, let's check if we can connect to Supabase at all
-        const { data: testConnection, error: connectionError } = await supabase
+        // Test basic connection first
+        const { data: tables, error: tablesError } = await supabase
           .from('jobs')
-          .select('count(*)', { count: 'exact', head: true });
+          .select('id', { count: 'exact', head: true });
         
-        console.log("🔍 usePostedJobs - Connection test result:", { testConnection, connectionError });
-        
-        if (connectionError) {
-          console.error("❌ usePostedJobs - Connection error:", connectionError);
-          throw connectionError;
-        }
-        
-        // Now do the actual query - simplified without companies join
-        const { data, error, count } = await supabase
-          .from('jobs')
-          .select('*', { count: 'exact' })
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(1000);
-
-        console.log("🔍 usePostedJobs - Detailed query result:", { 
-          dataLength: data?.length || 0, 
-          totalCount: count,
-          error,
-          firstJob: data?.[0] ? {
-            id: data[0].id,
-            title: data[0].title,
-            is_active: data[0].is_active
-          } : null
+        console.log("🔍 usePostedJobs - Table exists check:", { 
+          tablesError: tablesError?.message || 'No error',
+          canAccessTable: !tablesError 
         });
         
-        // Let's also check without the is_active filter
-        const { error: allError, count: allCount } = await supabase
+        if (tablesError) {
+          console.error("❌ usePostedJobs - Cannot access jobs table:", tablesError);
+          throw tablesError;
+        }
+        
+        // Check total count of all jobs
+        const { error: allCountError, count: totalJobs } = await supabase
           .from('jobs')
           .select('*', { count: 'exact', head: true });
           
-        console.log("🔍 usePostedJobs - Total jobs in table (including inactive):", { 
-          totalCount: allCount, 
-          error: allError 
+        console.log("🔍 usePostedJobs - Total jobs in database:", { 
+          totalJobs, 
+          error: allCountError?.message || 'No error' 
+        });
+        
+        // Check active jobs count
+        const { error: activeCountError, count: activeJobs } = await supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true);
+          
+        console.log("🔍 usePostedJobs - Active jobs count:", { 
+          activeJobs, 
+          error: activeCountError?.message || 'No error' 
+        });
+        
+        // Try to fetch actual data
+        const { data, error, count } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(10); // Limit to 10 for debugging
+
+        console.log("🔍 usePostedJobs - Query result:", { 
+          dataCount: data?.length || 0, 
+          totalCount: count,
+          error: error?.message || 'No error',
+          firstJob: data?.[0] ? {
+            id: data[0].id,
+            title: data[0].title,
+            is_active: data[0].is_active,
+            created_at: data[0].created_at
+          } : 'No jobs found'
         });
 
         if (error) {
@@ -97,42 +112,52 @@ export const useScrapedJobs = (limit: number = 1000) => {
       trackNetworkRequest();
       
       try {
-        console.log("🔍 useScrapedJobs - Making Supabase query to 'scraped_jobs' table...");
+        console.log("🔍 useScrapedJobs - Testing basic connection to scraped_jobs table...");
         
-        // First, let's check the total count in scraped_jobs
-        const { error: connectionError, count: totalCount } = await supabase
+        // Test basic connection first
+        const { data: tables, error: tablesError } = await supabase
+          .from('scraped_jobs')
+          .select('id', { count: 'exact', head: true });
+        
+        console.log("🔍 useScrapedJobs - Table exists check:", { 
+          tablesError: tablesError?.message || 'No error',
+          canAccessTable: !tablesError 
+        });
+        
+        if (tablesError) {
+          console.error("❌ useScrapedJobs - Cannot access scraped_jobs table:", tablesError);
+          throw tablesError;
+        }
+        
+        // Check total count of all scraped jobs
+        const { error: countError, count: totalCount } = await supabase
           .from('scraped_jobs')
           .select('*', { count: 'exact', head: true });
         
         console.log("🔍 useScrapedJobs - Total scraped jobs in table:", { 
           totalCount, 
-          connectionError 
+          countError: countError?.message || 'No error' 
         });
         
-        if (connectionError) {
-          console.error("❌ useScrapedJobs - Connection error:", connectionError);
-          throw connectionError;
-        }
-        
-        // Check jobs with various filters to see what's happening
-        const { data: allJobs, error: allError } = await supabase
+        // Get a sample of jobs to see what's in the table
+        const { data: sampleJobs, error: sampleError } = await supabase
           .from('scraped_jobs')
-          .select('*')
+          .select('id, title, company, source, created_at')
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(5);
           
-        console.log("🔍 useScrapedJobs - Sample of all jobs:", { 
-          count: allJobs?.length || 0,
-          error: allError,
-          sampleJobs: allJobs?.slice(0, 3).map(job => ({
+        console.log("🔍 useScrapedJobs - Sample jobs:", { 
+          count: sampleJobs?.length || 0,
+          error: sampleError?.message || 'No error',
+          jobs: sampleJobs?.map(job => ({
             id: job.id,
-            title: job.title,
-            company: job.company,
-            hasTitle: !!job.title,
-            hasCompany: !!job.company
-          }))
+            title: job.title || 'No title',
+            company: job.company || 'No company',
+            source: job.source || 'No source'
+          })) || []
         });
 
+        // Try the filtered query
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
@@ -143,12 +168,13 @@ export const useScrapedJobs = (limit: number = 1000) => {
 
         console.log("🔍 useScrapedJobs - Filtered query result:", { 
           dataLength: data?.length || 0, 
-          error,
+          error: error?.message || 'No error',
           firstJob: data?.[0] ? {
             id: data[0].id,
             title: data[0].title,
-            company: data[0].company
-          } : null
+            company: data[0].company,
+            source: data[0].source
+          } : 'No jobs found'
         });
 
         if (error) {
