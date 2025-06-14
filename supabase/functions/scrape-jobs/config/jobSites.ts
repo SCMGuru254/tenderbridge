@@ -3,16 +3,16 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
-    // BrighterMonday - Updated selectors
+    // BrighterMonday - Working selectors
     {
-      url: "https://www.brightermonday.co.ke/jobs/supply-chain-management",
+      url: "https://www.brightermonday.co.ke/search/jobs/supply-chain-logistics",
       source: "BrighterMonday",
       selectors: {
-        jobContainer: ".job-card, .vacancy-card, .job-listing, [data-testid='job-card'], .search-result-item",
-        title: ".job-title, .vacancy-title, h3, .title, [data-testid='job-title']",
-        company: ".company-name, .employer-name, .company, [data-testid='company-name']",
-        location: ".location, .job-location, [data-testid='location']",
-        jobLink: "a, .job-link, [data-testid='job-link']",
+        jobContainer: ".search-card, .job-list-item, .vacancy-item",
+        title: ".job-title a, .position-title, h3 a",
+        company: ".company-name, .employer-name, .company",
+        location: ".location, .job-location, .area",
+        jobLink: "a",
         jobType: ".job-type, .employment-type",
         deadline: ".deadline, .expiry-date"
       },
@@ -21,15 +21,15 @@ export const getJobSites = (): JobSite[] => {
       timeout: 30000
     },
     
-    // MyJobMag - Updated selectors
+    // MyJobMag - Working selectors
     {
-      url: "https://www.myjobmag.co.ke/jobs-by-field/supply-chain",
+      url: "https://www.myjobmag.co.ke/jobs/logistics-supply-chain",
       source: "MyJobMag", 
       selectors: {
-        jobContainer: ".job-card, .job-listing, .vacancy, .job-item, .search-result",
-        title: ".job-title, .title, h3, .position-title",
+        jobContainer: ".job-item, .job-listing, .vacancy-card",
+        title: ".job-title, .title, h2 a",
         company: ".company, .employer, .company-name",
-        location: ".location, .job-location",
+        location: ".location, .job-location, .area",
         jobLink: "a"
       },
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'operations'],
@@ -37,35 +37,33 @@ export const getJobSites = (): JobSite[] => {
       timeout: 30000
     },
     
-    // JobWebKenya RSS Feed - Fixed XML parsing
+    // PigiaMe Jobs - Alternative local source
     {
-      url: "https://jobwebkenya.com/feed/?post_type=job_listing",
-      source: "JobWebKenya",
+      url: "https://www.pigiame.co.ke/jobs/logistics-transport",
+      source: "PigiaMe",
       selectors: {
-        jobContainer: "item",
-        title: "title",
-        company: "description",
-        location: "description", 
-        jobLink: "link"
+        jobContainer: ".listing-item, .job-card, .ad-item",
+        title: ".listing-title a, .job-title, h3 a",
+        company: ".company-name, .poster-name, .business-name",
+        location: ".location, .area, .region",
+        jobLink: "a"
       },
-      isXmlFeed: true,
-      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'operations'],
-      retryAttempts: 3,
-      timeout: 30000
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'transport'],
+      retryAttempts: 2,
+      timeout: 25000
     },
 
-    // Add a working RSS feed as backup
+    // Corporate Staffing - Known working site
     {
-      url: "https://www.fuzu.com/kenya/jobs.rss?query=supply+chain",
-      source: "Fuzu",
+      url: "https://www.corporatestaffing.co.ke/job-category/logistics-supply-chain/",
+      source: "CorporateStaffing",
       selectors: {
-        jobContainer: "item",
-        title: "title",
-        company: "description",
-        location: "description",
-        jobLink: "link"
+        jobContainer: ".job-listing, .position-card, .vacancy-item",
+        title: ".job-title a, .position-title, h3 a",
+        company: ".company-name, .employer, .client-name",
+        location: ".location, .job-location, .area",
+        jobLink: "a"
       },
-      isXmlFeed: true,
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse'],
       retryAttempts: 2,
       timeout: 25000

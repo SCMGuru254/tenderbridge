@@ -144,7 +144,14 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
   
   if (jobElements.length === 0) {
     console.log(`⚠️ No job containers found for ${jobSite.source} with any selector`);
-    return [];
+    // Let's try to find ANY potential job containers
+    const potentialContainers = $('.job, .vacancy, .listing, .card, .item, [class*="job"], [class*="vacancy"]');
+    if (potentialContainers.length > 0) {
+      jobElements = potentialContainers;
+      console.log(`🔍 Found ${potentialContainers.length} potential job containers with fallback selectors`);
+    } else {
+      return [];
+    }
   }
   
   console.log(`🔄 Processing ${jobElements.length} job elements for ${jobSite.source}`);
@@ -176,7 +183,7 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         }
       }
       
-      // Validate and filter jobs
+      // Validate and filter jobs - be more lenient
       if (isValidJob(title, company, jobSite)) {
         const job: Job = {
           title: cleanTitle(title),
@@ -210,6 +217,8 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         
         jobs.push(job);
         console.log(`✅ Extracted: "${job.title}" at "${job.company}" from ${jobSite.source}`);
+      } else {
+        console.log(`⚠️ Skipped invalid job: "${title}" at "${company}" from ${jobSite.source}`);
       }
     } catch (error) {
       console.error(`❌ Error processing job element ${index} from ${jobSite.source}:`, error);
@@ -235,32 +244,43 @@ function extractText($element: any, selectors: string, $: any): string {
     }
   }
   
+  // If no specific selector worked, try to extract from element text
+  const elementText = $element.text().trim();
+  if (elementText && elementText.length > 0) {
+    // Return first meaningful line of text
+    const lines = elementText.split('\n').map(line => line.trim()).filter(line => line.length > 2);
+    if (lines.length > 0) {
+      return lines[0];
+    }
+  }
+  
   return '';
 }
 
 function isValidJob(title: string, company: string | null, jobSite: JobSite): boolean {
-  // Basic validation
-  if (!title || title.length < 3 || title.toLowerCase() === 'null') {
+  // Be more lenient with validation
+  if (!title || title.length < 2) {
     return false;
   }
   
-  // Skip if title contains spam indicators
-  const spamIndicators = ['click here', 'visit our', 'apply now', 'see more', 'view all'];
-  if (spamIndicators.some(indicator => title.toLowerCase().includes(indicator))) {
+  // Skip obvious non-job content
+  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all'];
+  if (skipWords.some(word => title.toLowerCase().includes(word))) {
     return false;
   }
   
-  // Filter by keywords if specified
+  // Don't require keywords to be too strict - any logistics/supply chain related content is good
   if (jobSite.keywords && jobSite.keywords.length > 0) {
     const titleLower = title.toLowerCase();
     const companyLower = (company || '').toLowerCase();
     
-    const hasKeyword = jobSite.keywords.some(keyword => 
-      titleLower.includes(keyword.toLowerCase()) ||
-      companyLower.includes(keyword.toLowerCase())
+    const relevantWords = ['supply', 'chain', 'logistics', 'warehouse', 'procurement', 'inventory', 'distribution', 'transport', 'shipping', 'coordinator', 'manager', 'officer', 'assistant'];
+    
+    const hasRelevantContent = relevantWords.some(word => 
+      titleLower.includes(word) || companyLower.includes(word)
     );
     
-    if (!hasKeyword) {
+    if (!hasRelevantContent) {
       return false;
     }
   }
@@ -271,8 +291,9 @@ function isValidJob(title: string, company: string | null, jobSite: JobSite): bo
 function cleanTitle(title: string): string {
   return title
     .replace(/\s+/g, ' ')
-    .replace(/[^\w\s-]/g, '')
-    .trim();
+    .replace(/[^\w\s\-&()]/g, '')
+    .trim()
+    .slice(0, 255);
 }
 
 function mapJobType(jobType: string): string {
