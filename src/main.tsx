@@ -3,6 +3,11 @@
 import React from "react";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
+console.log("[DEBUG] main.tsx - React object:", React);
+console.log("[DEBUG] main.tsx - React version:", React.version);
+console.log("[DEBUG] main.tsx - StrictMode:", StrictMode);
+
 import App from './App'
 import './index.css'
 import { ThemeProvider } from "@/components/theme-provider"
@@ -51,6 +56,7 @@ if (!rootElement) throw new Error('Root element not found')
 const root = createRoot(rootElement)
 
 console.log("[DIAGNOSTIC] React version:", React.version);
+console.log("[DEBUG] main.tsx - About to render app");
 
 root.render(
   <StrictMode>
@@ -67,4 +73,3 @@ root.render(
     </QueryClientProvider>
   </StrictMode>
 )
-
