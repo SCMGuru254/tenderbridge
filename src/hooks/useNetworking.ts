@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { Connection, SkillEndorsement, ProfessionalRecommendation, ConnectionSuggestion } from '@/types/networking';
 
 interface NetworkingConnection {
   id: string;
@@ -12,18 +13,22 @@ interface NetworkingConnection {
   created_at: string;
 }
 
-interface SkillEndorsement {
+interface SkillEndorsementData {
   id: string;
   endorser_id: string;
   endorsee_id: string;
   skill: string;
+  level: number;
   created_at: string;
+  profiles: {
+    full_name: string;
+  };
 }
 
 export const useNetworking = () => {
   const { user } = useAuth();
   const [connections, setConnections] = useState<NetworkingConnection[]>([]);
-  const [endorsements, setEndorsements] = useState<SkillEndorsement[]>([]);
+  const [endorsements, setEndorsements] = useState<SkillEndorsementData[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchConnections = async () => {
@@ -106,4 +111,83 @@ export const useNetworking = () => {
     endorseSkill,
     refetch: fetchConnections
   };
+};
+
+export const useConnections = (userId: string) => {
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const sendConnectionRequest = async (targetId: string) => {
+    try {
+      // Simulate connection request
+      console.log('Sending connection request to:', targetId);
+    } catch (error) {
+      console.error('Error sending connection request:', error);
+    }
+  };
+
+  const respondToRequest = async ({ connectionId, status }: { connectionId: string; status: string }) => {
+    try {
+      // Simulate responding to connection request
+      console.log('Responding to connection:', connectionId, status);
+    } catch (error) {
+      console.error('Error responding to connection:', error);
+    }
+  };
+
+  return { connections, isLoading, sendConnectionRequest, respondToRequest };
+};
+
+export const useConnectionSuggestions = (userId: string) => {
+  const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (userId) {
+      // Simulate loading suggestions
+      setSuggestions([]);
+    }
+  }, [userId]);
+
+  return { suggestions, isLoading };
+};
+
+export const useEndorsements = (userId: string) => {
+  const [receivedEndorsements, setReceivedEndorsements] = useState<SkillEndorsementData[]>([]);
+  const [loadingReceived, setLoadingReceived] = useState(false);
+
+  useEffect(() => {
+    if (userId) {
+      setLoadingReceived(true);
+      // Simulate loading endorsements
+      setTimeout(() => {
+        setReceivedEndorsements([]);
+        setLoadingReceived(false);
+      }, 1000);
+    }
+  }, [userId]);
+
+  return { receivedEndorsements, loadingReceived };
+};
+
+export const useRecommendations = (userId: string) => {
+  const [recommendations, setRecommendations] = useState<ProfessionalRecommendation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const writeRecommendation = async (data: Partial<ProfessionalRecommendation>) => {
+    try {
+      // Simulate writing recommendation
+      console.log('Writing recommendation:', data);
+    } catch (error) {
+      console.error('Error writing recommendation:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      setRecommendations([]);
+    }
+  }, [userId]);
+
+  return { recommendations, isLoading, writeRecommendation };
 };

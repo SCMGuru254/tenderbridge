@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CompanyUpdates } from "@/components/company/CompanyUpdates";
@@ -8,7 +7,6 @@ import { CompanyEvents } from "@/components/company/CompanyEvents";
 import { CompanyTeam } from "@/components/company/CompanyTeam";
 
 export default function CompanySocial() {
-  const { companyId } = useParams();
   const [updates] = useState([]);
   const [events] = useState([]);
   const [team] = useState([]);

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useCommunityPosts } from '@/hooks/useCommunity';
 import { useAuth } from '@/hooks/useAuth';
+import { CommunityPost } from '@/types/community';
 
 interface CommunityPostsProps {
   communityId: string;
@@ -88,7 +89,7 @@ export const CommunityPosts: React.FC<CommunityPostsProps> = ({ communityId }) =
       )}
 
       <div className="space-y-4">
-        {posts.map((post) => (
+        {posts.map((post: CommunityPost) => (
           <div key={post.id} className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-medium text-gray-900">{post.title}</h3>
             <p className="mt-2 text-gray-600">{post.content}</p>

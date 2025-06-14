@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Community } from '@/types/community';
+import { Community, CommunityWithMembership, CommunityPost } from '@/types/community';
 
 export const useCommunity = () => {
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -62,4 +62,110 @@ export const useCommunity = () => {
     createCommunity,
     fetchCommunities
   };
+};
+
+export const useCommunities = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
+    setLoading(true);
+    setError(null);
+    try {
+      let query = supabase
+        .from('communities')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (category) {
+        query = query.eq('category', category);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        setError(error.message);
+        return [];
+      }
+
+      return (data || []).map(community => ({
+        ...community,
+        memberCount: community.member_count || 0,
+        isPrivate: community.is_private || false,
+      }));
+    } catch (err) {
+      setError('Failed to fetch communities');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { getCommunities, loading, error };
+};
+
+export const useCommunityMembership = () => {
+  const joinCommunity = async (communityId: string, userId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('community_members')
+        .insert([{ community_id: communityId, user_id: userId, role: 'member' }]);
+      
+      return !error;
+    } catch (error) {
+      console.error('Error joining community:', error);
+      return false;
+    }
+  };
+
+  const leaveCommunity = async (communityId: string, userId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('community_members')
+        .delete()
+        .eq('community_id', communityId)
+        .eq('user_id', userId);
+      
+      return !error;
+    } catch (error) {
+      console.error('Error leaving community:', error);
+      return false;
+    }
+  };
+
+  return { joinCommunity, leaveCommunity };
+};
+
+export const useCommunityPosts = (communityId: string) => {
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const createPost = async (postData: Partial<CommunityPost>) => {
+    try {
+      // Simulated post creation - would connect to actual database
+      const newPost: CommunityPost = {
+        id: Math.random().toString(),
+        title: postData.title || '',
+        content: postData.content || '',
+        author: postData.author || '',
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        comments: 0,
+        tags: postData.tags || []
+      };
+      
+      setPosts(prev => [newPost, ...prev]);
+      return newPost;
+    } catch (error) {
+      console.error('Error creating post:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    // Fetch posts for community
+    setPosts([]);
+  }, [communityId]);
+
+  return { posts, loading, createPost };
 };
