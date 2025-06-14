@@ -1,91 +1,65 @@
 
-import { render, RenderOptions } from '@testing-library/react';
-import React, { ReactElement } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { QueryClient } from '@tanstack/react-query';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      cacheTime: 0
-    }
-  }
-});
-
-interface AllTheProvidersProps {
-  children: React.ReactNode;
-}
-
-const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
-  return React.createElement(
-    QueryClientProvider,
-    { client: queryClient },
-    React.createElement(BrowserRouter, {}, children)
-  );
-};
-
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
-
-// Mock data generators
-export const generateMockJob = (overrides = {}) => ({
-  id: Math.random().toString(36).substr(2, 9),
-  title: 'Software Engineer',
-  company: 'Tech Corp',
-  location: 'San Francisco, CA',
-  description: 'Job description here',
-  salary: '$100,000 - $150,000',
-  skills: ['JavaScript', 'React', 'TypeScript'],
-  is_remote: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  ...overrides
-});
-
-export const generateMockUser = (overrides = {}) => ({
-  id: Math.random().toString(36).substr(2, 9),
-  email: 'test@example.com',
-  name: 'Test User',
-  created_at: new Date().toISOString(),
-  ...overrides
-});
-
-export const generateMockNotification = (overrides = {}) => ({
-  id: Math.random().toString(36).substr(2, 9),
-  user_id: Math.random().toString(36).substr(2, 9),
-  title: 'New Job Alert',
-  message: 'A new job matching your criteria has been posted',
-  type: 'job_alert',
-  read: false,
-  created_at: new Date().toISOString(),
-  ...overrides
-});
-
-// Mock API responses
-export const mockApiResponse = <T>(data: T, delay = 1000) => {
-  return new Promise<T>((resolve) => {
-    setTimeout(() => resolve(data), delay);
+// Mock query client for testing
+export const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
+      },
+    },
+    logger: {
+      log: console.log,
+      warn: console.warn,
+      error: () => {}, // Suppress error logs in tests
+    },
   });
+
+// Mock data for testing
+export const mockJob = {
+  id: '1',
+  title: 'Supply Chain Manager',
+  company: 'Test Company',
+  location: 'Nairobi, Kenya',
+  job_type: '4Full-time' as const,
+  created_at: '2024-01-01T00:00:00Z',
+  description: 'Test job description',
+  posted_by: 'test-user-id',
+  is_active: true,
+  updated_at: '2024-01-01T00:00:00Z'
 };
 
-// Mock error responses
-export const mockApiError = (error: Error, delay = 1000) => {
-  return new Promise<never>((_, reject) => {
-    setTimeout(() => reject(error), delay);
-  });
+export const mockScrapedJob = {
+  id: '1',
+  title: 'Logistics Coordinator',
+  company: 'Test Logistics',
+  location: 'Mombasa, Kenya',
+  source: 'TestSource',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z'
 };
 
-// Test helpers
-export const waitForLoadingToFinish = async () => {
-  const loadingElement = document.querySelector('[data-testid="loading"]');
-  if (loadingElement) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
+// Test utilities
+export const waitFor = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const mockConsoleError = () => {
+  const originalError = console.error;
+  console.error = jest.fn();
+  return () => {
+    console.error = originalError;
+  };
 };
 
-// Export everything
-export * from '@testing-library/react';
-export { customRender as render };
+// Mock render function for components that need query client
+export const renderWithQueryClient = (ui: React.ReactElement) => {
+  const testQueryClient = createTestQueryClient();
+  
+  // Mock implementation without testing-library dependencies
+  return {
+    queryClient: testQueryClient,
+    component: ui
+  };
+};

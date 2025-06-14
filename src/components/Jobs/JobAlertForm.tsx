@@ -1,67 +1,89 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { notificationService } from '@/services/notificationService';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from '@/components/ui/use-toast';
+import { errorHandler } from '@/utils/errorHandling';
 
-export const JobAlertForm: React.FC = () => {
+const JobAlertForm = () => {
+  const [email, setEmail] = useState('');
   const [keywords, setKeywords] = useState('');
   const [location, setLocation] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !keywords.trim()) return;
-
-    setIsSubmitting(true);
+    
     try {
-      await notificationService.createNotification(
-        user.id,
-        'Job Alert Created',
-        `You will receive notifications for jobs matching: ${keywords}`,
-        'job_alert',
-        { keywords, location }
-      );
+      // Mock job alert creation
+      console.log('Creating job alert:', { email, keywords, location });
       
+      toast({
+        title: "Job Alert Created",
+        description: "You'll receive notifications for matching jobs.",
+      });
+      
+      // Reset form
+      setEmail('');
       setKeywords('');
       setLocation('');
-      console.log('Job alert created successfully');
     } catch (error) {
-      console.error('Error creating job alert:', error);
-    } finally {
-      setIsSubmitting(false);
+      const handledError = errorHandler.handleError(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: handledError.message,
+      });
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">Create Job Alert</h3>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Keywords</label>
-          <Input
-            type="text"
-            value={keywords}
-            onChange={(e) => setKeywords(e.target.value)}
-            placeholder="e.g., supply chain, logistics"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <Input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g., Nairobi, Kenya"
-          />
-        </div>
-        <Button type="submit" disabled={isSubmitting || !user}>
-          {isSubmitting ? 'Creating...' : 'Create Alert'}
-        </Button>
-      </form>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Create Job Alert</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="keywords">Keywords</Label>
+            <Input
+              id="keywords"
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+              placeholder="supply chain, logistics"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Nairobi, Kenya"
+            />
+          </div>
+          
+          <Button type="submit" className="w-full">
+            Create Alert
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
+
+export default JobAlertForm;

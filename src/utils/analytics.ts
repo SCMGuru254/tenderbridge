@@ -1,128 +1,113 @@
-interface AnalyticsEvent {
-  category: string;
-  action: string;
-  label?: string;
-  value?: number;
-  properties?: Record<string, any>;
-}
 
-interface UserProperties {
+// Analytics utility for tracking user interactions and application performance
+export interface AnalyticsEvent {
+  event: string;
+  data?: any;
+  timestamp?: number;
   userId?: string;
-  userType?: string;
-  deviceType?: string;
-  platform?: string;
 }
 
-class Analytics {
-  private static instance: Analytics;
-  private userProperties: UserProperties = {};
+export interface ErrorEvent {
+  error: Error;
+  context?: string;
+  userId?: string;
+  timestamp: number;
+}
+
+export interface UserAction {
+  action: string;
+  data?: any;
+  userId?: string;
+  timestamp: number;
+}
+
+class AnalyticsService {
   private events: AnalyticsEvent[] = [];
+  private errors: ErrorEvent[] = [];
+  private userActions: UserAction[] = [];
 
-  private constructor() {
-    this.initializeUserProperties();
-  }
-
-  static getInstance(): Analytics {
-    if (!Analytics.instance) {
-      Analytics.instance = new Analytics();
-    }
-    return Analytics.instance;
-  }
-
-  private initializeUserProperties(): void {
-    this.userProperties = {
-      deviceType: this.getDeviceType(),
-      platform: this.getPlatform(),
+  trackEvent(event: string, data?: any, userId?: string) {
+    const analyticsEvent: AnalyticsEvent = {
+      event,
+      data,
+      userId,
+      timestamp: Date.now()
     };
+    
+    this.events.push(analyticsEvent);
+    console.log('Analytics Event:', analyticsEvent);
+    
+    // In production, send to analytics service
+    this.sendToAnalyticsService(analyticsEvent);
   }
 
-  private getDeviceType(): string {
-    const ua = navigator.userAgent;
-    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-      return 'tablet';
-    }
-    if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-      return 'mobile';
-    }
-    return 'desktop';
-  }
-
-  private getPlatform(): string {
-    const ua = navigator.userAgent;
-    if (/android/i.test(ua)) return 'android';
-    if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
-    if (/windows/i.test(ua)) return 'windows';
-    if (/macintosh|mac os x/i.test(ua)) return 'macos';
-    if (/linux/i.test(ua)) return 'linux';
-    return 'unknown';
-  }
-
-  trackEvent(event: AnalyticsEvent): void {
-    const enrichedEvent = {
-      ...event,
-      timestamp: new Date().toISOString(),
-      ...this.userProperties,
+  trackError(error: Error, context?: string, userId?: string) {
+    const errorEvent: ErrorEvent = {
+      error,
+      context,
+      userId,
+      timestamp: Date.now()
     };
-
-    this.events.push(enrichedEvent);
-    this.logEvent(enrichedEvent);
-    this.sendToAnalyticsService(enrichedEvent);
+    
+    this.errors.push(errorEvent);
+    console.error('Analytics Error:', errorEvent);
+    
+    // In production, send to error tracking service
+    this.sendToErrorTracking(errorEvent);
   }
 
-  private logEvent(event: AnalyticsEvent & { timestamp: string }): void {
-    console.log('Analytics Event:', event);
-  }
-
-  private sendToAnalyticsService(event: AnalyticsEvent & { timestamp: string }): void {
-    // In production, this would send to your analytics service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Implement analytics service integration
-      // Example: Google Analytics, Mixpanel, etc.
-    }
-  }
-
-  setUserProperties(properties: Partial<UserProperties>): void {
-    this.userProperties = {
-      ...this.userProperties,
-      ...properties,
-    };
-  }
-
-  trackPageView(path: string): void {
-    this.trackEvent({
-      category: 'Page',
-      action: 'View',
-      label: path,
-    });
-  }
-
-  trackUserAction(action: string, label?: string): void {
-    this.trackEvent({
-      category: 'User',
+  trackUserAction(action: string, data?: any, userId?: string) {
+    const userAction: UserAction = {
       action,
-      label,
-    });
+      data,
+      userId,
+      timestamp: Date.now()
+    };
+    
+    this.userActions.push(userAction);
+    console.log('User Action:', userAction);
+    
+    // In production, send to analytics service
+    this.sendUserActionToAnalytics(userAction);
   }
 
-  trackError(error: Error): void {
-    this.trackEvent({
-      category: 'Error',
-      action: 'Occurred',
-      label: error.message,
-      properties: {
-        stack: error.stack,
-        name: error.name,
-      },
-    });
+  private sendToAnalyticsService(analyticsEvent: AnalyticsEvent) {
+    // Mock implementation - replace with actual analytics service
+    // e.g., Google Analytics, Mixpanel, etc.
+  }
+
+  private sendToErrorTracking(errorEvent: ErrorEvent) {
+    // Mock implementation - replace with actual error tracking service
+    // e.g., Sentry, Bugsnag, etc.
+  }
+
+  private sendUserActionToAnalytics(userAction: UserAction) {
+    // Mock implementation - replace with actual analytics service
   }
 
   getEvents(): AnalyticsEvent[] {
     return [...this.events];
   }
 
-  clearEvents(): void {
+  getErrors(): ErrorEvent[] {
+    return [...this.errors];
+  }
+
+  getUserActions(): UserAction[] {
+    return [...this.userActions];
+  }
+
+  clearEvents() {
     this.events = [];
+  }
+
+  clearErrors() {
+    this.errors = [];
+  }
+
+  clearUserActions() {
+    this.userActions = [];
   }
 }
 
-export const analytics = Analytics.getInstance(); 
+export const analytics = new AnalyticsService();

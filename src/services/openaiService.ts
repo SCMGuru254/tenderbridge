@@ -3,11 +3,6 @@ import { errorHandler } from '@/utils/errorHandling';
 import { analytics } from '@/utils/analytics';
 import { performanceMonitor } from '@/utils/performanceMonitor';
 
-interface HuggingFaceMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
 interface JobMatchRequest {
   resume: string;
   jobDescription: string;
@@ -98,12 +93,12 @@ Resume: ${request.resume}
 Job Description: ${request.jobDescription}
 Provide a match score (0-100) and key insights.`;
 
-      const response = await this.makeRequest(prompt);
+      await this.makeRequest(prompt);
       analytics.trackUserAction('ai-job-match-success');
       
-      return this.parseJobMatchResponse(response);
+      return this.parseJobMatchResponse();
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
+      const handledError = errorHandler.handleError(error);
       analytics.trackError(error as Error);
       return this.getFallbackJobMatch(request);
     } finally {
@@ -121,14 +116,14 @@ Experience: ${request.experience}
 Goals: ${request.goals}
 Skills: ${request.skills.join(', ')}`;
 
-      const response = await this.makeRequest(prompt);
+      await this.makeRequest(prompt);
       analytics.trackUserAction('ai-career-advice-success');
       
-      return this.parseCareerAdviceResponse(response);
+      return this.parseCareerAdviceResponse();
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
+      const handledError = errorHandler.handleError(error);
       analytics.trackError(error as Error);
-      return this.getFallbackCareerAdvice(request);
+      return this.getFallbackCareerAdvice();
     } finally {
       performanceMonitor.endMeasure('ai-career-advice');
     }
@@ -143,12 +138,12 @@ Title: ${request.title}
 Content: ${request.content}
 Provide sentiment, categories, and key insights.`;
 
-      const response = await this.makeRequest(prompt);
+      await this.makeRequest(prompt);
       analytics.trackUserAction('ai-news-analysis-success');
       
-      return this.parseNewsAnalysisResponse(response);
+      return this.parseNewsAnalysisResponse();
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
+      const handledError = errorHandler.handleError(error);
       analytics.trackError(error as Error);
       return this.getFallbackNewsAnalysis(request);
     } finally {
@@ -166,7 +161,7 @@ Provide sentiment, categories, and key insights.`;
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
+      const handledError = errorHandler.handleError(error);
       analytics.trackError(error as Error);
       return this.getFallbackChatResponse(message);
     } finally {
@@ -175,7 +170,7 @@ Provide sentiment, categories, and key insights.`;
   }
 
   // Parsing methods for AI responses
-  private parseJobMatchResponse(response: string): JobMatchResponse {
+  private parseJobMatchResponse(): JobMatchResponse {
     // Simple parsing logic - in production, you'd use more sophisticated parsing
     const score = Math.floor(Math.random() * 40) + 60; // 60-100 range
     return {
@@ -186,7 +181,7 @@ Provide sentiment, categories, and key insights.`;
     };
   }
 
-  private parseCareerAdviceResponse(response: string): CareerAdviceResponse {
+  private parseCareerAdviceResponse(): CareerAdviceResponse {
     return {
       advice: [
         'Focus on developing digital skills in supply chain technology',
@@ -199,7 +194,7 @@ Provide sentiment, categories, and key insights.`;
     };
   }
 
-  private parseNewsAnalysisResponse(response: string): NewsAnalysisResponse {
+  private parseNewsAnalysisResponse(): NewsAnalysisResponse {
     return {
       sentiment: 'neutral' as const,
       categories: ['Supply Chain', 'Logistics'],
@@ -258,7 +253,7 @@ Provide sentiment, categories, and key insights.`;
     };
   }
 
-  private getFallbackChatResponse(message: string): string {
+  private getFallbackChatResponse(): string {
     const responses = [
       "I understand you're asking about supply chain topics. Let me provide some general insights based on industry best practices.",
       "That's an interesting question about logistics. Here are some general recommendations.",

@@ -50,8 +50,8 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      errorHandler.handleError(error, 'UNKNOWN');
-      throw error;
+      const handledError = errorHandler.handleError(error);
+      throw handledError;
     }
   }
 
@@ -126,7 +126,7 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
+      const handledError = errorHandler.handleError(error);
       analytics.trackError(error as Error);
       
       // Return fallback response

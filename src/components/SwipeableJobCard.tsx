@@ -1,11 +1,11 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Building2, MapPin, Heart, ExternalLink } from "lucide-react";
-import { analytics } from "@/utils/analytics";
-import { performanceMonitor } from "@/utils/performanceMonitor";
-import { errorHandler, ErrorType } from "@/utils/errorHandling";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Share2, ExternalLink, MapPin, Calendar, Building } from 'lucide-react';
+import { motion, PanInfo } from 'framer-motion';
+import { errorHandler } from '@/utils/errorHandling';
 
 interface SwipeableJobCardProps {
   job: {
@@ -13,8 +13,8 @@ interface SwipeableJobCardProps {
     title: string;
     company: string | null;
     location: string | null;
-    job_type?: string | null;
-    category?: string;
+    job_type: string | null;
+    category: string;
     job_url?: string | null;
     application_deadline?: string | null;
     social_shares?: Record<string, any>;
@@ -23,100 +23,128 @@ interface SwipeableJobCardProps {
   onShare: () => void;
 }
 
-export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
+export const SwipeableJobCard = ({ job, onSave, onShare }: SwipeableJobCardProps) => {
+  const [dragOffset, setDragOffset] = useState(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    performanceMonitor.startMeasure('job-card-swipe');
-    setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-    analytics.trackUserAction('job-card-swipe-start', job.id);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const currentTouch = e.touches[0].clientX;
-    setCurrentX(currentTouch - startX);
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    const swipeThreshold = 100;
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const threshold = 100;
     
     try {
-      if (Math.abs(currentX) > swipeThreshold) {
-        if (currentX > 0) {
-          onSave();
-          analytics.trackUserAction('job-saved', job.id);
-        } else {
-          onShare();
-          analytics.trackUserAction('job-shared', job.id);
-        }
+      if (info.offset.x > threshold) {
+        // Swipe right - save job
+        onSave();
+      } else if (info.offset.x < -threshold) {
+        // Swipe left - share job
+        onShare();
       }
-      
-      setCurrentX(0);
-      performanceMonitor.endMeasure('job-card-swipe');
     } catch (error) {
-      errorHandler.handleError(error, ErrorType.UNKNOWN);
+      const handledError = errorHandler.handleError(error);
+      console.error('Error handling swipe:', handledError.message);
+    }
+    
+    setDragOffset(0);
+  };
+
+  const handleApply = () => {
+    if (job.job_url) {
+      window.open(job.job_url, '_blank');
     }
   };
 
   return (
-    <div
-      className="relative transition-transform duration-300 ease-out"
-      style={{ transform: `translateX(${currentX}px)` }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+    <motion.div
+      drag="x"
+      dragConstraints={{ left: -200, right: 200 }}
+      onDragEnd={handleDragEnd}
+      onDrag={(event, info) => setDragOffset(info.offset.x)}
+      className="relative"
     >
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader>
-          <div className="flex justify-between">
-            <div>
-              <CardTitle className="text-xl mb-1">{job.title}</CardTitle>
-              <div className="flex items-center text-muted-foreground">
-                <Building2 className="h-4 w-4 mr-1" />
-                <span>{job.company || "Company not specified"}</span>
-              </div>
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg line-clamp-2">{job.title}</CardTitle>
+              {job.company && (
+                <div className="flex items-center gap-1 text-muted-foreground mt-1">
+                  <Building className="h-4 w-4" />
+                  <span className="text-sm">{job.company}</span>
+                </div>
+              )}
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {job.location && (
-                <div className="flex items-center text-sm">
-                  <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span>{job.location}</span>
-                </div>
-              )}
-              {job.job_type && (
-                <div className="flex items-center text-sm">
-                  <Heart className="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span>{job.job_type}</span>
-                </div>
-              )}
+        
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {job.job_type && (
+              <Badge variant="secondary" className="text-xs">
+                {job.job_type}
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">
+              {job.category}
+            </Badge>
+            {job.location && (
+              <Badge variant="outline" className="text-xs">
+                <MapPin className="h-3 w-3 mr-1" />
+                {job.location}
+              </Badge>
+            )}
+          </div>
+          
+          {job.application_deadline && (
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Deadline: {new Date(job.application_deadline).toLocaleDateString()}</span>
             </div>
-
-            {job.category && <Badge variant="outline">{job.category}</Badge>}
-
-            <div className="flex items-center justify-between pt-2">
-              <a 
-                href={job.job_url || undefined} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={() => analytics.trackUserAction('job-apply-click', job.id)}
-                className="flex items-center gap-1 text-primary hover:text-primary/80"
+          )}
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onSave}
+              className="flex-1"
+            >
+              <Heart className="h-4 w-4 mr-1" />
+              Save
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onShare}
+              className="flex-1"
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              Share
+            </Button>
+            
+            {job.job_url && (
+              <Button
+                size="sm"
+                onClick={handleApply}
+                className="flex-1"
               >
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink className="h-4 w-4 mr-1" />
                 Apply
-              </a>
-            </div>
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
-    </div>
+      
+      {/* Swipe indicators */}
+      {dragOffset > 50 && (
+        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-500">
+          <Heart className="h-6 w-6" />
+        </div>
+      )}
+      {dragOffset < -50 && (
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-500">
+          <Share2 className="h-6 w-6" />
+        </div>
+      )}
+    </motion.div>
   );
-}
+};
