@@ -85,7 +85,8 @@ export const SocialNetworking = () => {
     }
   ]);
 
-  const handleConnect = (connectionId: string) => {
+  // Remove unused connectionId parameter to fix TypeScript warning
+  const handleConnect = () => {
     toast.success('Connection request sent!');
   };
 
@@ -228,7 +229,7 @@ export const SocialNetworking = () => {
                           </div>
                         </div>
                         <Button
-                          onClick={() => handleConnect(connection.id)}
+                          onClick={handleConnect}
                           size="sm"
                         >
                           <UserPlus className="h-4 w-4 mr-1" />

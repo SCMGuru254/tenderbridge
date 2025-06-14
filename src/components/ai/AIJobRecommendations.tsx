@@ -22,7 +22,8 @@ export const AIJobRecommendations = () => {
   const { user } = useAuth();
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [aiInsights, setAiInsights] = useState({
+  // Remove unused setAiInsights to fix TypeScript warning
+  const [aiInsights] = useState({
     profileCompleteness: 75,
     skillsGap: ['Logistics Management', 'Supply Chain Analytics'],
     careerProgression: 'Senior Supply Chain Analyst',

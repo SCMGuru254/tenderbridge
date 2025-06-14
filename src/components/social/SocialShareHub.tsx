@@ -10,13 +10,13 @@ import { socialFeatures } from '@/utils/socialFeatures';
 import { toast } from 'sonner';
 
 interface SocialShareHubProps {
-  jobId?: string;
   jobTitle?: string;
   jobUrl?: string;
   company?: string;
 }
 
-export const SocialShareHub = ({ jobId, jobTitle, jobUrl, company }: SocialShareHubProps) => {
+// Remove unused jobId parameter to fix TypeScript warning
+export const SocialShareHub = ({ jobTitle, jobUrl, company }: SocialShareHubProps) => {
   const [activeTab, setActiveTab] = useState('share');
   const [socialMetrics, setSocialMetrics] = useState({
     shares: 0,
