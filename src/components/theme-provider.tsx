@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react"
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react"
 
 type Theme = "dark" | "light" | "system"
 
@@ -27,6 +27,12 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
+  // Ensure React hooks are available
+  if (!React || typeof useState !== 'function') {
+    console.error('React hooks not available');
+    return <div>{children}</div>;
+  }
+
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem(storageKey) as Theme) || defaultTheme
