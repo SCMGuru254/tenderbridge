@@ -38,5 +38,13 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom']
+        }
+      }
+    }
   }
 }));
