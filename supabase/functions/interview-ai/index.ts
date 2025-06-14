@@ -1,5 +1,10 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { withSecurity } from "../middleware/security.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 // Input validation
 function validateQuestion(question: string): boolean {
@@ -50,8 +55,24 @@ const INTERVIEW_BEST_PRACTICES = [
 ];
 
 serve(async (req) => {
-  return withSecurity(req, async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
     const { question } = await req.json();
+    
+    // Validate input
+    if (!validateQuestion(question)) {
+      return new Response(JSON.stringify({
+        error: 'Invalid question format or length',
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
     
     // Identify relevant topics from the question
     const relevantTopics = Object.entries(SUPPLY_CHAIN_TOPICS)
