@@ -1,39 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import { jobService } from '@/services/jobService';
-import {
-  BarChart3,
-  Users,
-  FileText,
-  Bookmark,
-  Share,
-  Clock
-} from 'lucide-react';
 
-interface JobAnalyticsData {
-  views: number;
+// Define JobAnalytics type here if not exported from jobService
+export interface JobAnalytics {
+  totalViews: number;
   uniqueVisitors: number;
   applications: number;
-  saves: number;
-  shares: number;
+  savedCount: number;
+  shareCount: number;
   averageTimeSpent: number;
 }
+import {
+  ChartBarIcon,
+  UserGroupIcon,
+  DocumentTextIcon,
+  BookmarkIcon,
+  ShareIcon,
+  ClockIcon
+} from '@heroicons/react/24/outline';
 
 interface JobAnalyticsProps {
   jobId: string;
 }
 
 export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
-  const [analytics, setAnalytics] = useState<JobAnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<JobAnalytics | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
   const loadAnalytics = React.useCallback(async () => {
     if (!jobId) return;
 
     try {
       setIsLoading(true);
       setError(null);
-      const data = await jobService.getJobAnalytics();
+      const data = await jobService.getJobAnalytics(jobId);
       setAnalytics(data);
     } catch (err) {
       setError('Failed to load job analytics');
@@ -74,38 +74,38 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
   const stats = [
     {
       name: 'Total Views',
-      value: analytics.views,
-      icon: BarChart3,
+      value: analytics.totalViews,
+      icon: ChartBarIcon,
       color: 'text-blue-500'
     },
     {
       name: 'Unique Viewers',
       value: analytics.uniqueVisitors,
-      icon: Users,
+      icon: UserGroupIcon,
       color: 'text-green-500'
     },
     {
       name: 'Applications',
       value: analytics.applications,
-      icon: FileText,
+      icon: DocumentTextIcon,
       color: 'text-purple-500'
     },
     {
       name: 'Saved',
-      value: analytics.saves,
-      icon: Bookmark,
+      value: analytics.savedCount,
+      icon: BookmarkIcon,
       color: 'text-yellow-500'
     },
     {
       name: 'Shares',
-      value: analytics.shares,
-      icon: Share,
+      value: analytics.shareCount,
+      icon: ShareIcon,
       color: 'text-red-500'
     },
     {
       name: 'Avg. Time Spent',
       value: `${Math.round(analytics.averageTimeSpent / 60)}m`,
-      icon: Clock,
+      icon: ClockIcon,
       color: 'text-gray-500'
     }
   ];

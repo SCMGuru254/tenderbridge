@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { handleAsyncError } from '@/utils/errorHandling';
 
@@ -44,6 +43,15 @@ export interface JobAlert {
   frequency: 'instant' | 'daily' | 'weekly';
   lastTriggered?: string;
   createdAt: string;
+}
+
+export interface JobAnalytics {
+  totalViews: number;
+  uniqueVisitors: number;
+  applications: number;
+  savedCount: number;
+  shareCount: number;
+  averageTimeSpent: number;
 }
 
 export class JobService {
@@ -163,21 +171,35 @@ export class JobService {
     }
   }
 
-  async getJobAnalytics(): Promise<any> {
+  async getJobAnalytics(jobId: string): Promise<JobAnalytics> {
     try {
-      // Mock analytics data
+      // Fetch analytics data for the specific job
+      const { data, error } = await supabase
+        .from('job_analytics')
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
+
+      if (error) throw error;
+
       return {
-        views: Math.floor(Math.random() * 1000),
-        uniqueVisitors: Math.floor(Math.random() * 500),
-        applications: Math.floor(Math.random() * 50),
-        saves: Math.floor(Math.random() * 100),
-        shares: Math.floor(Math.random() * 25),
-        averageTimeSpent: Math.floor(Math.random() * 300) + 60
+        totalViews: data.total_views || 0,
+        uniqueVisitors: data.unique_visitors || 0,
+        applications: data.applications || 0,
+        savedCount: data.saved_count || 0,
+        shareCount: data.share_count || 0,
+        averageTimeSpent: data.average_time_spent || 0
       };
     } catch (error) {
-      const handledError = handleAsyncError(error as Error, 'CLIENT');
-      console.error('Error fetching job analytics:', handledError);
-      throw handledError;
+      console.error('Error fetching job analytics:', error);
+      return {
+        totalViews: 0,
+        uniqueVisitors: 0,
+        applications: 0,
+        savedCount: 0,
+        shareCount: 0,
+        averageTimeSpent: 0
+      };
     }
   }
 

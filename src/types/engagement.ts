@@ -100,11 +100,11 @@ export interface ReputationCategory {
 
 export interface UserReputation {
   id: string;
-  userId: string;
-  totalScore: number;
+  user_id: string;
+  name: string;
+  score: number;
   level: number;
-  categories: Record<string, ReputationCategory>;
-  updatedAt: string;
+  last_updated: string;
 }
 
 export type ReputationEventType =
