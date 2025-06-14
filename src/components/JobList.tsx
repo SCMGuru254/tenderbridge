@@ -105,8 +105,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
-          // Fix: Properly handle null to undefined conversion
-          const deadlineValue: string | undefined = deadline ? deadline : undefined;
+          // Fix: Explicitly handle null by converting to undefined
+          const deadlineValue: string | undefined = deadline === null ? undefined : deadline;
           
           console.log("JobList - Rendering job:", job.title, "deadline:", deadlineValue);
           
@@ -140,7 +140,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={getJobUrl(job)}
-              application_deadline={deadlineValue}
+              application_deadline={deadlineValue,
               social_shares={job.social_shares || {}}
             />
           );
