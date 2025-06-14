@@ -32,7 +32,7 @@ export class AIAgentService {
     });
   }
 
-  async activateAgent(agentRole: AgentRole): Promise<void> => {
+  async activateAgent(agentRole: AgentRole): Promise<void> {
     try {
       // Deactivate current agent
       if (this.activeAgent) {
@@ -50,7 +50,7 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      errorHandler.handleError(error, 'UNKNOWN' as ErrorType);
+      errorHandler.handleError(error, ErrorType.UNKNOWN);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER' as ErrorType);
+      errorHandler.handleError(error, ErrorType.SERVER);
       analytics.trackError(error as Error);
       
       // Return fallback response
