@@ -1,8 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { BellIcon } from '@heroicons/react/24/outline';
 import { NotificationList } from './NotificationList';
 import { useAuth } from '@/hooks/useAuth';
-import { notificationService } from '@/services/notificationService';
+import { notificationService, type Notification } from '@/services/notificationService';
 import { useOnClickOutside } from '@/hooks/useOnClickOutside';
 
 export const NotificationBell: React.FC = () => {
@@ -19,8 +20,8 @@ export const NotificationBell: React.FC = () => {
       // Set up real-time subscription for notifications
       const subscription = notificationService.subscribeToNotifications(
         user.id,
-        notifications => {
-          setUnreadCount(notifications.filter(n => !n.isRead).length);
+        (notifications: Notification[]) => {
+          setUnreadCount(notifications.filter((n: Notification) => !n.isRead).length);
         }
       );
 
@@ -33,13 +34,13 @@ export const NotificationBell: React.FC = () => {
   const loadUnreadCount = async () => {
     try {
       const notifications = await notificationService.getNotifications(user!.id);
-      setUnreadCount(notifications.filter(n => !n.isRead).length);
+      setUnreadCount(notifications.filter((n: Notification) => !n.isRead).length);
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
   };
 
-  const handleNotificationClick = (notification: any) => {
+  const handleNotificationClick = (notification: Notification) => {
     setIsOpen(false);
     // Handle notification click (e.g., navigate to job details)
     if (notification.data?.jobId) {

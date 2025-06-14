@@ -1,5 +1,5 @@
 
-import { AppError, ErrorType, createError } from './errors';
+import { errorHandler, type ErrorType } from './errors';
 
 export const withErrorHandling = async <T>(
   operation: () => Promise<T>,
@@ -16,21 +16,12 @@ export const withErrorHandling = async <T>(
   }
 };
 
-export const handleAsyncError = (error: unknown, type: ErrorType = 'CLIENT'): AppError => {
+export const handleAsyncError = (error: unknown, type: ErrorType = 'CLIENT') => {
   if (error instanceof Error) {
-    return createError(type, error.message);
+    console.error(`${type} Error:`, error.message);
+    return error;
   }
-  return createError(type, 'Unknown error occurred');
+  return new Error('Unknown error occurred');
 };
 
-export const errorHandler = {
-  handleError: (error: unknown, type: ErrorType = 'CLIENT'): AppError => {
-    if (error instanceof Error) {
-      console.error(`${type} Error:`, error.message);
-      return createError(type, error.message);
-    }
-    return createError(type, 'Unknown error occurred');
-  }
-};
-
-export type { ErrorType } from './errors';
+export { errorHandler, type ErrorType };

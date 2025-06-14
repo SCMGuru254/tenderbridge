@@ -99,7 +99,7 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
                 </a>
                 <p className="mt-1 text-sm text-gray-500">{job.company}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {job.skills?.map(skill => (
+                  {job.skills?.map((skill: string) => (
                     <span
                       key={skill}
                       className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"

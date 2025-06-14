@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { jobService, type JobAnalytics } from '@/services/jobService';
+import { jobService } from '@/services/jobService';
 import {
   BarChart3,
   Users,
@@ -10,12 +10,21 @@ import {
   Clock
 } from 'lucide-react';
 
+interface JobAnalyticsData {
+  views: number;
+  uniqueVisitors: number;
+  applications: number;
+  saves: number;
+  shares: number;
+  averageTimeSpent: number;
+}
+
 interface JobAnalyticsProps {
   jobId: string;
 }
 
 export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
-  const [analytics, setAnalytics] = useState<JobAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<JobAnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   

@@ -1,4 +1,18 @@
 
+export type ErrorType = 'CLIENT' | 'SERVER' | 'NETWORK' | 'VALIDATION';
+
+export interface AppError {
+  type: ErrorType;
+  message: string;
+  timestamp: Date;
+}
+
+export const createError = (type: ErrorType, message: string): AppError => ({
+  type,
+  message,
+  timestamp: new Date()
+});
+
 export interface ErrorHandler {
   handleError: (error: Error, context?: string) => void;
 }
