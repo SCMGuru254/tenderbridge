@@ -92,6 +92,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
+          const deadlineValue = deadline === null ? undefined : deadline;
           return isMobile ? (
             <SwipeableJobCard
               key={job.id}
@@ -103,7 +104,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
-                application_deadline: deadline || undefined,
+                application_deadline: deadlineValue,
                 social_shares: job.social_shares || {}
               }}
               onSave={() => {
@@ -122,7 +123,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={getJobUrl(job)}
-              application_deadline={deadline || undefined}
+              application_deadline={deadlineValue}
               social_shares={job.social_shares || {}}
             />
           );
