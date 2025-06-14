@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CareerRole, CareerApplication } from '@/types/careers';
+import { CareerApplication, CareerRole } from '@/types/careers';
 
 export const careersService = {
   async getRoles(): Promise<CareerRole[]> {
@@ -47,7 +47,67 @@ export const careersService = {
   }
 };
 
-// Add the missing submitCareerApplication function
+// Add the missing functions that CareerApplicationsList.tsx expects
+export const fetchCareerApplications = async (): Promise<CareerApplication[]> => {
+  return await careersService.getApplications();
+};
+
+export const getUserVotes = async (userId: string): Promise<string[]> => {
+  const { data, error } = await supabase
+    .from('career_application_votes')
+    .select('application_id')
+    .eq('voter_id', userId);
+
+  if (error) {
+    console.error('Error fetching user votes:', error);
+    return [];
+  }
+
+  return data.map(vote => vote.application_id);
+};
+
+export const voteForApplication = async (applicationId: string, voterId: string): Promise<void> => {
+  // Check if user already voted
+  const { data: existingVote } = await supabase
+    .from('career_application_votes')
+    .select('id')
+    .eq('application_id', applicationId)
+    .eq('voter_id', voterId)
+    .single();
+
+  if (existingVote) {
+    throw new Error('You have already voted for this application');
+  }
+
+  // Add vote
+  const { error: voteError } = await supabase
+    .from('career_application_votes')
+    .insert([{ application_id: applicationId, voter_id: voterId }]);
+
+  if (voteError) {
+    throw voteError;
+  }
+
+  // Update vote count
+  const { error: updateError } = await supabase.rpc('increment_vote_count', {
+    application_id: applicationId
+  });
+
+  if (updateError) {
+    throw updateError;
+  }
+};
+
+export const isDueDate = async (): Promise<boolean> => {
+  // For now, return false. This would typically check against a configuration table
+  return false;
+};
+
+export const getDueDate = async (): Promise<string | null> => {
+  // For now, return null. This would typically fetch from a configuration table
+  return null;
+};
+
 export const submitCareerApplication = async (
   applicantName: string,
   applicantEmail: string,
