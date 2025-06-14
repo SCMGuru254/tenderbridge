@@ -1,195 +1,79 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, RefreshCw, Loader2 } from "lucide-react";
-import { openaiService } from "@/services/openaiService";
-import { newsService, SupplyChainNews } from "@/services/newsService";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface NewsInsight {
-  id: string;
-  title: string;
+interface NewsAnalysis {
   summary: string;
-  categories: string[];
-  sentiment: 'positive' | 'negative' | 'neutral';
-  relevanceScore: number;
-  keyInsights: string[];
-  originalContent: string;
+  keyTrends: string[];
+  impact: string;
 }
 
-const AgentNewsAnalyzer = () => {
-  const [insights, setInsights] = useState<NewsInsight[]>([]);
+export const AgentNewsAnalyzer: React.FC = () => {
+  const [analysis, setAnalysis] = useState<NewsAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { toast } = useToast();
-
-  const loadAndAnalyzeNews = async () => {
-    setIsLoading(true);
-    try {
-      // Get latest news
-      const news = await newsService.getNews();
-      
-      if (news.length === 0) {
-        toast({
-          title: "No news available",
-          description: "Please fetch news first or try again later.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setIsAnalyzing(true);
-      const analyzedInsights: NewsInsight[] = [];
-
-      // Analyze first 5 news items
-      for (const newsItem of news.slice(0, 5)) {
-        try {
-          const analysis = await openaiService.analyzeNews({
-            title: newsItem.title,
-            content: newsItem.content
-          });
-
-          analyzedInsights.push({
-            id: newsItem.id,
-            title: newsItem.title,
-            summary: analysis.summary,
-            categories: analysis.categories,
-            sentiment: analysis.sentiment,
-            relevanceScore: analysis.relevanceScore,
-            keyInsights: analysis.keyInsights,
-            originalContent: newsItem.content
-          });
-        } catch (error) {
-          console.error('Error analyzing news item:', error);
-          // Add fallback analysis
-          analyzedInsights.push({
-            id: newsItem.id,
-            title: newsItem.title,
-            summary: newsItem.content.substring(0, 150) + '...',
-            categories: newsItem.tags || ['General'],
-            sentiment: 'neutral',
-            relevanceScore: 50,
-            keyInsights: ['Analysis temporarily unavailable'],
-            originalContent: newsItem.content
-          });
-        }
-      }
-
-      setInsights(analyzedInsights);
-    } catch (error) {
-      console.error('Error loading news:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load and analyze news. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-      setIsAnalyzing(false);
-    }
-  };
 
   useEffect(() => {
-    loadAndAnalyzeNews();
+    analyzeNews();
   }, []);
 
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-600';
-      case 'negative': return 'text-red-600';
-      default: return 'text-gray-600';
+  const analyzeNews = async () => {
+    setIsLoading(true);
+    try {
+      // Mock analysis
+      setTimeout(() => {
+        setAnalysis({
+          summary: 'Current supply chain trends show increased focus on digital transformation and sustainability in Kenya.',
+          keyTrends: [
+            'Digital transformation in logistics',
+            'Sustainable supply chain practices',
+            'E-commerce growth impact',
+            'Regional trade integration'
+          ],
+          impact: 'These trends are creating new job opportunities in supply chain analytics and green logistics.'
+        });
+        setIsLoading(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error analyzing news:', error);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            AI News Analysis
-          </CardTitle>
-          <CardDescription>AI-powered insights from supply chain news</CardDescription>
-          <div className="flex gap-2 mt-4">
-            <Button 
-              onClick={loadAndAnalyzeNews}
-              disabled={isLoading || isAnalyzing}
-              size="sm"
-            >
-              {isLoading || isAnalyzing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isAnalyzing ? 'Analyzing...' : 'Loading...'}
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Analysis
-                </>
-              )}
-            </Button>
+    <Card className="w-full max-w-2xl">
+      <CardHeader>
+        <CardTitle>Supply Chain News Analysis</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="text-center py-4">
+            <p>Analyzing latest supply chain news...</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[500px]">
-            <div className="space-y-4">
-              {insights.length === 0 && !isLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No news analysis available. Click "Refresh Analysis" to get started.</p>
-                </div>
-              ) : (
-                insights.map((insight) => (
-                  <Card key={insight.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-sm font-medium line-clamp-2">{insight.title}</CardTitle>
-                        <div className="flex flex-col gap-1 ml-2">
-                          {insight.categories.slice(0, 2).map((category, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {category}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-3">{insight.summary}</p>
-                      
-                      {insight.keyInsights && insight.keyInsights.length > 0 && (
-                        <div className="mb-3">
-                          <p className="text-xs font-medium mb-2">Key Insights:</p>
-                          <ul className="text-xs text-muted-foreground space-y-1">
-                            {insight.keyInsights.slice(0, 2).map((insight_item, idx) => (
-                              <li key={idx} className="border-l-2 border-blue-200 pl-2">
-                                {insight_item}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs font-medium ${getSentimentColor(insight.sentiment)}`}>
-                          {insight.sentiment.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Relevance: {insight.relevanceScore}%
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+        ) : analysis ? (
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Summary</h4>
+              <p className="text-sm text-gray-700">{analysis.summary}</p>
             </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+            
+            <div>
+              <h4 className="font-medium mb-2">Key Trends</h4>
+              <ul className="list-disc list-inside space-y-1">
+                {analysis.keyTrends.map((trend, index) => (
+                  <li key={index} className="text-sm text-gray-700">{trend}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-medium mb-2">Career Impact</h4>
+              <p className="text-sm text-gray-700">{analysis.impact}</p>
+            </div>
+          </div>
+        ) : (
+          <p>No analysis available</p>
+        )}
+      </CardContent>
+    </Card>
   );
 };
-
-export default AgentNewsAnalyzer;
