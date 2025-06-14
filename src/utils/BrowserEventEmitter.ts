@@ -1,26 +1,21 @@
 
-/**
- * A simple EventEmitter implementation for browser environments
- */
-export class BrowserEventEmitter {
-  private events: Record<string, Array<(data?: any) => void>> = {};
+export class EventEmitter {
+  private events: { [key: string]: Function[] } = {};
 
-  on(event: string, listener: (data?: any) => void): void {
+  on(event: string, callback: Function) {
     if (!this.events[event]) {
       this.events[event] = [];
     }
-    this.events[event].push(listener);
+    this.events[event].push(callback);
   }
 
-  emit(event: string, data?: any): void {
-    if (this.events[event]) {
-      this.events[event].forEach(listener => listener(data));
-    }
+  off(event: string, callback: Function) {
+    if (!this.events[event]) return;
+    this.events[event] = this.events[event].filter(cb => cb !== callback);
   }
 
-  removeListener(event: string, listener: (data?: any) => void): void {
-    if (this.events[event]) {
-      this.events[event] = this.events[event].filter(l => l !== listener);
-    }
+  emit(event: string, data?: any) {
+    if (!this.events[event]) return;
+    this.events[event].forEach(callback => callback(data));
   }
 }

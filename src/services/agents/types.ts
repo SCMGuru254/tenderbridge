@@ -1,23 +1,23 @@
 
-export type AgentRole = 'career_advisor' | 'job_matcher' | 'news_analyzer' | 'social_media';
-
-export interface AgentMessage {
+export interface Message {
   id: string;
   content: string;
-  role: AgentRole;
-  timestamp: number;
-  confidence: number;
-  metadata?: Record<string, any>;
+  sender: 'user' | 'agent';
+  timestamp: Date;
+  type?: 'text' | 'data' | 'error';
 }
 
-export interface AgentContext {
-  userId?: string;
-  preferences?: Record<string, any>;
-  history?: AgentMessage[];
-}
-
-export interface AgentCapability {
+export interface AgentConfig {
   name: string;
-  description: string;
-  enabled: boolean;
+  role: string;
+  capabilities: string[];
+  maxTokens?: number;
+  temperature?: number;
+}
+
+export interface AgentResponse {
+  content: string;
+  data?: any;
+  suggestions?: string[];
+  error?: string;
 }

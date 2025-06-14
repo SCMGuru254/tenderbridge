@@ -1,31 +1,26 @@
-export class JobServiceError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly details?: any
-  ) {
-    super(message);
-    this.name = 'JobServiceError';
-  }
+
+export type ErrorType = 'NETWORK' | 'SERVER' | 'CLIENT' | 'VALIDATION' | 'AUTH';
+
+export interface AppError {
+  type: ErrorType;
+  message: string;
+  code?: string;
+  details?: any;
 }
 
-export class ValidationError extends JobServiceError {
-  constructor(message: string, details?: any) {
-    super(message, 'VALIDATION_ERROR', details);
-    this.name = 'ValidationError';
-  }
-}
+export const createError = (type: ErrorType, message: string, code?: string, details?: any): AppError => ({
+  type,
+  message,
+  code,
+  details
+});
 
-export class RateLimitError extends JobServiceError {
-  constructor(message: string, details?: any) {
-    super(message, 'RATE_LIMIT', details);
-    this.name = 'RateLimitError';
+export const handleError = (error: AppError | Error, type?: ErrorType) => {
+  if (error instanceof Error) {
+    console.error(`${type || 'UNKNOWN'} Error:`, error.message);
+    return createError(type || 'CLIENT', error.message);
   }
-}
-
-export class FetchError extends JobServiceError {
-  constructor(message: string, details?: any) {
-    super(message, 'FETCH_ERROR', details);
-    this.name = 'FetchError';
-  }
-} 
+  
+  console.error(`${error.type} Error:`, error.message);
+  return error;
+};

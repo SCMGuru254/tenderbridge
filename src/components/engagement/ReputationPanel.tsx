@@ -1,80 +1,112 @@
-import { useEffect, useState } from 'react';
-import { useEngagement } from '../../hooks/useEngagement';
-import { Card, Progress } from '@/components/ui';
-import { UserEngagementSummary } from '../../types/engagement';
+
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { Star, Award, TrendingUp } from 'lucide-react';
+
+interface UserReputation {
+  id: string;
+  score: number;
+  level: string;
+  totalReviews: number;
+  endorsements: number;
+  achievements: number;
+}
+
+interface UserAchievement {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  progress?: number;
+  target?: number;
+}
 
 export const ReputationPanel = () => {
   const { user } = useAuth();
-  const { getEngagementSummary } = useEngagement();
-  const [summary, setSummary] = useState<UserEngagementSummary | null>(null);
+  const [reputation, setReputation] = useState<UserReputation | null>(null);
+  const [achievements, setAchievements] = useState<UserAchievement[]>([]);
 
   useEffect(() => {
     if (user) {
-      getEngagementSummary(user.id).then(setSummary);
-    }
-  }, [user, getEngagementSummary]);
+      // Mock reputation data
+      setReputation({
+        id: '1',
+        score: 85,
+        level: 'Expert',
+        totalReviews: 12,
+        endorsements: 8,
+        achievements: 5
+      });
 
-  const generalReputation = summary?.reputationByCategory?.general;
+      setAchievements([
+        {
+          id: '1',
+          name: 'First Connection',
+          description: 'Made your first professional connection',
+          unlocked: true
+        },
+        {
+          id: '2',
+          name: 'Profile Complete',
+          description: 'Complete your professional profile',
+          unlocked: false,
+          progress: 3,
+          target: 5
+        }
+      ]);
+    }
+  }, [user]);
+
+  if (!reputation) return null;
 
   return (
-    <Card className="w-full max-w-md p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Activity & Reputation</h2>
-        <div className="text-2xl font-bold text-blue-600">
-          {generalReputation?.score || 0}
+    <div className="bg-white rounded-lg shadow p-4">
+      <h3 className="text-lg font-semibold mb-4">Professional Reputation</h3>
+      
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-3xl font-bold text-blue-600">{reputation.score}</div>
+          <div className="text-sm text-gray-500">Reputation Score</div>
+          <div className="text-sm font-medium text-blue-600">{reputation.level}</div>
         </div>
-      </div>
 
-      <div className="mb-6">
-        <div className="flex justify-between text-sm mb-2">
-          <span>Level {generalReputation?.level || 1}</span>
-          <span>Score: {generalReputation?.score || 0}</span>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div className="text-lg font-semibold">{reputation.totalReviews}</div>
+            <div className="text-xs text-gray-500">Reviews</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold">{reputation.endorsements}</div>
+            <div className="text-xs text-gray-500">Endorsements</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold">{reputation.achievements}</div>
+            <div className="text-xs text-gray-500">Achievements</div>
+          </div>
         </div>
-        <Progress
-          value={generalReputation?.score ? (generalReputation.score % 100) : 0}
-          className="h-2"
-        />
-      </div>      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-blue-50 p-3 rounded">
-          <p className="text-sm text-blue-600">Total Posts</p>
-          <p className="text-xl font-semibold">{summary?.totalPosts || 0}</p>
-        </div>
-        <div className="bg-green-50 p-3 rounded">
-          <p className="text-sm text-green-600">Comments</p>
-          <p className="text-xl font-semibold">{summary?.totalComments || 0}</p>
-        </div>
-        <div className="bg-purple-50 p-3 rounded">
-          <p className="text-sm text-purple-600">Connections</p>
-          <p className="text-xl font-semibold">{summary?.totalConnections || 0}</p>
-        </div>
-        <div className="bg-yellow-50 p-3 rounded">
-          <p className="text-sm text-yellow-600">Applications</p>
-          <p className="text-xl font-semibold">{summary?.totalApplications || 0}</p>
-        </div>
-      </div>
 
-      {(summary?.recentAchievements ?? []).length > 0 && (
-        <div className="space-y-4">
-          <h3 className="font-medium">Recent Achievements</h3>
+        <div className="border-t pt-4">
+          <h4 className="font-medium mb-2">Recent Achievements</h4>
           <div className="space-y-2">
-            {(summary?.recentAchievements ?? []).map((achievement) => (
-              <div key={achievement.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
-                {achievement.iconUrl && (
-                  <img src={achievement.iconUrl} alt="" className="w-8 h-8" />
-                )}
-                <div>
-                  <p className="font-medium">{achievement.title}</p>
-                  <p className="text-sm text-gray-600">{achievement.description}</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(achievement.awardedAt).toLocaleDateString()}
-                  </p>
-                </div>
+            {achievements.slice(0, 3).map(achievement => (
+              <div key={achievement.id} className="flex items-center space-x-2">
+                <Award className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm">{achievement.name}</span>
               </div>
             ))}
           </div>
         </div>
-      )}
-    </Card>
+
+        <div className="border-t pt-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">Next Level Progress</span>
+            <span className="text-sm font-medium">75%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+            <div className="bg-blue-600 h-2 rounded-full" style={{ width: '75%' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

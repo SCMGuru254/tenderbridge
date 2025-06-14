@@ -1,20 +1,75 @@
-import React from 'react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { JobRecommendations } from '@/components/Jobs/JobRecommendations';
-import { useRouter } from 'next/router';
+import { Target, TrendingUp, Star, Lightbulb } from 'lucide-react';
 
-export default function JobRecommendationsPage() {
-  const router = useRouter();
-  const { jobId } = router.query;
-
+const JobRecommendationsPage = () => {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Job Recommendations</h1>
-        <p className="mt-2 text-gray-500">
-          Discover jobs that match your skills and preferences.
+    <div className="container mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Job Recommendations</h1>
+        <p className="text-muted-foreground">
+          AI-powered recommendations to improve your job postings and attract better candidates
         </p>
       </div>
-      <JobRecommendations currentJobId={jobId as string} />
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Optimization Score</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">78%</div>
+            <p className="text-xs text-muted-foreground">
+              +5% improvement possible
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trending Keywords</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">15</div>
+            <p className="text-xs text-muted-foreground">
+              New trending terms this week
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Top Performing</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">3</div>
+            <p className="text-xs text-muted-foreground">
+              Jobs with highest engagement
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Suggestions</CardTitle>
+            <Lightbulb className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">
+              Active recommendations
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <JobRecommendations />
     </div>
   );
-} 
+};
+
+export default JobRecommendationsPage;

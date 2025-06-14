@@ -1,109 +1,251 @@
 
 import React, { useState } from 'react';
-import { useCommunities } from '@/hooks/useCommunity';
+import { useCommunity } from '@/hooks/useCommunity';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { X, Plus } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface CreateCommunityFormProps {
-  onSuccess: (community: any) => void;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export const CreateCommunityForm: React.FC<CreateCommunityFormProps> = ({ onSuccess }) => {
-  const { createCommunity, loading } = useCommunities();
+export const CreateCommunityForm: React.FC<CreateCommunityFormProps> = ({ onSuccess, onCancel }) => {
+  const { user } = useAuth();
+  const { createCommunity } = useCommunity();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'professional',
-    isPrivate: false
+    category: '',
+    privacy: 'public' as 'public' | 'private',
+    tags: [] as string[],
+    rules: '',
+    welcomeMessage: '',
+    isModerated: true
   });
-  const [error, setError] = useState<string | null>(null);
+
+  const [newTag, setNewTag] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    if (!user) return;
 
+    setIsSubmitting(true);
     try {
-      const result = await createCommunity(formData);
+      const result = await createCommunity({
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        privacy: formData.privacy,
+        tags: formData.tags,
+        rules: formData.rules,
+        welcomeMessage: formData.welcomeMessage,
+        isModerated: formData.isModerated,
+        createdBy: user.id
+      });
+
       if (result) {
-        onSuccess(result);
+        toast({
+          title: "Success",
+          description: "Community created successfully!"
+        });
+        onSuccess?.();
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create community');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create community. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const addTag = () => {
+    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, newTag.trim()]
+      }));
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const categories = [
+    'Supply Chain Management',
+    'Logistics',
+    'Procurement',
+    'Operations',
+    'Technology',
+    'Sustainability',
+    'Career Development',
+    'Industry News',
+    'General Discussion'
+  ];
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Community Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        />
-      </div>
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Create New Community</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Community Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Enter community name"
+              required
+            />
+          </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description
-        </label>
-        <textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={4}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        />
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe your community's purpose and goals"
+              rows={3}
+              required
+            />
+          </div>
 
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-          Category
-        </label>
-        <select
-          id="category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        >
-          <option value="careers">Careers</option>
-          <option value="technology">Technology</option>
-          <option value="business">Business</option>
-          <option value="professional">Professional Development</option>
-          <option value="networking">Networking</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category *</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isPrivate"
-          checked={formData.isPrivate}
-          onChange={(e) => setFormData({ ...formData, isPrivate: e.target.checked })}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="isPrivate" className="ml-2 block text-sm text-gray-900">
-          Private community (invite only)
-        </label>
-      </div>
+          <div className="space-y-2">
+            <Label>Privacy Setting</Label>
+            <Select
+              value={formData.privacy}
+              onValueChange={(value: 'public' | 'private') => setFormData(prev => ({ ...prev, privacy: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public - Anyone can join</SelectItem>
+                <SelectItem value="private">Private - Approval required</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      {error && (
-        <div className="text-red-600 text-sm">{error}</div>
-      )}
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                placeholder="Add a tag"
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+              />
+              <Button type="button" onClick={addTag} size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {formData.tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                  {tag}
+                  <X
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => removeTag(tag)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-      >
-        {loading ? 'Creating...' : 'Create Community'}
-      </button>
-    </form>
+          <div className="space-y-2">
+            <Label htmlFor="rules">Community Rules</Label>
+            <Textarea
+              id="rules"
+              value={formData.rules}
+              onChange={(e) => setFormData(prev => ({ ...prev, rules: e.target.value }))}
+              placeholder="Set guidelines for community members"
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="welcomeMessage">Welcome Message</Label>
+            <Textarea
+              id="welcomeMessage"
+              value={formData.welcomeMessage}
+              onChange={(e) => setFormData(prev => ({ ...prev, welcomeMessage: e.target.value }))}
+              placeholder="Welcome message for new members"
+              rows={2}
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="moderated"
+              checked={formData.isModerated}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isModerated: checked }))}
+            />
+            <Label htmlFor="moderated">Enable moderation</Label>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Community'}
+            </Button>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,182 +1,172 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Star, Clock, User, BookOpen, Video, FileText, MessageSquare, Target, TrendingUp } from "lucide-react";
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Lightbulb, MessageCircle, BookOpen, Target } from 'lucide-react';
 
 const InterviewPrep = () => {
-  const [selectedCategory, setSelectedCategory] = useState("behavioral");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [question, setQuestion] = useState('');
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const mockQuestions = [
-    {
-      id: 1,
-      category: "behavioral",
-      question: "Tell me about a time when you had to manage a difficult supplier relationship",
-      difficulty: "Medium",
-      tags: ["supplier management", "communication", "problem solving"]
-    },
-    {
-      id: 2,
-      category: "technical",
-      question: "How would you optimize inventory levels for a seasonal product?",
-      difficulty: "Hard",
-      tags: ["inventory management", "forecasting", "optimization"]
-    },
-    {
-      id: 3,
-      category: "situational",
-      question: "Your main supplier just informed you of a 2-week delay. What's your action plan?",
-      difficulty: "Medium",
-      tags: ["crisis management", "contingency planning", "supplier relations"]
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Mock AI response for demo
+      setTimeout(() => {
+        setResponse(`Here's a structured approach to answer "${question}":
+
+**Situation**: Start by describing the context and background of the situation you're discussing.
+
+**Task**: Explain what you needed to accomplish or what challenge you faced.
+
+**Action**: Detail the specific steps you took to address the situation.
+
+**Result**: Share the outcome and what you learned from the experience.
+
+**Key Tips for Supply Chain Interviews**:
+- Emphasize cost optimization and efficiency improvements
+- Mention specific technologies or methodologies you've used
+- Quantify your achievements with metrics when possible
+- Show understanding of end-to-end supply chain processes`);
+        setLoading(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      setLoading(false);
     }
-  ];
+  };
 
-  const categories = [
-    { id: "behavioral", name: "Behavioral", count: 25 },
-    { id: "technical", name: "Technical", count: 18 },
-    { id: "situational", name: "Situational", count: 22 },
-    { id: "leadership", name: "Leadership", count: 15 }
+  const commonQuestions = [
+    "Tell me about a time you optimized a supply chain process",
+    "How do you handle supply chain disruptions?",
+    "Describe your experience with inventory management",
+    "What's your approach to vendor relationship management?",
+    "How do you measure supply chain performance?"
   ];
-
-  const filteredQuestions = mockQuestions.filter(q => 
-    q.category === selectedCategory && 
-    (searchTerm === "" || q.question.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Interview Preparation</h1>
+        <h1 className="text-3xl font-bold mb-4">Interview Preparation</h1>
         <p className="text-muted-foreground">
-          Practice with supply chain specific interview questions and scenarios
+          Get AI-powered assistance to prepare for your supply chain interviews
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        {categories.map((category) => (
-          <Card 
-            key={category.id}
-            className={`cursor-pointer transition-colors ${
-              selectedCategory === category.id ? 'border-primary bg-primary/5' : ''
-            }`}
-            onClick={() => setSelectedCategory(category.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">{category.name}</h3>
-                <Badge variant="secondary">{category.count}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-6 md:grid-cols-3 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Practice Questions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Get personalized responses to common interview questions
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              STAR Method
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Learn to structure your answers using the proven STAR framework
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Industry Focus
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Specialized guidance for supply chain and logistics roles
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Practice Questions</CardTitle>
-              <CardDescription>
-                Answer these questions to improve your interview skills
-              </CardDescription>
-              <Input
-                placeholder="Search questions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredQuestions.map((question) => (
-                  <Card key={question.id}>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge 
-                          variant={
-                            question.difficulty === "Easy" ? "secondary" :
-                            question.difficulty === "Medium" ? "default" : "destructive"
-                          }
-                        >
-                          {question.difficulty}
-                        </Badge>
-                      </div>
-                      <p className="font-medium mb-3">{question.question}</p>
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {question.tags.map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm">Practice</Button>
-                        <Button size="sm" variant="outline">View Tips</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ask AI for Interview Help</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="question">Interview Question</Label>
+                <Input
+                  id="question"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Enter an interview question you'd like help with..."
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Getting AI Response...' : 'Get AI Help'}
+              </Button>
+            </form>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Your Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Questions Answered</span>
-                    <span>45/100</span>
-                  </div>
-                  <Progress value={45} />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Success Rate</span>
-                    <span>78%</span>
-                  </div>
-                  <Progress value={78} />
-                </div>
+            {response && (
+              <div className="mt-6 p-4 bg-muted rounded-lg">
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  AI Response
+                </h4>
+                <div className="whitespace-pre-wrap text-sm">{response}</div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Study Resources
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Video className="mr-2 h-4 w-4" />
-                  Video Tutorials
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Study Guides
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Mock Interviews
-                </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Common Supply Chain Questions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {commonQuestions.map((q, index) => (
+                <div
+                  key={index}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                  onClick={() => setQuestion(q)}
+                >
+                  <p className="text-sm">{q}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6">
+              <h4 className="font-semibold mb-3">Key Areas to Focus On</h4>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">Cost Optimization</Badge>
+                <Badge variant="secondary">Risk Management</Badge>
+                <Badge variant="secondary">Technology Integration</Badge>
+                <Badge variant="secondary">Process Improvement</Badge>
+                <Badge variant="secondary">Vendor Management</Badge>
+                <Badge variant="secondary">Data Analysis</Badge>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
