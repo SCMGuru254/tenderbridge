@@ -1,6 +1,7 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
   const { user, signOut } = useAuth();

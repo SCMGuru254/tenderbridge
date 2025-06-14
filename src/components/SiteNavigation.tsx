@@ -9,7 +9,7 @@ import {
   MenubarSeparator, 
   MenubarTrigger 
 } from "@/components/ui/menubar";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Briefcase, 
   FileText, 
