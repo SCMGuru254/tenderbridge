@@ -17,8 +17,20 @@ const InterviewPrep = () => {
     setLoading(true);
     
     try {
-      // Mock AI response for demo
-      setTimeout(() => {
+      // Call the interview-ai edge function
+      const result = await fetch('/api/interview-ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question }),
+      });
+
+      if (result.ok) {
+        const data = await result.json();
+        setResponse(data.answer || data.fallback);
+      } else {
+        // Fallback response
         setResponse(`Here's a structured approach to answer "${question}":
 
 **Situation**: Start by describing the context and background of the situation you're discussing.
@@ -34,10 +46,11 @@ const InterviewPrep = () => {
 - Mention specific technologies or methodologies you've used
 - Quantify your achievements with metrics when possible
 - Show understanding of end-to-end supply chain processes`);
-        setLoading(false);
-      }, 2000);
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
+      setResponse('I apologize, but I\'m having trouble connecting to the AI service. Please remember to structure your answer using the STAR method and include specific examples from your experience.');
+    } finally {
       setLoading(false);
     }
   };

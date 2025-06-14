@@ -1,9 +1,9 @@
 
 import { AgentRole, AgentMessage, AgentContext } from './agents/types';
-import { openaiService } from './openaiService';
+import { aiService } from './openaiService';
 import { analytics } from '@/utils/analytics';
 import { performanceMonitor } from '@/utils/performanceMonitor';
-import { errorHandler, ErrorType } from '@/utils/errorHandling';
+import { errorHandler } from '@/utils/errorHandling';
 
 export class AIAgentService {
   private agents: Map<AgentRole, any> = new Map();
@@ -50,7 +50,7 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      errorHandler.handleError(error, ErrorType.UNKNOWN);
+      errorHandler.handleError(error, 'UNKNOWN');
       throw error;
     }
   }
@@ -71,37 +71,37 @@ export class AIAgentService {
       // Build context for the AI
       const contextString = context ? JSON.stringify(context) : '';
       
-      // Process message with OpenAI based on agent role
+      // Process message with AI service based on agent role
       let content: string;
       let confidence = 0.8;
       
       switch (this.activeAgent) {
         case 'career_advisor':
-          content = await openaiService.generateChatResponse(
+          content = await aiService.generateChatResponse(
             `Career advice request: ${message}`,
             `Role: Career Advisor specializing in supply chain careers. ${contextString}`
           );
           break;
         case 'job_matcher':
-          content = await openaiService.generateChatResponse(
+          content = await aiService.generateChatResponse(
             `Job matching query: ${message}`,
             `Role: Job matching specialist for supply chain positions. ${contextString}`
           );
           break;
         case 'news_analyzer':
-          content = await openaiService.generateChatResponse(
+          content = await aiService.generateChatResponse(
             `News analysis request: ${message}`,
             `Role: Supply chain news analyst. ${contextString}`
           );
           break;
         case 'social_media':
-          content = await openaiService.generateChatResponse(
+          content = await aiService.generateChatResponse(
             `Social media content request: ${message}`,
             `Role: Social media content creator for supply chain professionals. ${contextString}`
           );
           break;
         default:
-          content = await openaiService.generateChatResponse(message, contextString);
+          content = await aiService.generateChatResponse(message, contextString);
       }
 
       // Update agent history
@@ -126,7 +126,7 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error, ErrorType.SERVER);
+      errorHandler.handleError(error, 'SERVER');
       analytics.trackError(error as Error);
       
       // Return fallback response

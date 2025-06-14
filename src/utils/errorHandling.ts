@@ -33,4 +33,4 @@ export const errorHandler = {
   }
 };
 
-export { ErrorType } from './errors';
+export type { ErrorType } from './errors';

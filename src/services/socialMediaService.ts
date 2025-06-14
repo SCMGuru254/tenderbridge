@@ -2,7 +2,7 @@
 import { SocialPost } from '@/types/social';
 
 export const socialMediaService = {
-  async shareToLinkedIn(content: string, accessToken: string): Promise<SocialPost> {
+  async shareToLinkedIn(content: string): Promise<SocialPost> {
     // Mock implementation
     const post: SocialPost = {
       id: Math.random().toString(),
@@ -17,7 +17,7 @@ export const socialMediaService = {
     return post;
   },
 
-  async shareToTwitter(content: string, accessToken: string): Promise<SocialPost> {
+  async shareToTwitter(content: string): Promise<SocialPost> {
     // Mock implementation
     const post: SocialPost = {
       id: Math.random().toString(),
