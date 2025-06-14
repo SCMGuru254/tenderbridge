@@ -210,3 +210,4 @@ class PerformanceUtils {
 }
 
 export const performanceUtils = new PerformanceUtils();
+export const performanceMonitor = performanceUtils;

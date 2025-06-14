@@ -1,82 +1,38 @@
-import { supabase } from '@/integrations/supabase/client';
-import { cache } from '@/utils/cache';
-import { analytics } from '@/utils/analytics';
-import { performanceMonitor } from '@/utils/performance';
-import { errorHandler } from '@/utils/errorHandling';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string;
-  avatar_url?: string;
-  bio?: string;
-  location?: string;
-  skills?: string[];
-  experience?: string;
-  education?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+import { rateLimiter } from "@/utils/rateLimiter";
+import { performanceMonitor } from "@/utils/performance";
 
-export interface UserPreferences {
-  id: string;
-  user_id: string;
-  job_categories?: string[];
-  preferred_locations?: string[];
-  job_types?: string[];
-  experience_level?: string;
-  salary_range?: string;
-  notification_preferences?: {
-    email: boolean;
-    push: boolean;
-    job_alerts: boolean;
-    application_updates: boolean;
-  };
-  created_at?: string;
-  updated_at?: string;
-}
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export class UserService {
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-  async getProfile(userId: string): Promise<UserProfile | null> {
-    try {
-      performanceMonitor.startMeasure('fetch-profile');
-      
-      const cacheKey = `profile-${userId}`;
-      const cachedProfile = cache.get<UserProfile>(cacheKey);
-      if (cachedProfile) {
-        analytics.trackUserAction('profile-cache-hit');
-        return cachedProfile;
-      }
-
+  // Get user profile with caching
+  async getProfile(userId: string): Promise<Profile | null> {
+    return performanceMonitor.measureAsyncTime(async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-
-      if (data) {
-        cache.set(cacheKey, data, { ttl: this.CACHE_TTL });
-        analytics.trackUserAction('profile-fetch-success');
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
       }
-      
+
       return data;
-    } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
-      return null;
-    } finally {
-      performanceMonitor.endMeasure('fetch-profile');
-    }
+    }, 'getProfile');
   }
 
-  async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
-    try {
-      performanceMonitor.startMeasure('update-profile');
+  // Update user profile
+  async updateProfile(userId: string, updates: ProfileUpdate): Promise<Profile | null> {
+    if (!rateLimiter.checkLimit('profile_update', userId, 5, 60000)) {
+      throw new Error('Too many profile updates. Please wait before trying again.');
+    }
 
+    return performanceMonitor.measureAsyncTime(async () => {
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
@@ -84,163 +40,196 @@ export class UserService {
         .select()
         .single();
 
-      if (error) throw error;
-
-      // Invalidate cache
-      cache.delete(`profile-${userId}`);
-      analytics.trackUserAction('profile-update-success');
-      
-      return data;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return null;
-    } finally {
-      performanceMonitor.endMeasure('update-profile');
-    }
-  }
-
-  async getPreferences(userId: string): Promise<UserPreferences | null> {
-    try {
-      performanceMonitor.startMeasure('fetch-preferences');
-      
-      const cacheKey = `preferences-${userId}`;
-      const cachedPreferences = cache.get<UserPreferences>(cacheKey);
-      if (cachedPreferences) {
-        analytics.trackUserAction('preferences-cache-hit');
-        return cachedPreferences;
+      if (error) {
+        console.error('Error updating profile:', error);
+        throw error;
       }
 
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        cache.set(cacheKey, data, { ttl: this.CACHE_TTL });
-        analytics.trackUserAction('preferences-fetch-success');
-      }
-      
       return data;
-    } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
-      return null;
-    } finally {
-      performanceMonitor.endMeasure('fetch-preferences');
-    }
+    }, 'updateProfile');
   }
 
-  async updatePreferences(userId: string, updates: Partial<UserPreferences>): Promise<UserPreferences | null> {
-    try {
-      performanceMonitor.startMeasure('update-preferences');
-
+  // Create user profile
+  async createProfile(userId: string, profileData: Partial<Profile>): Promise<Profile | null> {
+    return performanceMonitor.measureAsyncTime(async () => {
       const { data, error } = await supabase
-        .from('user_preferences')
-        .update(updates)
-        .eq('user_id', userId)
+        .from('profiles')
+        .insert({
+          id: userId,
+          ...profileData
+        })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating profile:', error);
+        throw error;
+      }
 
-      // Invalidate cache
-      cache.delete(`preferences-${userId}`);
-      analytics.trackUserAction('preferences-update-success');
-      
       return data;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
+    }, 'createProfile');
+  }
+
+  // Get user preferences
+  async getUserPreferences(userId: string) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching user preferences:', error);
       return null;
-    } finally {
-      performanceMonitor.endMeasure('update-preferences');
+    }
+
+    return data;
+  }
+
+  // Update user preferences
+  async updateUserPreferences(userId: string, preferences: any) {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: userId,
+        ...preferences,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user preferences:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  // Get user analytics
+  async getUserAnalytics(userId: string) {
+    const { data, error } = await supabase
+      .from('user_analytics')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) {
+      console.error('Error fetching user analytics:', error);
+      return [];
+    }
+
+    return data;
+  }
+
+  // Track user activity
+  async trackActivity(userId: string, activity: {
+    action: string;
+    resource_type?: string;
+    resource_id?: string;
+    metadata?: any;
+  }) {
+    if (!rateLimiter.checkLimit('track_activity', userId, 100, 60000)) {
+      return; // Silently fail for activity tracking
+    }
+
+    const { error } = await supabase
+      .from('user_analytics')
+      .insert({
+        user_id: userId,
+        action: activity.action,
+        resource_type: activity.resource_type,
+        resource_id: activity.resource_id,
+        metadata: activity.metadata
+      });
+
+    if (error) {
+      console.error('Error tracking user activity:', error);
     }
   }
 
-  async uploadAvatar(userId: string, file: File): Promise<string | null> {
-    try {
-      performanceMonitor.startMeasure('upload-avatar');
+  // Get user connections
+  async getUserConnections(userId: string) {
+    const { data, error } = await supabase
+      .from('user_connections')
+      .select(`
+        *,
+        connected_user:profiles!user_connections_connected_user_id_fkey(*)
+      `)
+      .eq('user_id', userId)
+      .eq('status', 'accepted');
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      // Update profile with new avatar URL
-      await this.updateProfile(userId, { avatar_url: publicUrl });
-      analytics.trackUserAction('avatar-upload-success');
-      
-      return publicUrl;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return null;
-    } finally {
-      performanceMonitor.endMeasure('upload-avatar');
+    if (error) {
+      console.error('Error fetching user connections:', error);
+      return [];
     }
+
+    return data;
   }
 
-  async deleteAccount(userId: string): Promise<boolean> {
-    try {
-      performanceMonitor.startMeasure('delete-account');
-
-      // Delete user data from all related tables
-      const tables = ['profiles', 'user_preferences', 'job_applications', 'job_alerts', 'notifications'];
-      
-      for (const table of tables) {
-        const { error } = await supabase
-          .from(table)
-          .delete()
-          .eq('user_id', userId);
-
-        if (error) throw error;
-      }
-
-      // Delete user's avatar if exists
-      const profile = await this.getProfile(userId);
-      if (profile?.avatar_url) {
-        const fileName = profile.avatar_url.split('/').pop();
-        if (fileName) {
-          await supabase.storage
-            .from('avatars')
-            .remove([fileName]);
-        }
-      }
-
-      // Delete user from auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      if (authError) throw authError;
-
-      // Clear all user-related caches
-      cache.delete(`profile-${userId}`);
-      cache.delete(`preferences-${userId}`);
-      cache.delete(`applications-${userId}`);
-      cache.delete(`alerts-${userId}`);
-      cache.delete(`notifications-${userId}`);
-      
-      analytics.trackUserAction('account-delete-success');
-      return true;
-    } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
-      return false;
-    } finally {
-      performanceMonitor.endMeasure('delete-account');
+  // Send connection request
+  async sendConnectionRequest(fromUserId: string, toUserId: string, message?: string) {
+    if (!rateLimiter.checkLimit('connection_request', fromUserId, 10, 3600000)) {
+      throw new Error('Too many connection requests. Please wait before sending more.');
     }
+
+    const { data, error } = await supabase
+      .from('user_connections')
+      .insert({
+        user_id: fromUserId,
+        connected_user_id: toUserId,
+        status: 'pending',
+        message
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error sending connection request:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  // Accept connection request
+  async acceptConnectionRequest(connectionId: string) {
+    const { data, error } = await supabase
+      .from('user_connections')
+      .update({ status: 'accepted' })
+      .eq('id', connectionId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error accepting connection request:', error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  // Upload profile picture
+  async uploadProfilePicture(userId: string, file: File): Promise<string | null> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('profiles')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error('Error uploading profile picture:', uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('profiles')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
   }
 }
 
-export const userService = new UserService(); 
+export const userService = new UserService();

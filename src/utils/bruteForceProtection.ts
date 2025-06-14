@@ -30,3 +30,7 @@ export const checkRateLimit = (identifier: string, maxAttempts: number = 5, wind
   
   return true;
 };
+
+export const bruteForceProtection = {
+  checkRateLimit
+};
