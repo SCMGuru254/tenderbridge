@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCcw } from "lucide-react";
@@ -60,8 +59,8 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         console.error('Error testing job sources:', error);
         toast({
           variant: "destructive",
-          title: "Error testing job sources",
-          description: "There was a problem testing the job sources. Check console for details.",
+          title: "Couldn't refresh jobs",
+          description: "We encountered an issue while fetching new job listings. Please try again later.",
         });
       } else {
         console.log('Job source test completed:', data);

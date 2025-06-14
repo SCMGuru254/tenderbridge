@@ -104,7 +104,7 @@ Answer:`,
           top_p: 0.9,
           do_sample: true
         }
-      }),
+      })
     });
 
     const result = await response.json();

@@ -2,7 +2,7 @@
 import { load } from 'https://esm.sh/cheerio@1.0.0';
 import { JobSite } from '../types/jobSite.ts';
 import { Job } from '../types/job.ts';
-import { parseXmlJobs } from '../utils/xmlJobParser.ts';
+import parseXmlJobs from '../utils/xmlJobParser.ts';
 
 export async function scrapeJobSites(jobSite: JobSite): Promise<Job[]> {
   console.log(`Starting scrape for: ${jobSite.source}`);
