@@ -27,6 +27,12 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
+  // Add safety check for React hooks
+  if (!React.useState) {
+    console.error("React hooks are not available. This might be a bundling issue.");
+    return <>{children}</>;
+  }
+
   const [theme, setTheme] = React.useState<Theme>(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem(storageKey) as Theme) || defaultTheme
