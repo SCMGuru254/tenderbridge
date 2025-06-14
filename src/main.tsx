@@ -48,9 +48,6 @@ const queryClient = new QueryClient({
   },
 });
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Root element not found');
-
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeApp);
@@ -60,6 +57,11 @@ if (document.readyState === 'loading') {
 
 function initializeApp() {
   console.log("[DEBUG] main.tsx - Initializing app");
+  
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
   
   const root = createRoot(rootElement);
 
