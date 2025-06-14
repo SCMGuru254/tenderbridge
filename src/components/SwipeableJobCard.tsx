@@ -26,7 +26,7 @@ interface SwipeableJobCardProps {
   onTap?: () => void;
 }
 
-const SwipeableJobCard: React.FC<SwipeableJobCardProps> = ({
+export const SwipeableJobCard: React.FC<SwipeableJobCardProps> = ({
   job,
   onSave,
   onShare,
@@ -105,5 +105,3 @@ const SwipeableJobCard: React.FC<SwipeableJobCardProps> = ({
     </Card>
   );
 };
-
-export default SwipeableJobCard;
