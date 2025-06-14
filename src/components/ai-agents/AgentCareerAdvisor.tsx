@@ -48,28 +48,76 @@ const AgentCareerAdvisor = () => {
           </CardTitle>
           <CardDescription>Personalized guidance for your career path</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[400px]">
-            <div className="space-y-4">
-              {adviceList.map((advice) => (
-                <Card key={advice.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-sm font-medium">{advice.title}</CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {advice.category}
-                      </Badge>
+          <CardContent>
+            <ScrollArea className="h-[500px]">
+              <div className="space-y-6">
+                {advice.advice && advice.advice.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Badge variant="default">General Advice</Badge>
+                    </h4>
+                    <ul className="space-y-2">
+                      {advice.advice.map((item, index) => (
+                        <li key={index} className="text-sm text-muted-foreground border-l-2 border-blue-200 pl-3">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {advice.skillRecommendations && advice.skillRecommendations.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Badge variant="secondary">Skill Recommendations</Badge>
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {advice.skillRecommendations.map((skill, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">{advice.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                  </div>
+                )}
+                
+                {advice.careerPath && advice.careerPath.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Badge variant="default">Suggested Career Path</Badge>
+                    </h4>
+                    <div className="space-y-2">
+                      {advice.careerPath.map((step, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-xs flex items-center justify-center font-medium">
+                            {index + 1}
+                          </div>
+                          <span className="text-sm">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {advice.nextSteps && advice.nextSteps.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Badge variant="destructive">Next Steps</Badge>
+                    </h4>
+                    <ul className="space-y-2">
+                      {advice.nextSteps.map((step, index) => (
+                        <li key={index} className="text-sm text-muted-foreground border-l-2 border-green-200 pl-3">
+                          {step}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Building2, MapPin, Heart, ExternalLink } from "lucide-react";
 import { analytics } from "@/utils/analytics";
-import { performanceMonitor } from "@/utils/performance";
-import { errorHandler } from "@/utils/errorHandling";
+import { performanceMonitor } from "@/utils/performanceMonitor";
+import { errorHandler, ErrorType } from "@/utils/errorHandling";
 
 interface SwipeableJobCardProps {
   job: {
@@ -57,8 +57,13 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
       
       setCurrentX(0);
       performanceMonitor.endMeasure('job-card-swipe');
-    } catch (error) {
-      errorHandler.handleError(error, 'USER_ACTION');
+    } // Fixed imports
+    import { errorHandler, ErrorType } from "@/utils/errorHandling";
+    import { performanceMonitor } from "@/utils/performanceMonitor";
+    
+    // Fixed error handling
+    catch (error) {
+      errorHandler.handleError(error, ErrorType.UNKNOWN);
     }
   };
 

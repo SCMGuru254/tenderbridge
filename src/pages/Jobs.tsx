@@ -8,7 +8,7 @@ import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
 import { SalaryAnalyzer } from "@/components/SalaryAnalyzer";
 import { Mentorship } from "@/components/Mentorship";
-import { JobMatchingChat } from "@/components/JobMatchingChat";
+import JobMatchingChat from "@/components/JobMatchingChat";
 import { JobsBizDevelopment } from "@/components/JobsBizDevelopment";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ErrorBoundary from "@/components/ErrorBoundary";

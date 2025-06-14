@@ -1,5 +1,9 @@
 
 import { AgentRole, AgentMessage, AgentContext } from './agents/types';
+import { openaiService } from './openaiService';
+import { analytics } from '@/utils/analytics';
+import { performanceMonitor } from '@/utils/performanceMonitor';
+import { errorHandler, ErrorType } from '@/utils/errorHandling';
 
 export class AIAgentService {
   private agents: Map<AgentRole, any> = new Map();
@@ -28,40 +32,112 @@ export class AIAgentService {
   }
 
   async activateAgent(agentRole: AgentRole): Promise<void> {
-    // Deactivate current agent
-    if (this.activeAgent) {
-      const currentAgent = this.agents.get(this.activeAgent);
-      if (currentAgent) {
-        currentAgent.isActive = false;
+    try {
+      // Deactivate current agent
+      if (this.activeAgent) {
+        const currentAgent = this.agents.get(this.activeAgent);
+        if (currentAgent) {
+          currentAgent.isActive = false;
+        }
       }
-    }
 
-    // Activate new agent
-    const newAgent = this.agents.get(agentRole);
-    if (newAgent) {
-      newAgent.isActive = true;
-      this.activeAgent = agentRole;
+      // Activate new agent
+      const newAgent = this.agents.get(agentRole);
+      if (newAgent) {
+        newAgent.isActive = true;
+        this.activeAgent = agentRole;
+        analytics.trackUserAction('agent-activated', agentRole);
+      }
+    } catch (error) {
+      errorHandler.handleError(error, ErrorType.UNKNOWN);
+      throw error;
     }
   }
 
   async processMessage(message: string, context?: AgentContext): Promise<AgentMessage> {
-    if (!this.activeAgent) {
-      throw new Error('No active agent');
-    }
+    try {
+      performanceMonitor.startMeasure('agent-process-message');
+      
+      if (!this.activeAgent) {
+        throw new Error('No active agent');
+      }
 
-    const agent = this.agents.get(this.activeAgent);
-    if (!agent) {
-      throw new Error('Agent not found');
-    }
+      const agent = this.agents.get(this.activeAgent);
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
 
-    // Process message with the active agent
-    return {
-      id: Date.now().toString(),
-      content: `${this.activeAgent} processed: ${message}`,
-      role: this.activeAgent,
-      timestamp: Date.now(),
-      confidence: 0.8
-    };
+      // Build context for the AI
+      const contextString = context ? JSON.stringify(context) : '';
+      
+      // Process message with OpenAI based on agent role
+      let content: string;
+      let confidence = 0.8;
+      
+      switch (this.activeAgent) {
+        case 'career_advisor':
+          content = await openaiService.generateChatResponse(
+            `Career advice request: ${message}`,
+            `Role: Career Advisor specializing in supply chain careers. ${contextString}`
+          );
+          break;
+        case 'job_matcher':
+          content = await openaiService.generateChatResponse(
+            `Job matching query: ${message}`,
+            `Role: Job matching specialist for supply chain positions. ${contextString}`
+          );
+          break;
+        case 'news_analyzer':
+          content = await openaiService.generateChatResponse(
+            `News analysis request: ${message}`,
+            `Role: Supply chain news analyst. ${contextString}`
+          );
+          break;
+        case 'social_media':
+          content = await openaiService.generateChatResponse(
+            `Social media content request: ${message}`,
+            `Role: Social media content creator for supply chain professionals. ${contextString}`
+          );
+          break;
+        default:
+          content = await openaiService.generateChatResponse(message, contextString);
+      }
+
+      // Update agent history
+      agent.context.history.push({
+        id: Date.now().toString(),
+        content: message,
+        role: 'user',
+        timestamp: Date.now()
+      });
+
+      const response: AgentMessage = {
+        id: (Date.now() + 1).toString(),
+        content,
+        role: this.activeAgent,
+        timestamp: Date.now(),
+        confidence
+      };
+
+      agent.context.history.push(response);
+      analytics.trackUserAction('agent-message-processed', this.activeAgent);
+      
+      return response;
+    } catch (error) {
+      errorHandler.handleError(error, ErrorType.SERVER);
+      analytics.trackError(error as Error);
+      
+      // Return fallback response
+      return {
+        id: Date.now().toString(),
+        content: 'I apologize, but I\'m experiencing technical difficulties. Please try again later.',
+        role: this.activeAgent || 'career_advisor',
+        timestamp: Date.now(),
+        confidence: 0.1
+      };
+    } finally {
+      performanceMonitor.endMeasure('agent-process-message');
+    }
   }
 
   getActiveAgent(): AgentRole | null {
