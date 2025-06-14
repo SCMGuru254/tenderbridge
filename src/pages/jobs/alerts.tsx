@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+// Import JobAlertForm and JobAlertsList with types
 import { JobAlertForm } from '@/components/Jobs/JobAlertForm';
 import { JobAlertsList } from '@/components/Jobs/JobAlertsList';
 import { Bell, Plus } from 'lucide-react';

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Community, CommunityWithMembership, CommunityPost } from '@/types/community';
@@ -153,7 +152,6 @@ export const useCommunityPosts = (communityId: string) => {
         comments: 0,
         tags: postData.tags || []
       };
-      
       setPosts(prev => [newPost, ...prev]);
       return newPost;
     } catch (error) {
@@ -163,7 +161,6 @@ export const useCommunityPosts = (communityId: string) => {
   };
 
   useEffect(() => {
-    // Fetch posts for community
     setPosts([]);
   }, [communityId]);
 

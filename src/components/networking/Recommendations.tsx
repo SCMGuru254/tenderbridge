@@ -1,3 +1,4 @@
+
 import { useUser } from '@/hooks/useUser';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Check, ThumbsUp, Quote } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ProfessionalRecommendation } from '@/types/networking'; // Add import for type
 
 const recommendationSchema = z.object({
   content: z.string().min(100, { message: "Recommendation must be at least 100 characters" }),
@@ -41,12 +43,10 @@ export default function Recommendations() {
 
   const onSubmit = async (values: RecommendationFormValues) => {
     if (!form.formState.isValid) return;
-    
     await writeRecommendation({
-      recommendedId: user.id,
+      recommended_id: user.id, // fix property
       ...values,
     });
-    
     form.reset();
   };
 
@@ -61,22 +61,21 @@ export default function Recommendations() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {recommendations.map((recommendation) => (
+            {(recommendations as ProfessionalRecommendation[]).map((recommendation: ProfessionalRecommendation) => (
               <div key={recommendation.id} className="p-6 border rounded-lg">
                 <div className="flex items-start gap-4">
                   <Avatar>
                     <AvatarFallback>
-                      {recommendation.profiles.full_name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
+                      {recommendation.recommender_id
+                        ? recommendation.recommender_id.slice(0, 2).toUpperCase()
+                        : "PR"}
                     </AvatarFallback>
                     <AvatarImage src={`https://api.dicebear.com/7.x/personas/svg?seed=${recommendation.recommender_id}`} />
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">{recommendation.profiles.full_name}</h4>
+                        <h4 className="font-medium">{recommendation.recommender_id || "Unknown"}</h4>
                         <p className="text-sm text-muted-foreground">
                           {recommendation.relationship} • Known for {recommendation.duration}
                         </p>
@@ -93,14 +92,14 @@ export default function Recommendations() {
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground mt-4">
-                      Posted {new Date(recommendation.created_at).toLocaleDateString()}
+                      Posted {recommendation.created_at ? new Date(recommendation.created_at).toLocaleDateString() : ""}
                     </p>
                   </div>
                 </div>
               </div>
             ))}
 
-            {recommendations.length === 0 && (
+            {(recommendations as ProfessionalRecommendation[]).length === 0 && (
               <p className="text-center text-muted-foreground py-4">
                 No recommendations yet. Start building your professional profile by getting recommendations from colleagues.
               </p>

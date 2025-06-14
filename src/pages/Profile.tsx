@@ -7,6 +7,7 @@ import { HiringDecisionsTab } from '@/components/profile/HiringDecisionsTab';
 import { RecordDecisionTab } from '@/components/profile/RecordDecisionTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
+import type { ProfileView, HiringDecision } from '@/types/profiles';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('about');
@@ -30,8 +31,8 @@ const Profile = () => {
     updated_at: new Date().toISOString()
   };
 
-  const profileViews = [];
-  const hiringDecisions = [];
+  const profileViews: ProfileView[] = [];
+  const hiringDecisions: HiringDecision[] = [];
 
   const handleRecordDecision = (decision: any) => {
     console.log('Recording decision:', decision);
