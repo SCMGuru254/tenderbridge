@@ -105,8 +105,10 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
+          const jobUrl = getJobUrl(job);
           // Convert null to undefined to match expected type
           const deadlineValue: string | undefined = deadline ?? undefined;
+          const jobUrlValue: string | undefined = jobUrl ?? undefined;
           
           console.log("JobList - Rendering job:", job.title, "deadline:", deadlineValue);
           
@@ -120,7 +122,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
                 location: getLocation(job) || "Location not specified",
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
-                job_url: getJobUrl(job),
+                job_url: jobUrlValue,
                 application_deadline: deadlineValue,
                 social_shares: job.social_shares || {}
               }}
@@ -139,7 +141,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               location={getLocation(job)}
               job_type={job.job_type || null}
               category={getJobSource(job)}
-              job_url={getJobUrl(job)}
+              job_url={jobUrlValue}
               application_deadline={deadlineValue}
               social_shares={job.social_shares || {}}
             />
