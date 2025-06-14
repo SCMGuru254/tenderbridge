@@ -19,9 +19,11 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
+    force: true,
   },
   build: {
     target: "esnext",
@@ -31,6 +33,11 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     },
     rollupOptions: {
       external: [],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
     }
   }
 }));
