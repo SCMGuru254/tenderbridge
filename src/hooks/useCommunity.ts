@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Community, CommunityMember } from '@/types/community';
+import { Community } from '@/types/community';
 
 export const useCommunity = () => {
   const [communities, setCommunities] = useState<Community[]>([]);

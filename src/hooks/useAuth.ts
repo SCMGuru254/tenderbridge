@@ -1,46 +1,26 @@
 
 import { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  avatar_url?: string;
-}
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.full_name,
-          avatar_url: session.user.user_metadata?.avatar_url
-        });
-      }
+      setUser(session?.user ?? null);
       setLoading(false);
     };
 
     getSession();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.full_name,
-            avatar_url: session.user.user_metadata?.avatar_url
-          });
-        } else {
-          setUser(null);
-        }
+      async (_event, session) => {
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );
@@ -50,8 +30,11 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setUser(null);
   };
 
-  return { user, loading, signOut };
+  return {
+    user,
+    loading,
+    signOut
+  };
 };

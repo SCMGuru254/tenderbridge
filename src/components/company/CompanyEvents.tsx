@@ -1,166 +1,60 @@
 
-import React, { useState } from 'react';
-import { useCompany } from '@/hooks/useCompany';
-import { CompanyEvent } from '@/types/careers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { CompanyEvent } from '@/types/careers';
+import { MapPin, Calendar, ExternalLink } from 'lucide-react';
 
 interface CompanyEventsProps {
-  companyId: string;
+  events: CompanyEvent[];
 }
 
-export const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId }) => {
-  const { events, createEvent, loading } = useCompany(companyId);
-  const [showForm, setShowForm] = useState(false);
-  const [newEvent, setNewEvent] = useState<Partial<CompanyEvent>>({
-    title: '',
-    description: '',
-    date: '',
-    location: { type: 'physical', address: '' }
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newEvent.title?.trim()) {
-      toast.error('Event title is required');
-      return;
-    }
-
-    const result = await createEvent(newEvent);
-    if (result) {
-      toast.success('Event created successfully!');
-      setShowForm(false);
-      setNewEvent({
-        title: '',
-        description: '',
-        date: '',
-        location: { type: 'physical', address: '' }
-      });
-    } else {
-      toast.error('Failed to create event');
-    }
-  };
-
+export const CompanyEvents = ({ events }: CompanyEventsProps) => {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Company Events</h2>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
-      </div>
-
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Event</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-1">
-                  Event Title
-                </label>
-                <Input
-                  id="title"
-                  value={newEvent.title || ''}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  placeholder="Enter event title"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium mb-1">
-                  Description
-                </label>
-                <Textarea
-                  id="description"
-                  value={newEvent.description || ''}
-                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                  placeholder="Describe the event"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="date" className="block text-sm font-medium mb-1">
-                  Date & Time
-                </label>
-                <Input
-                  id="date"
-                  type="datetime-local"
-                  value={newEvent.date || ''}
-                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium mb-1">
-                  Location
-                </label>
-                <Input
-                  id="location"
-                  value={newEvent.location?.address || ''}
-                  onChange={(e) => setNewEvent({ 
-                    ...newEvent, 
-                    location: { ...newEvent.location!, address: e.target.value }
-                  })}
-                  placeholder="Event location"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Event'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4">
-        {events.map((event) => (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Upcoming Events</h3>
+      {events.length === 0 ? (
+        <p className="text-muted-foreground">No upcoming events.</p>
+      ) : (
+        events.map((event) => (
           <Card key={event.id}>
             <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{event.title}</CardTitle>
-                  <CardDescription>{event.description}</CardDescription>
+              <CardTitle className="text-base">{event.title}</CardTitle>
+              <CardDescription>
+                <div className="flex items-center gap-4 text-sm">
+                  {event.date && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(event.date).toLocaleDateString()}
+                    </div>
+                  )}
+                  {event.location && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <Badge variant="outline">{event.location.type}</Badge>
+                    </div>
+                  )}
                 </div>
-                <Badge variant="outline">Event</Badge>
-              </div>
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 text-sm text-muted-foreground">
-                {event.date && (
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(event.date).toLocaleDateString()}</span>
-                  </div>
+            {event.description && (
+              <CardContent>
+                <p className="text-muted-foreground mb-4">{event.description}</p>
+                {event.location?.url && (
+                  <a
+                    href={event.location.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-blue-500 hover:underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Join Event
+                  </a>
                 )}
-                {event.location?.address && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{event.location.address}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
+              </CardContent>
+            )}
           </Card>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 };

@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { useEngagement } from '@/hooks/useEngagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

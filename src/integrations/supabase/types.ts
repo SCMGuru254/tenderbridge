@@ -77,6 +77,74 @@ export type Database = {
         }
         Relationships: []
       }
+      career_application_votes: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          id: string
+          voter_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          voter_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          id?: string
+          voter_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_application_votes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "career_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      career_applications: {
+        Row: {
+          applicant_email: string | null
+          applicant_name: string | null
+          created_at: string | null
+          id: string
+          proposal_text: string | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          votes_count: number | null
+        }
+        Insert: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          created_at?: string | null
+          id?: string
+          proposal_text?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          votes_count?: number | null
+        }
+        Update: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          created_at?: string | null
+          id?: string
+          proposal_text?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          votes_count?: number | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string
@@ -937,6 +1005,10 @@ export type Database = {
           p_reference_id?: string
         }
         Returns: boolean
+      }
+      increment_vote_count: {
+        Args: { application_id: string }
+        Returns: undefined
       }
       process_redemption: {
         Args: {

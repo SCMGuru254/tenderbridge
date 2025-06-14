@@ -1,136 +1,29 @@
 
-import React, { useState } from 'react';
-import { useCompany } from '@/hooks/useCompany';
-import { CompanyUpdate } from '@/types/careers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { CompanyUpdate } from '@/types/careers';
 
 interface CompanyUpdatesProps {
-  companyId: string;
+  updates: CompanyUpdate[];
 }
 
-export const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId }) => {
-  const { updates, createUpdate, loading } = useCompany(companyId);
-  const [showForm, setShowForm] = useState(false);
-  const [newUpdate, setNewUpdate] = useState<Partial<CompanyUpdate>>({
-    title: '',
-    content: '',
-    type: 'general'
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newUpdate.title?.trim()) {
-      toast.error('Update title is required');
-      return;
-    }
-
-    const result = await createUpdate(newUpdate);
-    if (result) {
-      toast.success('Update posted successfully!');
-      setShowForm(false);
-      setNewUpdate({
-        title: '',
-        content: '',
-        type: 'general'
-      });
-    } else {
-      toast.error('Failed to post update');
-    }
-  };
-
+export const CompanyUpdates = ({ updates }: CompanyUpdatesProps) => {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Company Updates</h2>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Update
-        </Button>
-      </div>
-
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Update</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium mb-1">
-                  Title
-                </label>
-                <Input
-                  id="title"
-                  value={newUpdate.title || ''}
-                  onChange={(e) => setNewUpdate({ ...newUpdate, title: e.target.value })}
-                  placeholder="Update title"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="content" className="block text-sm font-medium mb-1">
-                  Content
-                </label>
-                <Textarea
-                  id="content"
-                  value={newUpdate.content || ''}
-                  onChange={(e) => setNewUpdate({ ...newUpdate, content: e.target.value })}
-                  placeholder="Share your update..."
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="type" className="block text-sm font-medium mb-1">
-                  Type
-                </label>
-                <select
-                  id="type"
-                  value={newUpdate.type || 'general'}
-                  onChange={(e) => setNewUpdate({ ...newUpdate, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="general">General</option>
-                  <option value="announcement">Announcement</option>
-                  <option value="milestone">Milestone</option>
-                  <option value="hiring">Hiring</option>
-                </select>
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit" disabled={loading}>
-                  {loading ? 'Posting...' : 'Post Update'}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="space-y-4">
-        {updates.map((update) => (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Company Updates</h3>
+      {updates.length === 0 ? (
+        <p className="text-muted-foreground">No updates available.</p>
+      ) : (
+        updates.map((update) => (
           <Card key={update.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{update.title}</CardTitle>
-                  <CardDescription>
-                    {new Date(update.created_at).toLocaleDateString()}
-                  </CardDescription>
-                </div>
+                <CardTitle className="text-base">{update.title}</CardTitle>
                 <Badge variant="outline">{update.type}</Badge>
               </div>
+              <CardDescription>
+                {new Date(update.created_at).toLocaleDateString()}
+              </CardDescription>
             </CardHeader>
             {update.content && (
               <CardContent>
@@ -138,8 +31,8 @@ export const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId }) => 
               </CardContent>
             )}
           </Card>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 };

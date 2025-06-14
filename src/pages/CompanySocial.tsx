@@ -1,63 +1,67 @@
 
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import CompanyProfile from '../components/company/CompanyProfile';
-import CompanyUpdates from '../components/company/CompanyUpdates';
-import CompanyEvents from '../components/company/CompanyEvents';
-import CompanyTeam from '../components/company/CompanyTeam';
-import { useAuth } from '../hooks/useAuth';
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CompanyUpdates } from "@/components/company/CompanyUpdates";
+import { CompanyEvents } from "@/components/company/CompanyEvents";
+import { CompanyTeam } from "@/components/company/CompanyTeam";
 
-const CompanySocial: React.FC = () => {
-  const { companyId } = useParams<{ companyId: string }>();
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'updates' | 'events' | 'team'>('profile');
-
-  // In a real app, you would check if the user has admin rights for this company
-  const isCompanyAdmin = user && companyId && user.id === companyId; // This is a simplified check
-
-  if (!companyId) {
-    return <div>Company not found</div>;
-  }
-
-  const renderTab = () => {
-    switch (activeTab) {
-      case 'profile':
-        return <CompanyProfile companyId={companyId} isEditable={Boolean(isCompanyAdmin)} />;
-      case 'updates':
-        return <CompanyUpdates companyId={companyId} canCreate={Boolean(isCompanyAdmin)} />;
-      case 'events':
-        return <CompanyEvents companyId={companyId} canCreate={Boolean(isCompanyAdmin)} />;
-      case 'team':
-        return <CompanyTeam companyId={companyId} canEdit={Boolean(isCompanyAdmin)} />;
-      default:
-        return null;
-    }
-  };
+export default function CompanySocial() {
+  const { companyId } = useParams();
+  const [updates] = useState([]);
+  const [events] = useState([]);
+  const [team] = useState([]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <nav className="mb-8">
-        <ul className="flex space-x-8 border-b">
-          {(['profile', 'updates', 'events', 'team'] as const).map((tab) => (
-            <li key={tab}>
-              <button
-                onClick={() => setActiveTab(tab)}
-                className={`px-1 py-4 text-sm font-medium border-b-2 ${
-                  activeTab === tab
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      {renderTab()}
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Company Social Hub</h1>
+        
+        <Tabs defaultValue="updates" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="updates">Updates</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="updates">
+            <Card>
+              <CardHeader>
+                <CardTitle>Company Updates</CardTitle>
+                <CardDescription>Latest news and announcements</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CompanyUpdates updates={updates} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="events">
+            <Card>
+              <CardHeader>
+                <CardTitle>Company Events</CardTitle>
+                <CardDescription>Upcoming events and activities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CompanyEvents events={events} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="team">
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Members</CardTitle>
+                <CardDescription>Meet the team</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CompanyTeam members={team} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
-};
-
-export default CompanySocial;
+}
