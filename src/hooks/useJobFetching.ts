@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -32,18 +31,10 @@ export const usePostedJobs = () => {
           throw connectionError;
         }
         
-        // Now do the actual query
+        // Now do the actual query - simplified without companies join
         const { data, error, count } = await supabase
           .from('jobs')
-          .select(`
-            *,
-            companies (
-              name,
-              location,
-              website,
-              description
-            )
-          `, { count: 'exact' })
+          .select('*', { count: 'exact' })
           .eq('is_active', true)
           .order('created_at', { ascending: false })
           .limit(1000);
