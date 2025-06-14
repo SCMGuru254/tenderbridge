@@ -1,14 +1,16 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkIcon, BriefcaseIcon, UserIcon, TrendingUpIcon } from "lucide-react";
+import { BookmarkIcon, BriefcaseIcon, UserIcon, TrendingUpIcon, Sparkles, Share2, Users } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AIJobRecommendations } from "@/components/ai/AIJobRecommendations";
+import { SocialShareHub } from "@/components/social/SocialShareHub";
+import { SocialNetworking } from "@/components/social/SocialNetworking";
 
 interface SavedJob {
   id: string;
@@ -21,6 +23,9 @@ interface SavedJob {
     company: string;
     location: string;
     job_type: string;
+    description: string;
+    application_url: string;
+    created_at: string;
   };
 }
 
@@ -47,7 +52,10 @@ const Dashboard = () => {
             title,
             company,
             location,
-            job_type
+            job_type,
+            description,
+            application_url,
+            created_at
           )
         `)
         .eq('user_id', user?.id)
@@ -121,7 +129,7 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || user.email}</h1>
-        <p className="text-muted-foreground">Here's your job search dashboard</p>
+        <p className="text-muted-foreground">Here's your enhanced job search dashboard with AI and social features</p>
       </div>
 
       {/* Stats Grid */}
@@ -143,9 +151,20 @@ const Dashboard = () => {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="saved-jobs" className="space-y-6">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="saved-jobs">Saved Jobs</TabsTrigger>
-          <TabsTrigger value="applications">Applications</TabsTrigger>
+          <TabsTrigger value="ai-recommendations">
+            <Sparkles className="h-4 w-4 mr-1" />
+            AI Jobs
+          </TabsTrigger>
+          <TabsTrigger value="social-network">
+            <Users className="h-4 w-4 mr-1" />
+            Network
+          </TabsTrigger>
+          <TabsTrigger value="social-share">
+            <Share2 className="h-4 w-4 mr-1" />
+            Share
+          </TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
@@ -212,16 +231,16 @@ const Dashboard = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="applications" className="space-y-4">
-          <Card>
-            <CardContent className="py-8 text-center">
-              <BriefcaseIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Job Applications</h3>
-              <p className="text-muted-foreground">
-                Track your job applications (Coming Soon)
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="ai-recommendations" className="space-y-4">
+          <AIJobRecommendations />
+        </TabsContent>
+
+        <TabsContent value="social-network" className="space-y-4">
+          <SocialNetworking />
+        </TabsContent>
+
+        <TabsContent value="social-share" className="space-y-4">
+          <SocialShareHub />
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-4">

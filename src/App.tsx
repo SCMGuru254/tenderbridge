@@ -16,6 +16,7 @@ import Discussions from "@/pages/Discussions";
 import PayPalPortal from "@/pages/PayPalPortal";
 import Careers from "@/pages/Careers";
 import AIAgents from "@/pages/AIAgents";
+import SocialHub from "@/pages/SocialHub";
 import { AppDebugger } from "@/components/debug/AppDebugger";
 
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ function App() {
               <Route path="/paypal-portal" element={<PayPalPortal />} />
               <Route path="/careers" element={<Careers />} />
               <Route path="/ai-agents" element={<AIAgents />} />
+              <Route path="/social-hub" element={<SocialHub />} />
             </Routes>
           </main>
           <Footer />
