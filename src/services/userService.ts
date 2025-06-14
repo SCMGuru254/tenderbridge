@@ -25,7 +25,8 @@ export class UserService {
 
   // Update user profile
   async updateProfile(userId: string, updates: ProfileUpdate): Promise<Profile | null> {
-    if (!rateLimiter.checkLimit('profile_update', userId)) {
+    const rateCheck = await rateLimiter.checkLimit('profile_update', userId);
+    if (!rateCheck.success) {
       throw new Error('Too many profile updates. Please wait before trying again.');
     }
 
@@ -123,7 +124,8 @@ export class UserService {
     resource_id?: string;
     metadata?: any;
   }) {
-    if (!rateLimiter.checkLimit('track_activity', userId)) {
+    const rateCheck = await rateLimiter.checkLimit('track_activity', userId);
+    if (!rateCheck.success) {
       return; // Silently fail for activity tracking
     }
 
@@ -163,7 +165,8 @@ export class UserService {
 
   // Send connection request
   async sendConnectionRequest(fromUserId: string, toUserId: string, message?: string) {
-    if (!rateLimiter.checkLimit('connection_request', fromUserId)) {
+    const rateCheck = await rateLimiter.checkLimit('connection_request', fromUserId);
+    if (!rateCheck.success) {
       throw new Error('Too many connection requests. Please wait before sending more.');
     }
 
