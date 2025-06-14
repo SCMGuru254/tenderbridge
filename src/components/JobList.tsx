@@ -92,7 +92,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sortedJobs.map((job) => {
           const deadline = getDeadline(job);
-          const deadlineValue = deadline === null ? undefined : deadline;
+          // Convert null to undefined to match expected type
+          const deadlineValue: string | undefined = deadline ?? undefined;
           return isMobile ? (
             <SwipeableJobCard
               key={job.id}
