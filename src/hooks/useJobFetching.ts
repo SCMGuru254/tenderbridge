@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -20,7 +21,7 @@ export const usePostedJobs = () => {
         console.log("🔍 usePostedJobs - Testing basic connection to Supabase...");
         
         // Test basic connection first
-        const { data: tables, error: tablesError } = await supabase
+        const { error: tablesError } = await supabase
           .from('jobs')
           .select('id', { count: 'exact', head: true });
         
@@ -115,7 +116,7 @@ export const useScrapedJobs = (limit: number = 1000) => {
         console.log("🔍 useScrapedJobs - Testing basic connection to scraped_jobs table...");
         
         // Test basic connection first
-        const { data: tables, error: tablesError } = await supabase
+        const { error: tablesError } = await supabase
           .from('scraped_jobs')
           .select('id', { count: 'exact', head: true });
         

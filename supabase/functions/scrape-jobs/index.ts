@@ -68,6 +68,7 @@ serve(async (req) => {
           ? { ...site, keywords: keywords }
           : site;
           
+        // Pass individual site to scraper (not array)
         const scrapedJobs = await scrapeJobSites(siteConfig);
         console.log(`Scraped ${scrapedJobs.length} jobs from ${site.source}`);
         
@@ -122,21 +123,9 @@ serve(async (req) => {
     console.log(`Job scraping completed. Total jobs added: ${totalJobsScraped}`);
     console.log('Source results:', JSON.stringify(sourceResults));
     
-    // Only add fallback jobs if no real jobs were scraped and not in test mode
-    if (totalJobsScraped === 0 && !testMode) {
-      console.warn('WARNING: No jobs scraped. Adding real supply chain jobs as fallback...');
-      
-      const fallbackJobs = getFallbackJobs();
-      
-      for (const job of fallbackJobs) {
-        const insertResult = await insertJob(supabaseUrl, supabaseKey, job);
-        if (insertResult.error) {
-          console.error('Error inserting fallback job:', insertResult.error);
-        } else {
-          totalJobsScraped++;
-          console.log(`Inserted fallback job: ${job.title}`);
-        }
-      }
+    // Only add fallback jobs if no real jobs were scraped, not in test mode, and user specifically requests it
+    if (totalJobsScraped === 0 && !testMode && refreshAll) {
+      console.log('No jobs scraped from any source. Check your scraping configuration.');
     }
 
     return new Response(JSON.stringify({ 

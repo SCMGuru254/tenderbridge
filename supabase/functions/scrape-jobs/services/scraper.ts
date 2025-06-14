@@ -1,240 +1,158 @@
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
-import { JobSite } from "../types/jobSite.ts";
-import { Job } from "../types/job.ts";
-import { hasSupplyChainKeywords } from "../utils/jobFilters.ts";
-import { parseXmlFeed } from "../utils/xmlParser.ts";
-import { parseSupplyChainJobsXml } from "../utils/xmlJobParser.ts";
 
-// Function to extract keywords from text for job tags
-// Extract relevant keywords from job text to use as tags
-function extractKeywordsFromText(text: string): string[] {
-  if (!text) return [];
+import { load } from 'https://esm.sh/cheerio@1.0.0';
+import { JobSite } from '../types/jobSite.ts';
+import { Job } from '../types/job.ts';
+import { parseXmlJobs } from '../utils/xmlJobParser.ts';
 
-  const lowerCaseText = text.toLowerCase();
-  const keywords = new Set<string>();
-
-  // Supply chain related keywords to extract
-  const relevantKeywords = [
-    'supply chain',
-    'logistics',
-    'procurement',
-    'warehouse',
-    'inventory',
-    'shipping',
-    'distribution',
-    'scm',
-    'operations',
-    'sourcing',
-    'purchasing',
-    'freight',
-    'transport',
-    'planning',
-    'demand',
-    'forecasting',
-    'material',
-    'import',
-    'export',
-    'customs',
-    'stock',
-    'fulfillment',
-    'replenishment',
-    'delivery',
-    'dispatch',
-    'supply',
-    'chain',
-    'vendor',
-    'supplier',
-    'inbound',
-    'outbound',
-    'lean',
-    'six sigma',
-    'erp',
-    'sap',
-    'wms',
-    'tms',
-    'inventory control',
-    'supply planning',
-    'demand planning',
-    'materials handling',
-    'cold chain',
-    'last mile',
-    '3pl',
-    '4pl'
-  ];
-
-  // Check for each keyword in the text
-  for (const keyword of relevantKeywords) {
-    if (lowerCaseText.includes(keyword)) {
-      keywords.add(keyword);
+export async function scrapeJobSites(jobSite: JobSite): Promise<Job[]> {
+  console.log(`Starting scrape for: ${jobSite.source}`);
+  
+  try {
+    // Handle XML feeds differently
+    if (jobSite.isXmlFeed) {
+      console.log(`Processing XML feed for ${jobSite.source}`);
+      return await scrapeXmlFeed(jobSite);
     }
+    
+    // Handle regular HTML scraping
+    console.log(`Processing HTML scraping for ${jobSite.source}`);
+    return await scrapeHtmlSite(jobSite);
+  } catch (error) {
+    console.error(`Error scraping ${jobSite.source}:`, error);
+    return [];
   }
-
-  // Extract job level/seniority if present
-  const seniorityLevels = ['junior', 'senior', 'lead', 'manager', 'director', 'head', 'chief', 'executive', 'assistant', 'coordinator', 'specialist', 'analyst', 'supervisor', 'officer', 'planner', 'controller'];
-
-  for (const level of seniorityLevels) {
-    if (lowerCaseText.includes(level)) {
-      keywords.add(level);
-    }
-  }
-
-  // Extract education requirements if present
-  const educationKeywords = ['degree', 'bachelor', 'master', 'phd', 'diploma', 'certificate', 'certification', 'mba', 'bsc', 'msc'];
-
-  for (const edu of educationKeywords) {
-    if (lowerCaseText.includes(edu)) {
-      keywords.add(edu);
-    }
-  }
-
-  // Extract experience requirements
-  const experiencePattern = /(\d+)[\s-]*(year|yr)s?/g;
-  const experienceMatches = lowerCaseText.match(experiencePattern);
-
-  if (experienceMatches) {
-    for (const match of experienceMatches) {
-      keywords.add(match.replace(/\s+/g, '-'));
-    }
-  }
-
-  // Extract location information if present
-  const locationKeywords = ['kenya', 'nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret', 'africa', 'east africa'];
-
-  for (const location of locationKeywords) {
-    if (lowerCaseText.includes(location)) {
-      keywords.add(location);
-    }
-  }
-
-  // Extract employment type information
-  const employmentTypes = ['full-time', 'part-time', 'contract', 'temporary', 'permanent', 'internship', 'volunteer'];
-
-  for (const type of employmentTypes) {
-    if (lowerCaseText.includes(type)) {
-      keywords.add(type);
-    }
-  }
-
-  // Extract industry-specific terms
-  const industryTerms = ['manufacturing', 'retail', 'fmcg', 'pharmaceutical', 'healthcare', 'agriculture', 'construction', 'automotive', 'e-commerce', 'food', 'beverage'];
-
-  for (const term of industryTerms) {
-    if (lowerCaseText.includes(term)) {
-      keywords.add(term);
-    }
-  }
-
-  // Limit the number of keywords to avoid overwhelming tags
-  return Array.from(keywords).slice(0, 15);
 }
 
-export async function scrapeJobSites(jobSites: JobSite[], options: any = {}) {
-  const results: any = {};
-  
-  for (const site of jobSites) {
-    try {
-      console.log(`Scraping jobs from: ${site.name}`);
-      
-      if (site.type === 'xml') {
-        // Handle XML feeds
-        const jobs = await parseXmlFeed(site.url, site.name);
-        results[site.name] = {
-          success: true,
-          jobsFound: jobs.length,
-          jobs: jobs
-        };
-      } else {
-        // Handle regular web scraping
-        const response = await fetch(site.url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; JobBot/1.0)',
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const html = await response.text();
-        const jobs = await scrapeJobsFromHtml(html, site);
-        
-        results[site.name] = {
-          success: true,
-          jobsFound: jobs.length,
-          jobs: jobs
-        };
+async function scrapeXmlFeed(jobSite: JobSite): Promise<Job[]> {
+  try {
+    console.log(`Fetching XML from: ${jobSite.url}`);
+    
+    const response = await fetch(jobSite.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
-    } catch (error) {
-      console.error(`Error scraping ${site.name}:`, error);
-      results[site.name] = {
-        success: false,
-        error: error.message,
-        jobs: []
-      };
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+    
+    const xmlText = await response.text();
+    console.log(`XML response length: ${xmlText.length} characters`);
+    
+    // Parse XML jobs using the utility function
+    const jobs = await parseXmlJobs(xmlText, jobSite);
+    console.log(`Parsed ${jobs.length} jobs from XML`);
+    
+    return jobs;
+  } catch (error) {
+    console.error(`Error scraping XML feed ${jobSite.source}:`, error);
+    return [];
   }
-  
-  return results;
 }
 
-async function scrapeJobsFromHtml(html: string, site: JobSite): Promise<Job[]> {
+async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
   const jobs: Job[] = [];
   
   try {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    if (!doc) return jobs;
+    console.log(`Fetching HTML from: ${jobSite.url}`);
     
-    // Basic job extraction logic
-    const jobElements = doc.querySelectorAll(site.selectors?.job || '.job, .job-item, .job-listing');
+    const response = await fetch(jobSite.url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
     
-    for (const element of jobElements) {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const html = await response.text();
+    console.log(`HTML response length: ${html.length} characters`);
+    
+    const $ = load(html);
+    const jobElements = $(jobSite.selectors.jobContainer);
+    
+    console.log(`Found ${jobElements.length} job containers`);
+    
+    jobElements.each((index, element) => {
       try {
-        const title = element.querySelector(site.selectors?.title || '.title, .job-title, h2, h3')?.textContent?.trim();
-        const company = element.querySelector(site.selectors?.company || '.company, .employer')?.textContent?.trim();
-        const location = element.querySelector(site.selectors?.location || '.location, .job-location')?.textContent?.trim();
-        const description = element.querySelector(site.selectors?.description || '.description, .job-description')?.textContent?.trim();
-        const salary = element.querySelector(site.selectors?.salary || '.salary, .compensation, .pay')?.textContent?.trim();
-        const experience = element.querySelector(site.selectors?.experience || '.experience, .requirements, .qualifications')?.textContent?.trim();
-        const skills = Array.from(element.querySelectorAll(site.selectors?.skills || '.skills li, .requirements li, .qualifications li'))
-          .map(el => el.textContent?.trim())
-          .filter(Boolean);
-        const employmentType = element.querySelector(site.selectors?.employmentType || '.employment-type, .job-type')?.textContent?.trim();
-        const deadline = element.querySelector(site.selectors?.deadline || '.deadline, .closing-date')?.textContent?.trim();
-        const isRemote = element.querySelector(site.selectors?.remote || '.remote, .work-location')?.textContent?.toLowerCase().includes('remote');
-        const companyWebsite = element.querySelector(site.selectors?.companyWebsite || '.company-website, .website')?.getAttribute('href');
-        const companyDescription = element.querySelector(site.selectors?.companyDescription || '.company-description, .about-company')?.textContent?.trim();
+        const $element = $(element);
         
-        if (title && hasSupplyChainKeywords(title + ' ' + (description || ''))) {
+        // Extract job information
+        const title = $element.find(jobSite.selectors.title).first().text().trim();
+        const company = $element.find(jobSite.selectors.company).first().text().trim();
+        const location = $element.find(jobSite.selectors.location).first().text().trim();
+        
+        // Extract job URL
+        let jobUrl = '';
+        if (jobSite.selectors.jobLink) {
+          const linkElement = $element.find(jobSite.selectors.jobLink).first();
+          jobUrl = linkElement.attr('href') || '';
+          
+          // Make relative URLs absolute
+          if (jobUrl && !jobUrl.startsWith('http')) {
+            const baseUrl = new URL(jobSite.url).origin;
+            jobUrl = new URL(jobUrl, baseUrl).href;
+          }
+        }
+        
+        // Only include jobs with valid title and company
+        if (title && company && title.length > 3) {
+          // Filter by keywords if specified
+          if (jobSite.keywords && jobSite.keywords.length > 0) {
+            const titleLower = title.toLowerCase();
+            const hasKeyword = jobSite.keywords.some(keyword => 
+              titleLower.includes(keyword.toLowerCase())
+            );
+            
+            if (!hasKeyword) {
+              return; // Skip this job if it doesn't match keywords
+            }
+          }
+          
           const job: Job = {
-            title: title,
-            company: company || 'Not specified',
+            title,
+            company,
             location: location || 'Kenya',
-            description: description || '',
-            source: site.name,
-            job_url: site.url,
-            tags: extractKeywordsFromText(title + ' ' + (description || '')),
-            salary: salary || null,
-            experience_level: experience || null,
-            skills: skills.length > 0 ? skills : null,
-            employment_type: employmentType || null,
-            deadline: deadline || null,
-            is_remote: isRemote || false,
-            company_website: companyWebsite || null,
-            company_description: companyDescription || null,
+            source: jobSite.source,
+            job_url: jobUrl || undefined,
+            application_url: jobUrl || undefined,
+            description: '', // Will be filled if available
+            job_type: 'full_time', // Default
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
           
+          // Extract additional fields if selectors are provided
+          if (jobSite.selectors.jobType) {
+            const jobType = $element.find(jobSite.selectors.jobType).first().text().trim();
+            if (jobType) job.job_type = jobType;
+          }
+          
+          if (jobSite.selectors.deadline) {
+            const deadline = $element.find(jobSite.selectors.deadline).first().text().trim();
+            if (deadline) {
+              try {
+                job.application_deadline = new Date(deadline).toISOString();
+              } catch (e) {
+                // Invalid date format, skip
+              }
+            }
+          }
+          
           jobs.push(job);
+          console.log(`Extracted job: ${title} at ${company}`);
         }
       } catch (error) {
-        console.error('Error processing job element:', error);
-        continue;
+        console.error(`Error processing job element ${index}:`, error);
       }
-    }
+    });
+    
+    console.log(`Successfully scraped ${jobs.length} jobs from ${jobSite.source}`);
+    return jobs;
   } catch (error) {
-    console.error('Error parsing HTML:', error);
+    console.error(`Error scraping HTML site ${jobSite.source}:`, error);
+    return [];
   }
-  
-  return jobs;
 }
