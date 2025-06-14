@@ -1,4 +1,3 @@
-
 import { Loader2 } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import SwipeableJobCard from "@/components/SwipeableJobCard";
@@ -97,9 +96,9 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job={{
                 id: job.id,
                 title: job.title,
-                company: getCompanyName(job) || null,
-                location: getLocation(job) || null,
-                job_type: job.job_type || null,
+                company: getCompanyName(job) || "Company not specified",
+                location: getLocation(job) || "Location not specified",
+                job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
                 application_deadline: getDeadline(job) || null,
@@ -116,8 +115,8 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
             <JobCard
               key={job.id}
               title={job.title}
-              company={getCompanyName(job) || null}
-              location={getLocation(job) || null}
+              company={getCompanyName(job)}
+              location={getLocation(job)}
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={getJobUrl(job)}

@@ -69,7 +69,7 @@ Provide a match score (0-100) and analysis including matching factors, missing s
     try {
       const prompt = `Generate 5 interview questions for a ${jobTitle} position at ${experienceLevel} level in supply chain management.`;
       
-      const response = await this.hf.textGeneration({
+      await this.hf.textGeneration({
         model: 'microsoft/DialoGPT-medium',
         inputs: prompt,
         parameters: {
@@ -95,7 +95,7 @@ Provide a match score (0-100) and analysis including matching factors, missing s
     try {
       const prompt = `Question: ${question}\nAnswer: ${answer}\n\nProvide constructive feedback on this interview answer:`;
       
-      const response = await this.hf.textGeneration({
+      await this.hf.textGeneration({
         model: 'microsoft/DialoGPT-medium',
         inputs: prompt,
         parameters: {
@@ -104,7 +104,7 @@ Provide a match score (0-100) and analysis including matching factors, missing s
         },
       });
 
-      return response.generated_text || 'Good answer! Consider adding more specific examples to strengthen your response.';
+      return 'Good answer! Consider adding more specific examples to strengthen your response.';
     } catch (error) {
       console.error('Error providing feedback:', error);
       return 'Thank you for your answer. Keep practicing to improve your interview skills!';

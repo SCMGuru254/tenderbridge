@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,13 +9,6 @@ import { OnboardingAnimation } from "@/components/OnboardingAnimation";
 export default function Index() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-
-  const onboardingSteps = [
-    "Welcome to SupplyChain_KE!",
-    "Find the best supply chain jobs in Kenya",
-    "Connect with industry professionals",
-    "Build your career with us"
-  ];
 
   useEffect(() => {
     const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
@@ -31,7 +23,7 @@ export default function Index() {
   };
 
   const handleNext = () => {
-    if (currentStep < onboardingSteps.length - 1) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -45,7 +37,6 @@ export default function Index() {
   if (showOnboarding) {
     return (
       <OnboardingAnimation
-        steps={onboardingSteps}
         currentStep={currentStep}
         onNext={handleNext}
         onPrevious={handlePrevious}

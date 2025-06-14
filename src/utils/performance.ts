@@ -1,241 +1,99 @@
-import { useCallback, useRef } from 'react';
-
-// Memoization utility for expensive computations
-export function memoize<T extends (...args: any[]) => any>(
-  fn: T,
-  keyFn?: (...args: Parameters<T>) => string
-): T {
-  const cache = new Map<string, ReturnType<T>>();
-
-  return ((...args: Parameters<T>) => {
-    const key = keyFn ? keyFn(...args) : JSON.stringify(args);
-    
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-
-    const result = fn(...args);
-    cache.set(key, result);
-    return result;
-  }) as T;
-}
-
-// Debounce utility for rate-limiting function calls
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout;
-
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn(...args), delay);
-  };
-}
-
-// Throttle utility for limiting function execution rate
-export function throttle<T extends (...args: any[]) => any>(
-  fn: T,
-  limit: number
-): (...args: Parameters<T>) => void {
-  let inThrottle: boolean;
-  let lastResult: ReturnType<T>;
-
-  return (...args: Parameters<T>) => {
-    if (!inThrottle) {
-      fn(...args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
-}
-
-// Custom hook for performance monitoring
-export function usePerformanceMonitor(componentName: string) {
-  const renderCount = useRef(0);
-  const lastRenderTime = useRef(performance.now());
-
-  const logPerformance = useCallback(() => {
-    const currentTime = performance.now();
-    const timeSinceLastRender = currentTime - lastRenderTime.current;
-    renderCount.current++;
-
-    console.log(
-      `[Performance] ${componentName}:`,
-      `Render #${renderCount.current}`,
-      `Time since last render: ${timeSinceLastRender.toFixed(2)}ms`
-    );
-
-    lastRenderTime.current = currentTime;
-  }, [componentName]);
-
-  return logPerformance;
-}
-
-// Image lazy loading utility
-export function lazyLoadImage(
-  imageElement: HTMLImageElement,
-  src: string,
-  placeholderSrc?: string
-) {
-  if (placeholderSrc) {
-    imageElement.src = placeholderSrc;
-  }
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          imageElement.src = src;
-          observer.unobserve(imageElement);
-        }
-      });
-    },
-    {
-      rootMargin: '50px 0px',
-      threshold: 0.01
-    }
-  );
-
-  observer.observe(imageElement);
-}
-
-// Resource preloading utility
-export function preloadResources(resources: string[]) {
-  resources.forEach((resource) => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = resource.endsWith('.js') ? 'script' : 'style';
-    link.href = resource;
-    document.head.appendChild(link);
-  });
-}
-
-// Cache management utility
-export class CacheManager {
-  private static instance: CacheManager;
-  private cache: Map<string, { data: any; timestamp: number }>;
-  private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
-
-  private constructor() {
-    this.cache = new Map();
-  }
-
-  static getInstance(): CacheManager {
-    if (!CacheManager.instance) {
-      CacheManager.instance = new CacheManager();
-    }
-    return CacheManager.instance;
-  }
-
-  set(key: string, data: any, ttl: number = this.DEFAULT_TTL) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now() + ttl
-    });
-  }
-
-  get(key: string): any {
-    const item = this.cache.get(key);
-    if (!item) return null;
-
-    if (Date.now() > item.timestamp) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return item.data;
-  }
-
-  clear() {
-    this.cache.clear();
-  }
-
-  remove(key: string) {
-    this.cache.delete(key);
-  }
-}
 
 interface PerformanceMetric {
   name: string;
   value: number;
-  timestamp: Date;
-  tags?: Record<string, string>;
+  timestamp: number;
 }
 
-class PerformanceMonitor {
-  private static instance: PerformanceMonitor;
+interface CacheItem<T> {
+  value: T;
+  timestamp: number;
+  ttl: number;
+}
+
+class PerformanceUtils {
   private metrics: PerformanceMetric[] = [];
-  private marks: Map<string, number> = new Map();
+  private cache = new Map<string, CacheItem<any>>();
 
-  private constructor() {
-    this.initializePerformanceObserver();
+  measureTime<T>(fn: () => T, name: string): T {
+    const start = performance.now();
+    const result = fn();
+    const end = performance.now();
+    
+    this.recordMetric(name, end - start);
+    return result;
   }
 
-  static getInstance(): PerformanceMonitor {
-    if (!PerformanceMonitor.instance) {
-      PerformanceMonitor.instance = new PerformanceMonitor();
+  async measureAsyncTime<T>(fn: () => Promise<T>, name: string): Promise<T> {
+    const start = performance.now();
+    const result = await fn();
+    const end = performance.now();
+    
+    this.recordMetric(name, end - start);
+    return result;
+  }
+
+  recordMetric(name: string, value: number): void {
+    this.metrics.push({
+      name,
+      value,
+      timestamp: Date.now()
+    });
+    
+    if (this.metrics.length > 1000) {
+      this.metrics = this.metrics.slice(-500);
     }
-    return PerformanceMonitor.instance;
   }
 
-  private initializePerformanceObserver(): void {
-    if (typeof PerformanceObserver !== 'undefined') {
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          this.recordMetric({
-            name: entry.name,
-            value: entry.duration,
-            timestamp: new Date(),
-            tags: {
-              type: entry.entryType,
-            },
-          });
-        }
+  memoize<T extends (...args: any[]) => any>(
+    fn: T,
+    keyGenerator?: (...args: Parameters<T>) => string,
+    ttl: number = 5 * 60 * 1000
+  ): T {
+    return ((...args: Parameters<T>) => {
+      const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
+      const cached = this.cache.get(key);
+      
+      if (cached && Date.now() - cached.timestamp < cached.ttl) {
+        return cached.value;
+      }
+      
+      const result = fn(...args);
+      this.cache.set(key, {
+        value: result,
+        timestamp: Date.now(),
+        ttl
       });
-
-      observer.observe({ entryTypes: ['measure', 'resource', 'paint'] });
-    }
+      
+      return result;
+    }) as T;
   }
 
-  startMeasure(name: string): void {
-    this.marks.set(name, performance.now());
+  debounce<T extends (...args: any[]) => any>(
+    fn: T,
+    delay: number
+  ): (...args: Parameters<T>) => void {
+    let timeoutId: NodeJS.Timeout;
+    
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delay);
+    };
   }
 
-  endMeasure(name: string): void {
-    const startTime = this.marks.get(name);
-    if (startTime) {
-      const duration = performance.now() - startTime;
-      this.recordMetric({
-        name,
-        value: duration,
-        timestamp: new Date(),
-      });
-      this.marks.delete(name);
-    }
-  }
-
-  recordMetric(metric: PerformanceMetric): void {
-    this.metrics.push(metric);
-    this.logMetric(metric);
-    this.sendToMonitoringService(metric);
-  }
-
-  private logMetric(metric: PerformanceMetric): void {
-    console.log('Performance Metric:', metric);
-  }
-
-  private sendToMonitoringService(metric: PerformanceMetric): void {
-    // In production, this would send to your monitoring service
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Implement monitoring service integration
-      // Example: New Relic, Datadog, etc.
-    }
-  }
-
-  measureAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
-    this.startMeasure(name);
-    return fn().finally(() => this.endMeasure(name));
+  throttle<T extends (...args: any[]) => any>(
+    fn: T,
+    limit: number
+  ): (...args: Parameters<T>) => void {
+    let inThrottle: boolean;
+    
+    return (...args: Parameters<T>) => {
+      if (!inThrottle) {
+        fn(...args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
   }
 
   getMetrics(): PerformanceMetric[] {
@@ -247,18 +105,108 @@ class PerformanceMonitor {
   }
 
   getAverageMetric(name: string): number {
-    const relevantMetrics = this.metrics.filter(m => m.name === name);
-    if (relevantMetrics.length === 0) return 0;
+    const filtered = this.metrics.filter(m => m.name === name);
+    if (filtered.length === 0) return 0;
     
-    const sum = relevantMetrics.reduce((acc, m) => acc + m.value, 0);
-    return sum / relevantMetrics.length;
+    const sum = filtered.reduce((acc, m) => acc + m.value, 0);
+    return sum / filtered.length;
   }
 
-  getSlowestMetrics(limit: number = 10): PerformanceMetric[] {
-    return [...this.metrics]
-      .sort((a, b) => b.value - a.value)
-      .slice(0, limit);
+  lazy<T>(factory: () => T): () => T {
+    let cached: T;
+    let initialized = false;
+    
+    return () => {
+      if (!initialized) {
+        cached = factory();
+        initialized = true;
+      }
+      return cached;
+    };
+  }
+
+  batchProcess<T, R>(
+    items: T[],
+    processor: (batch: T[]) => Promise<R[]>,
+    batchSize: number = 10
+  ): Promise<R[]> {
+    const batches: T[][] = [];
+    
+    for (let i = 0; i < items.length; i += batchSize) {
+      batches.push(items.slice(i, i + batchSize));
+    }
+    
+    return Promise.all(batches.map(batch => processor(batch)))
+      .then(results => results.flat());
+  }
+
+  createResourcePool<T>(
+    factory: () => T,
+    destroyer: (resource: T) => void,
+    maxSize: number = 10
+  ) {
+    const pool: T[] = [];
+    let activeCount = 0;
+    
+    return {
+      acquire: async (): Promise<T> => {
+        if (pool.length > 0) {
+          return pool.pop()!;
+        }
+        
+        if (activeCount < maxSize) {
+          activeCount++;
+          return factory();
+        }
+        
+        return new Promise((resolve) => {
+          const checkPool = () => {
+            if (pool.length > 0) {
+              resolve(pool.pop()!);
+            } else {
+              setTimeout(checkPool, 10);
+            }
+          };
+          checkPool();
+        });
+      },
+      
+      release: (resource: T) => {
+        pool.push(resource);
+      },
+      
+      destroy: () => {
+        pool.forEach(destroyer);
+        pool.length = 0;
+        activeCount = 0;
+      }
+    };
+  }
+
+  measureMemoryUsage(): { used: number; total: number } | null {
+    if (typeof window !== 'undefined' && 'memory' in performance) {
+      const memory = (performance as any).memory;
+      return {
+        used: memory.usedJSHeapSize,
+        total: memory.totalJSHeapSize
+      };
+    }
+    return null;
+  }
+
+  observePerformance(callback: (entry: PerformanceEntry) => void): () => void {
+    if (typeof PerformanceObserver === 'undefined') {
+      return () => {};
+    }
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach(callback);
+    });
+
+    observer.observe({ entryTypes: ['measure', 'navigation', 'resource'] });
+    
+    return () => observer.disconnect();
   }
 }
 
-export const performanceMonitor = PerformanceMonitor.getInstance(); 
+export const performanceUtils = new PerformanceUtils();

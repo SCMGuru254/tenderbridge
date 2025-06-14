@@ -1,85 +1,32 @@
-import { rateLimiter } from './rateLimiter';
-import { Redis } from '@upstash/redis';
 
-interface BlockedIP {
-  attempts: number;
-  blockedUntil: number;
-}
+// Brute force protection utilities
+const attemptMap = new Map<string, { count: number; lastAttempt: number; blockUntil?: number }>();
 
-export class BruteForceProtection {
-  private redis: Redis;
-  private readonly MAX_ATTEMPTS = 5;
-  private readonly BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-  private readonly ATTEMPT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
-
-  constructor() {
-    this.redis = Redis.fromEnv();
+export const checkRateLimit = (identifier: string, maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000): boolean => {
+  const now = Date.now();
+  const record = attemptMap.get(identifier);
+  
+  if (!record) {
+    attemptMap.set(identifier, { count: 1, lastAttempt: now });
+    return true;
   }
-
-  private getBlockKey(ip: string, action: string): string {
-    return `bruteforce:${action}:${ip}`;
+  
+  if (record.blockUntil && now < record.blockUntil) {
+    return false;
   }
-
-  async recordFailedAttempt(ip: string, action: string): Promise<void> {
-    const key = this.getBlockKey(ip, action);
-    const blockData = await this.redis.get<BlockedIP>(key);
-
-    if (!blockData) {
-      // First failed attempt
-      await this.redis.set(key, {
-        attempts: 1,
-        blockedUntil: Date.now() + this.ATTEMPT_WINDOW_MS,
-      }, { ex: Math.ceil(this.ATTEMPT_WINDOW_MS / 1000) });
-      return;
-    }
-
-    const attempts = blockData.attempts + 1;
-    if (attempts >= this.MAX_ATTEMPTS) {
-      // Too many failures, block the IP
-      await this.redis.set(key, {
-        attempts,
-        blockedUntil: Date.now() + this.BLOCK_DURATION_MS,
-      }, { ex: Math.ceil(this.BLOCK_DURATION_MS / 1000) });
-    } else {
-      // Update attempt count
-      await this.redis.set(key, {
-        attempts,
-        blockedUntil: blockData.blockedUntil,
-      }, { ex: Math.ceil((blockData.blockedUntil - Date.now()) / 1000) });
-    }
+  
+  if (now - record.lastAttempt > windowMs) {
+    attemptMap.set(identifier, { count: 1, lastAttempt: now });
+    return true;
   }
-
-  async resetAttempts(ip: string, action: string): Promise<void> {
-    const key = this.getBlockKey(ip, action);
-    await this.redis.del(key);
+  
+  record.count++;
+  record.lastAttempt = now;
+  
+  if (record.count > maxAttempts) {
+    record.blockUntil = now + windowMs;
+    return false;
   }
-
-  async isBlocked(ip: string, action: string): Promise<{ blocked: boolean; remainingMs: number }> {
-    const key = this.getBlockKey(ip, action);
-    const blockData = await this.redis.get<BlockedIP>(key);
-
-    if (!blockData) {
-      return { blocked: false, remainingMs: 0 };
-    }
-
-    const now = Date.now();
-    if (blockData.attempts >= this.MAX_ATTEMPTS && now < blockData.blockedUntil) {
-      return { blocked: true, remainingMs: blockData.blockedUntil - now };
-    }
-
-    // If window has expired, clean up the record
-    if (now > blockData.blockedUntil) {
-      await this.redis.del(key);
-    }
-
-    return { blocked: false, remainingMs: 0 };
-  }
-
-  async checkAttempts(ip: string, action: string): Promise<number> {
-    const key = this.getBlockKey(ip, action);
-    const blockData = await this.redis.get<BlockedIP>(key);
-    return blockData?.attempts || 0;
-  }
-}
-
-export const bruteForceProtection = new BruteForceProtection();
+  
+  return true;
+};
