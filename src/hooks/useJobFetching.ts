@@ -35,34 +35,13 @@ export const usePostedJobs = () => {
           throw tablesError;
         }
         
-        // Check total count of all jobs
-        const { error: allCountError, count: totalJobs } = await supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true });
-          
-        console.log("🔍 usePostedJobs - Total jobs in database:", { 
-          totalJobs, 
-          error: allCountError?.message || 'No error' 
-        });
-        
-        // Check active jobs count
-        const { error: activeCountError, count: activeJobs } = await supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_active', true);
-          
-        console.log("🔍 usePostedJobs - Active jobs count:", { 
-          activeJobs, 
-          error: activeCountError?.message || 'No error' 
-        });
-        
-        // Try to fetch actual data
+        // Try to fetch actual data with more explicit query
         const { data, error, count } = await supabase
           .from('jobs')
           .select('*')
           .eq('is_active', true)
           .order('created_at', { ascending: false })
-          .limit(10); // Limit to 10 for debugging
+          .limit(100); // Increase limit for better testing
 
         console.log("🔍 usePostedJobs - Query result:", { 
           dataCount: data?.length || 0, 
@@ -140,30 +119,12 @@ export const useScrapedJobs = (limit: number = 1000) => {
           countError: countError?.message || 'No error' 
         });
         
-        // Get a sample of jobs to see what's in the table
-        const { data: sampleJobs, error: sampleError } = await supabase
-          .from('scraped_jobs')
-          .select('id, title, company, source, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5);
-          
-        console.log("🔍 useScrapedJobs - Sample jobs:", { 
-          count: sampleJobs?.length || 0,
-          error: sampleError?.message || 'No error',
-          jobs: sampleJobs?.map(job => ({
-            id: job.id,
-            title: job.title || 'No title',
-            company: job.company || 'No company',
-            source: job.source || 'No source'
-          })) || []
-        });
-
-        // Try the filtered query
+        // Try the filtered query with increased limit for testing
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(limit)
+          .limit(Math.min(limit, 500)) // Reasonable limit for performance
           .not('title', 'is', null)
           .not('company', 'is', null);
 

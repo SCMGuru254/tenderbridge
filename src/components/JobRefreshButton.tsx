@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCcw } from "lucide-react";
@@ -66,7 +67,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
         console.log('Job source test completed:', data);
         
         // Show a more detailed toast with results
-        if (data.sourceResults) {
+        if (data?.sourceResults) {
           const successfulSources = Object.entries(data.sourceResults)
             .filter(([_, result]) => (result as any).success)
             .map(([source, _]) => source);
@@ -90,7 +91,7 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
           // Fallback if detailed results aren't available
           toast({
             title: "Job source test completed",
-            description: data.message || "Test completed, check console for details.",
+            description: data?.message || "Test completed, check console for details.",
           });
         }
         
