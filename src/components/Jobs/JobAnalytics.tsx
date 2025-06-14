@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { jobService } from '@/services/jobService';
 import {
@@ -34,7 +33,7 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await jobService.getJobAnalytics(jobId);
+      const data = await jobService.getJobAnalytics();
       setAnalytics(data);
     } catch (err) {
       setError('Failed to load job analytics');

@@ -1,4 +1,3 @@
-
 import { AgentRole, AgentMessage, AgentContext } from './agents/types';
 import { aiService } from './openaiService';
 import { analytics } from '@/utils/analytics';
@@ -47,8 +46,9 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      errorHandler.handleError(error);
-      throw error;
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj);
+      throw errorObj;
     }
   }
 
@@ -120,8 +120,9 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error);
-      analytics.trackError(error as Error);
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj);
+      analytics.trackError(errorObj);
       
       return {
         id: Date.now().toString(),

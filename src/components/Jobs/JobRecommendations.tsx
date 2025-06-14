@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { jobService, type Job } from '@/services/jobService';
 import { useAuth } from '@/hooks/useAuth';
@@ -47,9 +46,9 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
     }
   };
 
-  const handleShareJob = async (jobId: string) => {
+  const handleShareJob = async () => {
     try {
-      await jobService.shareJob(jobId);
+      await jobService.shareJob();
       // Refresh recommendations to update share count
       loadRecommendations();
     } catch (err) {
@@ -125,7 +124,7 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
                   <BookmarkIcon className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={() => handleShareJob(job.id)}
+                  onClick={() => handleShareJob()}
                   className="inline-flex items-center p-1.5 border border-gray-300 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-50"
                 >
                   <ShareIcon className="h-5 w-5" />
@@ -137,4 +136,4 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
       </div>
     </div>
   );
-}; 
+};

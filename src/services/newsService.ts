@@ -46,8 +46,9 @@ export class NewsService {
       
       return news;
     } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj, 'NETWORK');
+      analytics.trackError(errorObj);
       return [];
     } finally {
       performanceMonitor.endMeasure('fetch-news');
@@ -105,12 +106,13 @@ export class NewsService {
       };
 
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj, 'SERVER');
+      analytics.trackError(errorObj);
       return { 
         success: false, 
         count: 0, 
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: errorObj.message
       };
     } finally {
       performanceMonitor.endMeasure('fetch-store-news');
@@ -152,8 +154,9 @@ export class NewsService {
       analytics.trackUserAction('rss-fetch-success', `count:${news.length}`);
       return news;
     } catch (error) {
-      errorHandler.handleError(error, 'NETWORK');
-      analytics.trackError(error as Error);
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj, 'NETWORK');
+      analytics.trackError(errorObj);
       return [];
     } finally {
       performanceMonitor.endMeasure('fetch-rss');
@@ -186,8 +189,9 @@ export class NewsService {
         summary: newsItem.content.slice(0, 200) + '...'
       };
     } catch (error) {
-      errorHandler.handleError(error, 'SERVER');
-      analytics.trackError(error as Error);
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj, 'SERVER');
+      analytics.trackError(errorObj);
       return null;
     } finally {
       performanceMonitor.endMeasure('analyze-news');
