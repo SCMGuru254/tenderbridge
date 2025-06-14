@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -13,10 +14,11 @@ export const usePostedJobs = () => {
   return useQuery<PostedJob[], PostgrestError>({
     queryKey: ['posted-jobs'],
     queryFn: async () => {
-      console.log("Fetching posted jobs...");
+      console.log("🔍 usePostedJobs - Starting fetch...");
       trackNetworkRequest();
       
       try {
+        console.log("🔍 usePostedJobs - Making Supabase query...");
         const { data, error } = await supabase
           .from('jobs')
           .select(`
@@ -32,16 +34,18 @@ export const usePostedJobs = () => {
           .order('created_at', { ascending: false })
           .limit(1000); // Limit for performance
 
+        console.log("🔍 usePostedJobs - Supabase response:", { data: data?.length || 0, error });
+
         if (error) {
-          console.error("Error fetching posted jobs:", error);
+          console.error("❌ usePostedJobs - Error fetching posted jobs:", error);
           trackError(new Error(error.message));
           throw error;
         }
         
-        console.log("Posted jobs:", data);
+        console.log("✅ usePostedJobs - Successfully fetched:", data?.length || 0, "posted jobs");
         return (data || []) as PostedJob[];
       } catch (error) {
-        console.error("Failed to fetch posted jobs:", error);
+        console.error("💥 usePostedJobs - Failed to fetch posted jobs:", error);
         trackError(error as Error);
         return [] as PostedJob[];
       }
@@ -68,10 +72,11 @@ export const useScrapedJobs = (limit: number = 1000) => {
   return useQuery<ScrapedJob[], PostgrestError>({
     queryKey: ['scraped-jobs', limit],
     queryFn: async () => {
-      console.log("Fetching scraped jobs...");
+      console.log("🔍 useScrapedJobs - Starting fetch...");
       trackNetworkRequest();
       
       try {
+        console.log("🔍 useScrapedJobs - Making Supabase query...");
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
@@ -80,21 +85,23 @@ export const useScrapedJobs = (limit: number = 1000) => {
           .not('title', 'is', null)
           .not('company', 'is', null);
 
+        console.log("🔍 useScrapedJobs - Supabase response:", { data: data?.length || 0, error });
+
         if (error) {
-          console.error("Error fetching scraped jobs:", error);
+          console.error("❌ useScrapedJobs - Error fetching scraped jobs:", error);
           trackError(new Error(error.message));
           throw error;
         }
         
-        console.log("Scraped jobs:", data);
+        console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs");
         
         // Filter out expired jobs
         const nonExpiredJobs = (data || []).filter(job => !isJobExpired(job));
-        console.log(`Filtered out ${(data || []).length - nonExpiredJobs.length} expired jobs, showing ${nonExpiredJobs.length} jobs`);
+        console.log(`✅ useScrapedJobs - After filtering expired: ${nonExpiredJobs.length} jobs (removed ${(data || []).length - nonExpiredJobs.length} expired)`);
         
         return nonExpiredJobs as ScrapedJob[];
       } catch (error) {
-        console.error("Failed to fetch scraped jobs:", error);
+        console.error("💥 useScrapedJobs - Failed to fetch scraped jobs:", error);
         trackError(error as Error);
         return [] as ScrapedJob[];
       }

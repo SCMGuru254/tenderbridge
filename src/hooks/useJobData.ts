@@ -25,36 +25,42 @@ export const useJobData = () => {
 
   // Add debugging logs
   useEffect(() => {
-    console.log('useJobData - Posted jobs:', postedJobs?.length || 0);
-    console.log('useJobData - Scraped jobs:', scrapedJobs?.length || 0);
-    console.log('useJobData - Active tab:', activeTab);
-    console.log('useJobData - Posted jobs error:', postedJobsError);
-    console.log('useJobData - Scraped jobs error:', scrapedJobsError);
-  }, [postedJobs, scrapedJobs, activeTab, postedJobsError, scrapedJobsError]);
+    console.log('🔍 useJobData - Posted jobs count:', postedJobs?.length || 0);
+    console.log('🔍 useJobData - Scraped jobs count:', scrapedJobs?.length || 0);
+    console.log('🔍 useJobData - Active tab:', activeTab);
+    console.log('🔍 useJobData - Loading states:', { isLoadingPosted, isLoadingScraped });
+    
+    if (postedJobsError) {
+      console.error('❌ useJobData - Posted jobs error:', postedJobsError);
+    }
+    if (scrapedJobsError) {
+      console.error('❌ useJobData - Scraped jobs error:', scrapedJobsError);
+    }
+  }, [postedJobs, scrapedJobs, activeTab, postedJobsError, scrapedJobsError, isLoadingPosted, isLoadingScraped]);
 
   // Combine and filter jobs based on the active tab
   useEffect(() => {
+    console.log('🔍 useJobData - Processing jobs for tab:', activeTab);
+    
     if (activeTab === "posted" && postedJobs) {
-      console.log("Setting jobs to posted jobs:", postedJobs.length);
+      console.log("✅ useJobData - Setting jobs to posted jobs:", postedJobs.length);
       setAllJobs(postedJobs);
     } else if (activeTab === "scraped" && scrapedJobs) {
-      console.log("Setting jobs to scraped jobs:", scrapedJobs.length);
+      console.log("✅ useJobData - Setting jobs to scraped jobs:", scrapedJobs.length);
       
       const dedupedJobs = deduplicateScrapedJobs(scrapedJobs);
-      console.log(`Removed ${scrapedJobs.length - dedupedJobs.length} duplicate jobs, showing ${dedupedJobs.length} jobs`);
+      console.log(`✅ useJobData - After deduplication: ${dedupedJobs.length} jobs (removed ${scrapedJobs.length - dedupedJobs.length} duplicates)`);
       
       setAllJobs(dedupedJobs);
     } else if (activeTab === "all") {
       if (postedJobs || scrapedJobs) {
         const combinedJobs = combineAndDeduplicateJobs(postedJobs, scrapedJobs);
         
-        if (postedJobs && scrapedJobs) {
-          console.log(`Combined ${postedJobs.length} posted and ${scrapedJobs.length} scraped jobs into ${combinedJobs.length} unique jobs`);
-        }
+        console.log(`✅ useJobData - Combined jobs: ${postedJobs?.length || 0} posted + ${scrapedJobs?.length || 0} scraped = ${combinedJobs.length} total`);
         
         setAllJobs(combinedJobs);
       } else {
-        console.log("No jobs available from either source");
+        console.log("⚠️ useJobData - No jobs available from either source");
         setAllJobs([]);
       }
     }
