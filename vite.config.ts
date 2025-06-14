@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -26,7 +27,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       define: {
         global: 'globalThis',
       },
-    }
+    },
+    dedupe: ['react', 'react-dom'], // Ensure a single React version (Fixes double hook runtime)
   },
   build: {
     target: "esnext",
