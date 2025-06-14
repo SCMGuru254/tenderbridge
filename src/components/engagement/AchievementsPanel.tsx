@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useEngagement } from '@/hooks/useEngagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,7 +14,6 @@ interface UserAchievement {
 
 export const AchievementsPanel = () => {
   const { user } = useAuth();
-  const engagement = useEngagement();
   const [achievements, setAchievements] = useState<UserAchievement[]>([]);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { JobAnalytics, JobAlert, JobApplication } from '@/types/jobAnalytics';
+import type { JobAnalyticsData, JobAlert, JobApplication } from '@/types/jobAnalytics';
 
 export interface Job {
   id: string;
@@ -20,7 +20,7 @@ export interface Job {
 }
 
 class JobService {
-  async getJobAnalytics(jobId: string): Promise<JobAnalytics> {
+  async getJobAnalytics(jobId: string): Promise<JobAnalyticsData> {
     console.log('Getting analytics for job:', jobId);
     // Mock implementation - replace with actual API call
     return {
@@ -134,4 +134,4 @@ class JobService {
 
 export const jobService = new JobService();
 export { JobService };
-export type { JobAnalytics, JobAlert, JobApplication };
+export type { JobAnalyticsData, JobAlert, JobApplication };

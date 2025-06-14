@@ -1,133 +1,163 @@
 
 import { useState, useEffect } from 'react';
+import type { CompanyEvent, CompanyMember, CompanyUpdate } from '@/types/company';
 
-export interface CompanyEvent {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  location: string;
-  type: 'online' | 'hybrid' | 'physical';
-  attendees: number;
-}
-
-export interface CompanyMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  joinedAt: string;
-}
-
-export interface CompanyUpdate {
-  id: string;
-  title: string;
-  content: string;
-  publishedAt: string;
-  attachments?: string[];
-}
-
-export const useCompanyEvents = (companyId: string) => {
-  const [events, setEvents] = useState<CompanyEvent[]>([]);
+export const useCompanyEvents = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const getEvents = async (companyId: string): Promise<CompanyEvent[]> => {
     setLoading(true);
-    // Mock implementation
-    setEvents([
-      {
-        id: '1',
-        title: 'Quarterly All-Hands Meeting',
-        description: 'Company-wide meeting to discuss quarterly results',
-        date: new Date().toISOString(),
-        location: 'Conference Room A',
-        type: 'hybrid',
-        attendees: 45
-      }
-    ]);
-    setLoading(false);
-  }, [companyId]);
+    try {
+      // Mock implementation
+      return [
+        {
+          id: '1',
+          title: 'Quarterly All-Hands Meeting',
+          description: 'Company-wide meeting to discuss quarterly results',
+          eventType: 'conference',
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + 3600000).toISOString(),
+          location: {
+            type: 'hybrid',
+            url: 'https://example.com/meeting'
+          },
+          maxAttendees: 100,
+          attendeesCount: 45,
+          companyId,
+          createdAt: new Date().toISOString()
+        }
+      ];
+    } catch (err) {
+      setError('Failed to load events');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const createEvent = async (event: Omit<CompanyEvent, 'id' | 'attendees'>) => {
+  const createEvent = async (event: Omit<CompanyEvent, 'id' | 'attendeesCount' | 'createdAt'>): Promise<boolean> => {
     console.log('Creating event:', event);
     // Mock implementation
+    return true;
   };
 
-  return { events, loading, createEvent };
+  const registerForEvent = async (eventId: string, userId: string): Promise<boolean> => {
+    console.log('Registering for event:', eventId, 'user:', userId);
+    // Mock implementation
+    return true;
+  };
+
+  return { getEvents, createEvent, registerForEvent, loading, error };
 };
 
-export const useCompanyProfile = (companyId: string) => {
-  const [profile, setProfile] = useState<any>(null);
+export const useCompanyProfile = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const getProfile = async (companyId: string) => {
     setLoading(true);
-    // Mock implementation
-    setProfile({
-      id: companyId,
-      name: 'TechCorp Solutions',
-      description: 'Leading technology solutions provider',
-      founded: '2010',
-      employees: '100-500',
-      industry: 'Technology',
-      headquarters: 'Nairobi, Kenya',
-      website: 'https://techcorp.example.com',
-      benefits: ['Health Insurance', 'Remote Work', 'Professional Development']
-    });
-    setLoading(false);
-  }, [companyId]);
+    try {
+      // Mock implementation
+      return {
+        id: companyId,
+        name: 'TechCorp Solutions',
+        description: 'Leading technology solutions provider',
+        founded: '2010',
+        employees: '100-500',
+        industry: 'Technology',
+        headquarters: 'Nairobi, Kenya',
+        website: 'https://techcorp.example.com',
+        benefits: ['Health Insurance', 'Remote Work', 'Professional Development']
+      };
+    } catch (err) {
+      setError('Failed to load profile');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const updateProfile = async (updates: any) => {
+  const updateProfile = async (updates: any): Promise<boolean> => {
     console.log('Updating profile:', updates);
     // Mock implementation
+    return true;
   };
 
-  return { profile, loading, updateProfile };
+  return { getProfile, updateProfile, loading, error };
 };
 
-export const useCompanyTeam = (companyId: string) => {
-  const [members, setMembers] = useState<CompanyMember[]>([]);
+export const useCompanyTeam = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const getTeamMembers = async (companyId: string): Promise<CompanyMember[]> => {
     setLoading(true);
-    // Mock implementation
-    setMembers([
-      {
-        id: '1',
-        name: 'John Doe',
-        role: 'CEO',
-        joinedAt: '2020-01-01'
-      }
-    ]);
-    setLoading(false);
-  }, [companyId]);
+    try {
+      // Mock implementation
+      return [
+        {
+          id: '1',
+          userId: 'user1',
+          role: 'CEO',
+          department: 'Executive',
+          isFeatured: true,
+          testimonial: 'Leading the company to new heights',
+          companyId,
+          joinedAt: '2020-01-01'
+        }
+      ];
+    } catch (err) {
+      setError('Failed to load team members');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { members, loading };
+  const addTeamMember = async (member: Omit<CompanyMember, 'id' | 'joinedAt'>): Promise<boolean> => {
+    console.log('Adding team member:', member);
+    // Mock implementation
+    return true;
+  };
+
+  return { getTeamMembers, addTeamMember, loading, error };
 };
 
-export const useCompanyUpdates = (companyId: string) => {
-  const [updates, setUpdates] = useState<CompanyUpdate[]>([]);
+export const useCompanyUpdates = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const getUpdates = async (companyId: string): Promise<CompanyUpdate[]> => {
     setLoading(true);
-    // Mock implementation
-    setUpdates([
-      {
-        id: '1',
-        title: 'Company Expansion Update',
-        content: 'We are excited to announce our expansion into new markets...',
-        publishedAt: new Date().toISOString()
-      }
-    ]);
-    setLoading(false);
-  }, [companyId]);
+    try {
+      // Mock implementation
+      return [
+        {
+          id: '1',
+          title: 'Company Expansion Update',
+          content: 'We are excited to announce our expansion into new markets...',
+          updateType: 'news',
+          isFeatured: false,
+          likesCount: 25,
+          commentsCount: 5,
+          companyId,
+          createdAt: new Date().toISOString()
+        }
+      ];
+    } catch (err) {
+      setError('Failed to load updates');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const createUpdate = async (update: Omit<CompanyUpdate, 'id' | 'publishedAt'>) => {
+  const createUpdate = async (update: Omit<CompanyUpdate, 'id' | 'likesCount' | 'commentsCount' | 'createdAt'>): Promise<boolean> => {
     console.log('Creating update:', update);
     // Mock implementation
+    return true;
   };
 
-  return { updates, loading, createUpdate };
+  return { getUpdates, createUpdate, loading, error };
 };

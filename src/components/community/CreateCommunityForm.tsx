@@ -1,203 +1,202 @@
+
 import React, { useState } from 'react';
 import { useCommunities } from '@/hooks/useCommunity';
 import type { Community } from '@/types/community';
 
 interface CreateCommunityFormProps {
-  onSuccess: (community: Community) => void;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-const CreateCommunityForm: React.FC<CreateCommunityFormProps> = ({ onSuccess }) => {
-  const { createCommunity, loading, error } = useCommunities();
+export const CreateCommunityForm: React.FC<CreateCommunityFormProps> = ({
+  onClose,
+  onSuccess
+}) => {
+  const { createCommunity, loading } = useCommunities();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: '',
-    rules: ['Be respectful', 'No spam', 'Stay on topic'],
     isPrivate: false,
-    avatarUrl: '',
-    bannerUrl: ''
+    bannerUrl: '',
+    avatarUrl: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Community name is required';
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    if (!formData.category.trim()) {
+      newErrors.category = 'Category is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const community = await createCommunity(formData);
-    if (community) {
-      onSuccess(community);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await createCommunity({
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        isPrivate: formData.isPrivate,
+        bannerUrl: formData.bannerUrl || undefined,
+        avatarUrl: formData.avatarUrl || undefined
+      });
+      onSuccess();
+    } catch (error) {
+      console.error('Error creating community:', error);
+      setErrors({ submit: 'Failed to create community. Please try again.' });
     }
   };
 
-  const addRule = () => {
-    setFormData({
-      ...formData,
-      rules: [...formData.rules, '']
-    });
-  };
-
-  const updateRule = (index: number, value: string) => {
-    const newRules = [...formData.rules];
-    newRules[index] = value;
-    setFormData({
-      ...formData,
-      rules: newRules
-    });
-  };
-
-  const removeRule = (index: number) => {
-    setFormData({
-      ...formData,
-      rules: formData.rules.filter((_, i) => i !== index)
-    });
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Community Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        />
-      </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-90vh overflow-y-auto">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Create New Community</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description
-        </label>
-        <textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          rows={4}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-          Category
-        </label>
-        <select
-          id="category"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          required
-        >
-          <option value="">Select a category</option>
-          <option value="careers">Careers</option>
-          <option value="technology">Technology</option>
-          <option value="business">Business</option>
-          <option value="professional">Professional Development</option>
-          <option value="networking">Networking</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="avatarUrl" className="block text-sm font-medium text-gray-700">
-          Avatar URL (optional)
-        </label>
-        <input
-          type="url"
-          id="avatarUrl"
-          value={formData.avatarUrl}
-          onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="bannerUrl" className="block text-sm font-medium text-gray-700">
-          Banner URL (optional)
-        </label>
-        <input
-          type="url"
-          id="bannerUrl"
-          value={formData.bannerUrl}
-          onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Community Rules
-        </label>
-        <div className="space-y-2">
-          {formData.rules.map((rule, index) => (
-            <div key={index} className="flex items-center space-x-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Community Name *
+              </label>
               <input
                 type="text"
-                value={rule}
-                onChange={(e) => updateRule(index, e.target.value)}
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder={`Rule ${index + 1}`}
-                required
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter community name"
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description *
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Describe your community"
+              />
+              {errors.description && (
+                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category *
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select a category</option>
+                <option value="professional">Professional</option>
+                <option value="social">Social</option>
+                <option value="hobby">Hobby</option>
+                <option value="educational">Educational</option>
+                <option value="other">Other</option>
+              </select>
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Banner URL (Optional)
+              </label>
+              <input
+                type="url"
+                value={formData.bannerUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, bannerUrl: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://example.com/banner.jpg"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Avatar URL (Optional)
+              </label>
+              <input
+                type="url"
+                value={formData.avatarUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://example.com/avatar.jpg"
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isPrivate"
+                checked={formData.isPrivate}
+                onChange={(e) => setFormData(prev => ({ ...prev, isPrivate: e.target.checked }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="isPrivate" className="ml-2 block text-sm text-gray-900">
+                Make this community private
+              </label>
+            </div>
+
+            {errors.submit && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{errors.submit}</p>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
               <button
                 type="button"
-                onClick={() => removeRule(index)}
-                className="text-red-600 hover:text-red-700"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : 'Create Community'}
               </button>
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addRule}
-            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Add Rule
-          </button>
+          </form>
         </div>
       </div>
-
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          id="isPrivate"
-          checked={formData.isPrivate}
-          onChange={(e) => setFormData({ ...formData, isPrivate: e.target.checked })}
-          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
-        <label htmlFor="isPrivate" className="ml-2 block text-sm text-gray-900">
-          Make this community private
-        </label>
-      </div>
-
-      {error && (
-        <div className="text-red-600 text-sm">
-          {error.message}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-      >
-        {loading ? 'Creating...' : 'Create Community'}
-      </button>
-    </form>
+    </div>
   );
 };
-
-export default CreateCommunityForm;

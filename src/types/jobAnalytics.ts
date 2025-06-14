@@ -1,5 +1,5 @@
 
-export interface JobAnalytics {
+export interface JobAnalyticsData {
   totalViews: number;
   uniqueViewers: number;
   applications: number;

@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from 'react';
-import { useEngagement } from '@/hooks/useEngagement';
 import { useAuth } from '@/hooks/useAuth';
 
 interface UserNotification {
@@ -12,7 +12,6 @@ interface UserNotification {
 
 export const NotificationsPanel = () => {
   const { user } = useAuth();
-  const engagement = useEngagement();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
 
   useEffect(() => {

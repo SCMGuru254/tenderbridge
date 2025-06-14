@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useEngagement } from '@/hooks/useEngagement';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,7 +13,6 @@ interface UserActivity {
 
 export const ActivityFeed = () => {
   const { user } = useAuth();
-  const engagement = useEngagement();
   const [activities, setActivities] = useState<UserActivity[]>([]);
 
   useEffect(() => {
@@ -39,7 +39,6 @@ export const ActivityFeed = () => {
           <li key={activity.id} className="p-4">
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
-                {/* You can replace this with an icon based on activity.type */}
                 <span className="text-gray-400">{activity.type}</span>
               </div>
               <div>
@@ -50,9 +49,8 @@ export const ActivityFeed = () => {
                   {activity.timestamp}
                 </div>
                 {activity.metadata && (
-                  <div>
-                    {/* Render activity metadata if needed */}
-                    ActivityMetadata
+                  <div className="text-xs text-gray-400">
+                    Additional data available
                   </div>
                 )}
               </div>

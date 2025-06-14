@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { jobService, type Job } from '@/services/jobService';
 import { useAuth } from '@/hooks/useAuth';
 import { BookmarkIcon, ShareIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
 
 interface JobRecommendationsProps {
   currentJobId?: string;
@@ -92,12 +91,12 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
           <div key={job.id} className="p-4 hover:bg-gray-50">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <Link
+                <a
                   href={`/jobs/${job.id}`}
                   className="text-lg font-medium text-gray-900 hover:text-blue-600"
                 >
                   {job.title}
-                </Link>
+                </a>
                 <p className="mt-1 text-sm text-gray-500">{job.company}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {job.skills?.map(skill => (
