@@ -1,9 +1,10 @@
-import { Loader2 } from "lucide-react";
+
+import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
-import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline } from "@/utils/jobUtils";
+import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getTimeSincePosted } from "@/utils/jobUtils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -52,7 +53,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     console.log("JobList - No jobs to display, jobs:", jobs);
     return (
       <div className="text-center text-gray-500 py-12">
-        No jobs found matching your criteria
+        <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
+        <h3 className="text-lg font-medium mb-2">No recent jobs found</h3>
+        <p>Try adjusting your filters or check back later for new job postings.</p>
       </div>
     );
   }
@@ -73,7 +76,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
 
   console.log("JobList - Filtered jobs count:", filteredJobs.length);
   console.log("JobList - Original jobs count:", jobs.length);
-  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: j.title, company: getCompanyName(j), source: getJobSource(j) })));
+  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: j.title, company: getCompanyName(j), source: getJobSource(j), posted: getTimeSincePosted(j) })));
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -102,7 +105,10 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
       {/* Source Statistics */}
       <Card className="bg-muted/30">
         <CardHeader>
-          <CardTitle className="text-lg">Job Sources ({sortedJobs.length} total jobs)</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Job Listings ({sortedJobs.length} total jobs)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -114,7 +120,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           </div>
           {sortedJobs.length === 0 && (
             <p className="text-sm text-muted-foreground mt-2">
-              No jobs are being displayed. Check console for filtering details.
+              No recent jobs found. Try adjusting the date filter or check back later.
             </p>
           )}
         </CardContent>
@@ -126,6 +132,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const jobUrl = getJobUrl(job);
           const company = getCompanyName(job);
           const location = getLocation(job);
+          const timeSincePosted = getTimeSincePosted(job);
           
           // Convert null to undefined to match expected type
           const deadlineValue: string | undefined = deadline ?? undefined;
@@ -136,7 +143,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
             company,
             location,
             source: getJobSource(job),
-            deadline: deadlineValue
+            deadline: deadlineValue,
+            posted: timeSincePosted
           });
           
           return isMobile ? (
@@ -161,17 +169,24 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
               }}
             />
           ) : (
-            <JobCard
-              key={job.id}
-              title={job.title}
-              company={company}
-              location={location}
-              job_type={job.job_type || null}
-              category={getJobSource(job)}
-              job_url={jobUrlValue}
-              application_deadline={deadlineValue}
-              social_shares={job.social_shares || {}}
-            />
+            <div key={job.id} className="relative">
+              <div className="absolute top-2 right-2 z-10">
+                <Badge variant="secondary" className="text-xs">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {timeSincePosted}
+                </Badge>
+              </div>
+              <JobCard
+                title={job.title}
+                company={company}
+                location={location}
+                job_type={job.job_type || null}
+                category={getJobSource(job)}
+                job_url={jobUrlValue}
+                application_deadline={deadlineValue}
+                social_shares={job.social_shares || {}}
+              />
+            </div>
           );
         })}
       </div>

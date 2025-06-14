@@ -1,5 +1,4 @@
-
-import React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
@@ -8,11 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CACHE_CONFIG } from "@/hooks/useAdvancedCaching";
-
-// Ensure React is properly initialized
-if (!React) {
-  throw new Error('React is not loaded');
-}
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
@@ -48,13 +43,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  initializeApp();
-}
-
 function initializeApp() {
   console.log("[DEBUG] main.tsx - Initializing app");
   
@@ -66,18 +54,23 @@ function initializeApp() {
   const root = createRoot(rootElement);
 
   root.render(
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <ThemeProvider
-            defaultTheme="system"
-            storageKey="vite-react-theme"
-          >
-            <App />
-            <Toaster />
-          </ThemeProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <StrictMode>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <ThemeProvider
+              defaultTheme="system"
+              storageKey="vite-react-theme"
+            >
+              <App />
+              <Toaster />
+            </ThemeProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </StrictMode>
   );
 }
+
+// Simple immediate initialization
+initializeApp();

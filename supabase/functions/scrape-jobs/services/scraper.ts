@@ -129,10 +129,11 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
   const pageTitle = $('title').text();
   console.log(`📄 Page title for ${jobSite.source}: ${pageTitle}`);
 
-  // Try multiple job container selectors
-  const containerSelectors = jobSite.selectors.jobContainer.split(',').map(s => s.trim());
+  // Use more aggressive job finding strategy
   let jobElements = $();
   
+  // Try primary selectors first
+  const containerSelectors = jobSite.selectors.jobContainer.split(',').map(s => s.trim());
   for (const selector of containerSelectors) {
     const elements = $(selector);
     if (elements.length > 0) {
@@ -142,16 +143,34 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
     }
   }
   
+  // If no primary selectors work, try common job-related selectors
+  if (jobElements.length === 0) {
+    const fallbackSelectors = [
+      '[class*="job"]',
+      '[class*="vacancy"]', 
+      '[class*="listing"]',
+      '[class*="position"]',
+      '[class*="career"]',
+      'article',
+      '.card',
+      '.item',
+      '[data-testid*="job"]',
+      '[data-test*="job"]'
+    ];
+    
+    for (const selector of fallbackSelectors) {
+      const elements = $(selector);
+      if (elements.length > 0) {
+        jobElements = elements;
+        console.log(`🔍 Found ${elements.length} potential job containers with fallback selector: ${selector}`);
+        break;
+      }
+    }
+  }
+  
   if (jobElements.length === 0) {
     console.log(`⚠️ No job containers found for ${jobSite.source} with any selector`);
-    // Let's try to find ANY potential job containers
-    const potentialContainers = $('.job, .vacancy, .listing, .card, .item, [class*="job"], [class*="vacancy"]');
-    if (potentialContainers.length > 0) {
-      jobElements = potentialContainers;
-      console.log(`🔍 Found ${potentialContainers.length} potential job containers with fallback selectors`);
-    } else {
-      return [];
-    }
+    return [];
   }
   
   console.log(`🔄 Processing ${jobElements.length} job elements for ${jobSite.source}`);
@@ -160,16 +179,29 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
     try {
       const $element = $(element);
       
-      // Extract job information with multiple selector attempts
-      const title = extractText($element, jobSite.selectors.title, $);
-      const company = extractText($element, jobSite.selectors.company, $);
-      const location = extractText($element, jobSite.selectors.location, $);
+      // Extract job information with multiple selector attempts and fallbacks
+      const title = extractTextWithFallbacks($element, jobSite.selectors.title, $);
+      const company = extractTextWithFallbacks($element, jobSite.selectors.company, $);
+      const location = extractTextWithFallbacks($element, jobSite.selectors.location, $);
       
-      // Extract job URL
+      // Extract job URL with multiple attempts
       let jobUrl = '';
       if (jobSite.selectors.jobLink) {
         const linkElement = $element.find(jobSite.selectors.jobLink).first();
         jobUrl = linkElement.attr('href') || '';
+        
+        // Try alternative link selectors if none found
+        if (!jobUrl) {
+          const altSelectors = ['a', '[href]', '.link'];
+          for (const selector of altSelectors) {
+            const altLink = $element.find(selector).first();
+            const href = altLink.attr('href');
+            if (href && (href.includes('/job') || href.includes('career') || href.includes('vacancy'))) {
+              jobUrl = href;
+              break;
+            }
+          }
+        }
         
         // Make relative URLs absolute
         if (jobUrl && !jobUrl.startsWith('http')) {
@@ -183,7 +215,7 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         }
       }
       
-      // Validate and filter jobs - be more lenient
+      // More lenient validation - accept more potential jobs
       if (isValidJob(title, company, jobSite)) {
         const job: Job = {
           title: cleanTitle(title),
@@ -200,12 +232,12 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         
         // Extract additional fields if available
         if (jobSite.selectors.jobType) {
-          const jobType = extractText($element, jobSite.selectors.jobType, $);
+          const jobType = extractTextWithFallbacks($element, jobSite.selectors.jobType, $);
           if (jobType) job.job_type = mapJobType(jobType);
         }
         
         if (jobSite.selectors.deadline) {
-          const deadline = extractText($element, jobSite.selectors.deadline, $);
+          const deadline = extractTextWithFallbacks($element, jobSite.selectors.deadline, $);
           if (deadline) {
             try {
               job.application_deadline = new Date(deadline).toISOString();
@@ -228,11 +260,12 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
   return jobs;
 }
 
-function extractText($element: any, selectors: string, $: any): string {
+function extractTextWithFallbacks($element: any, selectors: string, $: any): string {
   if (!selectors) return '';
   
   const selectorList = selectors.split(',').map(s => s.trim());
   
+  // Try each selector
   for (const selector of selectorList) {
     try {
       const text = $element.find(selector).first().text().trim();
@@ -244,13 +277,31 @@ function extractText($element: any, selectors: string, $: any): string {
     }
   }
   
-  // If no specific selector worked, try to extract from element text
-  const elementText = $element.text().trim();
-  if (elementText && elementText.length > 0) {
-    // Return first meaningful line of text
-    const lines = elementText.split('\n').map(line => line.trim()).filter(line => line.length > 2);
-    if (lines.length > 0) {
-      return lines[0];
+  // Try common fallback selectors based on content type
+  const fallbackSelectors = {
+    title: ['h1', 'h2', 'h3', 'h4', '.title', '.job-title', '.position', '[class*="title"]'],
+    company: ['.company', '.employer', '.organization', '[class*="company"]', '[class*="employer"]'],
+    location: ['.location', '.area', '.city', '[class*="location"]', '[class*="area"]']
+  };
+  
+  // Determine which fallbacks to use based on the original selector content
+  let fallbacks: string[] = [];
+  if (selectors.includes('title') || selectors.includes('h2') || selectors.includes('h3')) {
+    fallbacks = fallbackSelectors.title;
+  } else if (selectors.includes('company') || selectors.includes('employer')) {
+    fallbacks = fallbackSelectors.company;
+  } else if (selectors.includes('location') || selectors.includes('area')) {
+    fallbacks = fallbackSelectors.location;
+  }
+  
+  for (const fallback of fallbacks) {
+    try {
+      const text = $element.find(fallback).first().text().trim();
+      if (text && text.length > 0) {
+        return text;
+      }
+    } catch (e) {
+      // Continue to next fallback
     }
   }
   
@@ -258,31 +309,22 @@ function extractText($element: any, selectors: string, $: any): string {
 }
 
 function isValidJob(title: string, company: string | null, jobSite: JobSite): boolean {
-  // Be more lenient with validation
-  if (!title || title.length < 2) {
+  // More lenient validation
+  if (!title || title.length < 3) {
     return false;
   }
   
   // Skip obvious non-job content
-  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all'];
-  if (skipWords.some(word => title.toLowerCase().includes(word))) {
+  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all', 'register', 'login', 'sign up'];
+  const titleLower = title.toLowerCase();
+  if (skipWords.some(word => titleLower.includes(word))) {
     return false;
   }
   
-  // Don't require keywords to be too strict - any logistics/supply chain related content is good
-  if (jobSite.keywords && jobSite.keywords.length > 0) {
-    const titleLower = title.toLowerCase();
-    const companyLower = (company || '').toLowerCase();
-    
-    const relevantWords = ['supply', 'chain', 'logistics', 'warehouse', 'procurement', 'inventory', 'distribution', 'transport', 'shipping', 'coordinator', 'manager', 'officer', 'assistant'];
-    
-    const hasRelevantContent = relevantWords.some(word => 
-      titleLower.includes(word) || companyLower.includes(word)
-    );
-    
-    if (!hasRelevantContent) {
-      return false;
-    }
+  // Accept any job that looks legitimate - don't be too restrictive with keywords
+  // Just filter out obvious spam or navigation elements
+  if (titleLower.length < 10 && !titleLower.match(/\b(manager|officer|assistant|coordinator|analyst|specialist|executive)\b/)) {
+    return false;
   }
   
   return true;
@@ -291,7 +333,7 @@ function isValidJob(title: string, company: string | null, jobSite: JobSite): bo
 function cleanTitle(title: string): string {
   return title
     .replace(/\s+/g, ' ')
-    .replace(/[^\w\s\-&()]/g, '')
+    .replace(/[^\w\s\-&().,]/g, '')
     .trim()
     .slice(0, 255);
 }
@@ -307,10 +349,10 @@ function mapJobType(jobType: string): string {
 
 function getRandomUserAgent(): string {
   const userAgents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
   ];
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }

@@ -20,6 +20,13 @@ export const usePostedJobs = () => {
       try {
         console.log("🔍 usePostedJobs - Testing basic connection to Supabase...");
         
+        // Calculate 24 hours ago
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+        
+        console.log("🔍 usePostedJobs - Filtering for jobs posted after:", twentyFourHoursAgoISO);
+        
         // Test basic connection first
         const { error: tablesError } = await supabase
           .from('jobs')
@@ -35,18 +42,20 @@ export const usePostedJobs = () => {
           throw tablesError;
         }
         
-        // Try to fetch actual data with more explicit query
+        // Try to fetch actual data with date filtering
         const { data, error, count } = await supabase
           .from('jobs')
           .select('*')
           .eq('is_active', true)
+          .gte('created_at', twentyFourHoursAgoISO)
           .order('created_at', { ascending: false })
-          .limit(100); // Increase limit for better testing
+          .limit(100);
 
         console.log("🔍 usePostedJobs - Query result:", { 
           dataCount: data?.length || 0, 
           totalCount: count,
           error: error?.message || 'No error',
+          dateFilter: twentyFourHoursAgoISO,
           firstJob: data?.[0] ? {
             id: data[0].id,
             title: data[0].title,
@@ -61,7 +70,7 @@ export const usePostedJobs = () => {
           throw error;
         }
         
-        console.log("✅ usePostedJobs - Successfully fetched:", data?.length || 0, "posted jobs");
+        console.log("✅ usePostedJobs - Successfully fetched:", data?.length || 0, "posted jobs from last 24 hours");
         return (data || []) as PostedJob[];
       } catch (error) {
         console.error("💥 usePostedJobs - Failed to fetch posted jobs:", error);
@@ -94,6 +103,13 @@ export const useScrapedJobs = (limit: number = 1000) => {
       try {
         console.log("🔍 useScrapedJobs - Testing basic connection to scraped_jobs table...");
         
+        // Calculate 24 hours ago
+        const twentyFourHoursAgo = new Date();
+        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+        const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
+        
+        console.log("🔍 useScrapedJobs - Filtering for jobs posted after:", twentyFourHoursAgoISO);
+        
         // Test basic connection first
         const { error: tablesError } = await supabase
           .from('scraped_jobs')
@@ -119,23 +135,26 @@ export const useScrapedJobs = (limit: number = 1000) => {
           countError: countError?.message || 'No error' 
         });
         
-        // Try the filtered query with increased limit for testing
+        // Try the filtered query with date filtering for last 24 hours
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
+          .gte('created_at', twentyFourHoursAgoISO)
           .order('created_at', { ascending: false })
-          .limit(Math.min(limit, 500)) // Reasonable limit for performance
+          .limit(Math.min(limit, 500))
           .not('title', 'is', null)
           .not('company', 'is', null);
 
         console.log("🔍 useScrapedJobs - Filtered query result:", { 
           dataLength: data?.length || 0, 
           error: error?.message || 'No error',
+          dateFilter: twentyFourHoursAgoISO,
           firstJob: data?.[0] ? {
             id: data[0].id,
             title: data[0].title,
             company: data[0].company,
-            source: data[0].source
+            source: data[0].source,
+            created_at: data[0].created_at
           } : 'No jobs found'
         });
 
@@ -145,7 +164,7 @@ export const useScrapedJobs = (limit: number = 1000) => {
           throw error;
         }
         
-        console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs");
+        console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs from last 24 hours");
         
         // Filter out expired jobs
         const nonExpiredJobs = (data || []).filter(job => !isJobExpired(job));
