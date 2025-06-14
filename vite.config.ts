@@ -12,9 +12,11 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     port: 8080,
   },
   plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
+    react({
+      // Enforce deduplication at plugin-level for React and ReactDOM
+      dedupe: ['react', 'react-dom'],
+    }),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
