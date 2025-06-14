@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/Header";
@@ -34,28 +34,26 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <Router>
-          <div className="min-h-screen flex flex-col">
-            {isDevelopment && <AppDebugger />}
-            <Header />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/post-job" element={<PostJob />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/companies" element={<Companies />} />
-                <Route path="/discussions" element={<Discussions />} />
-                <Route path="/paypal-portal" element={<PayPalPortal />} />
-                <Route path="/careers" element={<Careers />} />
-                <Route path="/ai-agents" element={<AIAgents />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-          <Toaster />
-        </Router>
+        <div className="min-h-screen flex flex-col">
+          {isDevelopment && <AppDebugger />}
+          <Header />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/post-job" element={<PostJob />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/discussions" element={<Discussions />} />
+              <Route path="/paypal-portal" element={<PayPalPortal />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/ai-agents" element={<AIAgents />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
