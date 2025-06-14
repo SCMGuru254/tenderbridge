@@ -1,6 +1,6 @@
 
 import { render, RenderOptions } from '@testing-library/react';
-import { ReactElement } from 'react';
+import React, { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -13,13 +13,15 @@ const queryClient = new QueryClient({
   }
 });
 
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
-    </QueryClientProvider>
+interface AllTheProvidersProps {
+  children: React.ReactNode;
+}
+
+const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
+  return React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    React.createElement(BrowserRouter, {}, children)
   );
 };
 
