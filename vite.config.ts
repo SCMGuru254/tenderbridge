@@ -20,6 +20,9 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom']
+  },
   build: {
     target: "esnext",
     sourcemap: true,

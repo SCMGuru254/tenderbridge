@@ -52,17 +52,15 @@ console.log("[DIAGNOSTIC] React version:", React.version);
 console.log("[DEBUG] main.tsx - About to render app");
 
 root.render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="vite-react-theme"
-        >
-          <App />
-          <Toaster />
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <ThemeProvider
+        defaultTheme="system"
+        storageKey="vite-react-theme"
+      >
+        <App />
+        <Toaster />
+      </ThemeProvider>
+    </BrowserRouter>
+  </QueryClientProvider>
 );
