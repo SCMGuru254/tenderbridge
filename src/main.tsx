@@ -1,6 +1,6 @@
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 import { ThemeProvider } from "@/components/theme-provider"
@@ -32,9 +32,7 @@ const queryClient = new QueryClient({
       refetchOnReconnect: true,
       retry: CACHE_CONFIG.JOBS.retry,
       retryDelay: CACHE_CONFIG.JOBS.retryDelay,
-      // Enable background refetching for better UX
       refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
-      // Network mode for better offline handling
       networkMode: 'offlineFirst',
     },
     mutations: {
@@ -48,10 +46,12 @@ const queryClient = new QueryClient({
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('Root element not found')
 
-ReactDOM.createRoot(rootElement).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
+const root = createRoot(rootElement)
+
+root.render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <ThemeProvider
           defaultTheme="system"
           storageKey="vite-react-theme"
@@ -59,7 +59,7 @@ ReactDOM.createRoot(rootElement).render(
           <App />
           <Toaster />
         </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </React.StrictMode>,
+      </BrowserRouter>
+    </QueryClientProvider>
+  </StrictMode>
 )
