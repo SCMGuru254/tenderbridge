@@ -9,11 +9,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { CACHE_CONFIG } from "@/hooks/useAdvancedCaching";
 
-// Ensure React is properly initialized
-if (!React) {
-  throw new Error('React is not loaded');
-}
-
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
