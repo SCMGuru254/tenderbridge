@@ -102,7 +102,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
                 job_url: getJobUrl(job),
-                application_deadline: getDeadline(job),
+                application_deadline: getDeadline(job) || undefined,
                 social_shares: job.social_shares || {}
               }}
               onSave={() => {
@@ -121,7 +121,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={getJobUrl(job)}
-              application_deadline={getDeadline(job)}
+              application_deadline={getDeadline(job) || undefined}
               social_shares={job.social_shares || {}}
             />
           )

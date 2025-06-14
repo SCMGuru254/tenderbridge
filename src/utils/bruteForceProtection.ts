@@ -31,6 +31,34 @@ export const checkRateLimit = (identifier: string, maxAttempts: number = 5, wind
   return true;
 };
 
+export const isBlocked = async (identifier: string, action: string): Promise<{ blocked: boolean; remainingMs: number }> => {
+  const record = attemptMap.get(`${identifier}-${action}`);
+  
+  if (!record || !record.blockUntil) {
+    return { blocked: false, remainingMs: 0 };
+  }
+  
+  const now = Date.now();
+  if (now < record.blockUntil) {
+    return { blocked: true, remainingMs: record.blockUntil - now };
+  }
+  
+  return { blocked: false, remainingMs: 0 };
+};
+
+export const recordFailedAttempt = async (identifier: string, action: string): Promise<void> => {
+  const key = `${identifier}-${action}`;
+  checkRateLimit(key, 5, 15 * 60 * 1000);
+};
+
+export const resetAttempts = async (identifier: string, action: string): Promise<void> => {
+  const key = `${identifier}-${action}`;
+  attemptMap.delete(key);
+};
+
 export const bruteForceProtection = {
-  checkRateLimit
+  checkRateLimit,
+  isBlocked,
+  recordFailedAttempt,
+  resetAttempts
 };

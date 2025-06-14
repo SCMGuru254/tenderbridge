@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { rateLimiter } from "@/utils/rateLimiter";
-import { performanceMonitor } from "@/utils/performance";
+import { performanceMonitor } from "@/utils/performanceMonitor";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];

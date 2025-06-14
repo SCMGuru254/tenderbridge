@@ -1,7 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { cache } from '@/utils/cache';
 import { analytics } from '@/utils/analytics';
-import { performanceMonitor } from '@/utils/performance';
+import { performanceMonitor } from '@/utils/performanceMonitor';
 import { errorHandler } from '@/utils/errorHandling';
 
 export interface SupplyChainNews {

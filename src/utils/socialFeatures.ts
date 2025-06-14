@@ -1,4 +1,3 @@
-
 // Social media and sharing utilities
 
 interface ShareableContent {
@@ -19,7 +18,6 @@ class SocialFeatures {
   // Generate sharing URL for different platforms
   generateShareUrl(platform: string, content: ShareableContent): string {
     const encodedUrl = encodeURIComponent(content.url);
-    const encodedTitle = encodeURIComponent(content.title);
     const encodedText = encodeURIComponent(content.text || content.title);
     
     switch (platform.toLowerCase()) {
@@ -77,9 +75,9 @@ class SocialFeatures {
   }
 
   // Track share metrics
-  trackShare(platform: string, contentId: string): void {
+  trackShare(platform: string, content: string): void {
     // Implementation for tracking shares
-    console.log(`Share tracked: ${platform} - ${contentId}`);
+    console.log(`Share tracked: ${platform} - ${content}`);
   }
 
   // Get popular hashtags for supply chain content
@@ -143,7 +141,7 @@ class SocialFeatures {
   }
 
   // Get social media insights
-  getSocialInsights(contentId: string): Promise<ShareMetrics[]> {
+  getSocialInsights(): Promise<ShareMetrics[]> {
     // Mock implementation - replace with actual API calls
     return Promise.resolve([
       { platform: 'Twitter', shares: 15, clicks: 45, engagement: 0.8 },
@@ -184,7 +182,7 @@ class SocialFeatures {
   }
 
   // Get referral statistics
-  async getReferralStats(userId: string): Promise<any> {
+  async getReferralStats(): Promise<any> {
     try {
       // Mock implementation - replace with actual data fetching
       return {
@@ -200,7 +198,7 @@ class SocialFeatures {
   }
 
   // Social login integration helpers
-  async connectSocialAccount(platform: string, accessToken: string): Promise<boolean> {
+  async connectSocialAccount(platform: string): Promise<boolean> {
     try {
       // Implementation for connecting social accounts
       console.log(`Connecting ${platform} account`);
@@ -224,7 +222,7 @@ class SocialFeatures {
   }
 
   // Social proof features
-  getSocialProof(contentId: string): Promise<any> {
+  getSocialProof(): Promise<any> {
     // Mock implementation
     return Promise.resolve({
       totalShares: 45,
@@ -244,7 +242,7 @@ class SocialFeatures {
   }
 
   // Social listening for brand mentions
-  async monitorMentions(keywords: string[]): Promise<any[]> {
+  async monitorMentions(): Promise<any[]> {
     // Mock implementation - replace with actual social listening API
     return [
       {
@@ -258,7 +256,7 @@ class SocialFeatures {
   }
 
   // Influencer identification
-  async identifyInfluencers(industry: string = 'supply-chain'): Promise<any[]> {
+  async identifyInfluencers(): Promise<any[]> {
     // Mock implementation
     return [
       {
