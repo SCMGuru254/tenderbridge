@@ -1,137 +1,483 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { JobAnalyticsData, JobAlert, JobApplication } from '@/types/jobAnalytics';
+import type { PostedJob, ScrapedJob } from '@/types/jobs';
+import { socialMediaService } from './socialMediaService';
+import { cache } from '@/utils/cache';
+import { analytics } from '@/utils/analytics';
+import { performanceMonitor } from '@/utils/performanceMonitor';
+import { errorHandler } from '@/utils/errors';
+
+export interface JobFilters {
+  category?: string;
+  location?: string;
+  jobType?: string;
+  salaryRange?: string;
+  experienceLevel?: string;
+  skills?: string[];
+  isRemote?: boolean;
+  companySize?: string;
+  postedWithin?: string;
+}
+
+export interface JobRecommendation {
+  job: PostedJob | ScrapedJob;
+  matchScore: number;
+  matchingSkills: string[];
+  matchingKeywords: string[];
+}
+
+export interface JobAlert {
+  id: string;
+  userId: string;
+  searchParams: JobFilters;
+  frequency: 'daily' | 'weekly' | 'instant';
+  isActive: boolean;
+  lastTriggered?: string;
+  createdAt: string;
+}
+
+export interface JobApplication {
+  id: string;
+  userId: string;
+  jobId: string;
+  status: 'applied' | 'interviewing' | 'offered' | 'rejected' | 'accepted';
+  appliedAt: string;
+  updatedAt: string;
+  notes?: string;
+  nextSteps?: string;
+  interviewDate?: string;
+}
+
+export interface JobAnalytics {
+  jobId: string;
+  views: number;
+  applications: number;
+  shares: number;
+  saves: number;
+  averageTimeSpent: number;
+  uniqueVisitors: number;
+  applicationConversionRate: number;
+  sourceBreakdown: Record<string, number>;
+  trend: {
+    date: string;
+    views: number;
+    applications: number;
+  }[];
+  updatedAt: string;
+}
 
 export interface Job {
   id: string;
   title: string;
-  company: string | null;
-  location: string | null;
-  description?: string;
-  job_type?: string | null;
-  category?: string;
-  job_url?: string | null;
-  application_deadline?: string | null;
-  social_shares?: Record<string, any>;
-  skills?: string[];
-  is_remote?: boolean;
-  created_at: string;
-  updated_at: string;
+  company: string;
+  location: string;
+  description: string;
+  requirements: string[];
+  salary_range?: string;
+  job_type: string;
+  experience_level: string;
+  category: string;
+  created_at?: string;
+  updated_at?: string;
+  status: 'active' | 'closed';
 }
 
-class JobService {
-  async getJobAnalytics(jobId: string): Promise<JobAnalyticsData> {
-    console.log('Getting analytics for job:', jobId);
-    // Mock implementation - replace with actual API call
-    return {
-      totalViews: 245,
-      uniqueViewers: 189,
-      applications: 23,
-      saveCount: 45,
-      shareCount: 12,
-      averageTimeSpent: 180
-    };
-  }
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  user_id: string;
+  status: 'applied' | 'interviewing' | 'offered' | 'rejected' | 'accepted';
+  notes?: string;
+  next_steps?: string;
+  interview_date?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
-  async getJobRecommendations(currentJobId?: string): Promise<Job[]> {
-    console.log('Getting job recommendations for:', currentJobId);
-    
-    // Get scraped jobs as recommendations
-    const { data: scrapedJobs, error } = await supabase
-      .from('scraped_jobs')
-      .select('*')
-      .limit(10);
+export interface JobAlert {
+  id: string;
+  user_id: string;
+  category?: string;
+  location?: string;
+  job_type?: string;
+  experience_level?: string;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  is_active: boolean;
+  last_triggered?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
-    if (error) {
-      console.error('Error fetching job recommendations:', error);
-      return [];
-    }
+export class JobService {
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-    return scrapedJobs?.map(job => ({
-      id: job.id,
-      title: job.title,
-      company: job.company,
-      location: job.location,
-      description: job.description,
-      job_type: job.job_type,
-      category: job.category,
-      job_url: job.job_url,
-      application_deadline: job.application_deadline,
-      social_shares: job.social_shares,
-      skills: job.skills || [],
-      is_remote: job.employment_type === 'remote',
-      created_at: job.created_at,
-      updated_at: job.updated_at
-    })) || [];
-  }
-
-  async saveJob(jobId: string, userId: string): Promise<void> {
-    console.log('Saving job:', jobId, 'for user:', userId);
-    
-    const { error } = await supabase
-      .from('saved_jobs')
-      .insert([{
-        job_id: jobId,
-        user_id: userId,
-        status: 'saved'
-      }]);
-
-    if (error) {
-      console.error('Error saving job:', error);
-      throw error;
-    }
-  }
-
-  async shareJob(jobId: string): Promise<void> {
-    console.log('Sharing job:', jobId);
-    // Mock implementation for sharing
-  }
-
-  async getJobAlerts(userId: string): Promise<JobAlert[]> {
-    console.log('Getting job alerts for user:', userId);
-    // Mock implementation
-    return [
-      {
-        id: '1',
-        userId,
-        searchParams: {
-          category: 'Supply Chain',
-          location: 'Nairobi',
-          jobType: 'full-time'
-        },
-        isActive: true,
-        frequency: 'daily',
-        createdAt: new Date().toISOString()
+  async getJobs(filters?: Partial<Job>): Promise<Job[]> {
+    try {
+      performanceMonitor.startMeasure('fetch-jobs');
+      
+      const cacheKey = `jobs-${JSON.stringify(filters)}`;
+      const cachedJobs = cache.get<Job[]>(cacheKey);
+      if (cachedJobs) {
+        analytics.trackUserAction('jobs-cache-hit');
+        return cachedJobs;
       }
-    ];
+
+      let query = supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'active');
+
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) {
+            query = query.eq(key, value);
+          }
+        });
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const jobs = data || [];
+      cache.set(cacheKey, jobs, { ttl: this.CACHE_TTL });
+      analytics.trackUserAction('jobs-fetch-success', `count:${jobs.length}`);
+      
+      return jobs;
+    } catch (error) {
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
+      return [];
+    } finally {
+      performanceMonitor.endMeasure('fetch-jobs');
+    }
   }
 
-  async updateJobAlert(alertId: string, updates: Partial<JobAlert>): Promise<void> {
-    console.log('Updating job alert:', alertId, updates);
-    // Mock implementation
+  async getJobById(id: string): Promise<Job | null> {
+    try {
+      performanceMonitor.startMeasure('fetch-job');
+      
+      const cacheKey = `job-${id}`;
+      const cachedJob = cache.get<Job>(cacheKey);
+      if (cachedJob) {
+        analytics.trackUserAction('job-cache-hit');
+        return cachedJob;
+      }
+
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        cache.set(cacheKey, data, { ttl: this.CACHE_TTL });
+        analytics.trackUserAction('job-fetch-success');
+      }
+      
+      return data;
+    } catch (error) {
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
+      return null;
+    } finally {
+      performanceMonitor.endMeasure('fetch-job');
+    }
+  }
+
+  async createJobApplication(application: Omit<JobApplication, 'id' | 'created_at' | 'updated_at'>): Promise<JobApplication | null> {
+    try {
+      performanceMonitor.startMeasure('create-application');
+
+      const { data, error } = await supabase
+        .from('job_applications')
+        .insert(application)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      analytics.trackUserAction('application-create-success');
+      return data;
+    } catch (error) {
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
+      return null;
+    } finally {
+      performanceMonitor.endMeasure('create-application');
+    }
+  }
+
+  async updateJobApplication(id: string, updates: Partial<JobApplication>): Promise<JobApplication | null> {
+    try {
+      performanceMonitor.startMeasure('update-application');
+
+      const { data, error } = await supabase
+        .from('job_applications')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      analytics.trackUserAction('application-update-success');
+      return data;
+    } catch (error) {
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
+      return null;
+    } finally {
+      performanceMonitor.endMeasure('update-application');
+    }
   }
 
   async getJobApplications(userId: string): Promise<JobApplication[]> {
-    console.log('Getting job applications for user:', userId);
-    // Mock implementation
-    return [
-      {
-        id: '1',
-        jobId: 'job-1',
-        userId,
-        status: 'applied',
-        appliedAt: new Date().toISOString(),
-        notes: 'Applied via website'
+    try {
+      performanceMonitor.startMeasure('fetch-applications');
+      
+      const cacheKey = `applications-${userId}`;
+      const cachedApplications = cache.get<JobApplication[]>(cacheKey);
+      if (cachedApplications) {
+        analytics.trackUserAction('applications-cache-hit');
+        return cachedApplications;
       }
-    ];
+
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const applications = data || [];
+      cache.set(cacheKey, applications, { ttl: this.CACHE_TTL });
+      analytics.trackUserAction('applications-fetch-success', `count:${applications.length}`);
+      
+      return applications;
+    } catch (error) {
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
+      return [];
+    } finally {
+      performanceMonitor.endMeasure('fetch-applications');
+    }
   }
 
-  async updateJobApplication(applicationId: string, updates: Partial<JobApplication>): Promise<void> {
-    console.log('Updating job application:', applicationId, updates);
-    // Mock implementation
+  async createJobAlert(alert: Omit<JobAlert, 'id' | 'created_at' | 'updated_at'>): Promise<JobAlert | null> {
+    try {
+      performanceMonitor.startMeasure('create-alert');
+
+      const { data, error } = await supabase
+        .from('job_alerts')
+        .insert(alert)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      analytics.trackUserAction('alert-create-success');
+      return data;
+    } catch (error) {
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
+      return null;
+    } finally {
+      performanceMonitor.endMeasure('create-alert');
+    }
+  }
+
+  async updateJobAlert(id: string, updates: Partial<JobAlert>): Promise<JobAlert | null> {
+    try {
+      performanceMonitor.startMeasure('update-alert');
+
+      const { data, error } = await supabase
+        .from('job_alerts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      analytics.trackUserAction('alert-update-success');
+      return data;
+    } catch (error) {
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
+      return null;
+    } finally {
+      performanceMonitor.endMeasure('update-alert');
+    }
+  }
+
+  async getJobAlerts(userId: string): Promise<JobAlert[]> {
+    try {
+      performanceMonitor.startMeasure('fetch-alerts');
+      
+      const cacheKey = `alerts-${userId}`;
+      const cachedAlerts = cache.get<JobAlert[]>(cacheKey);
+      if (cachedAlerts) {
+        analytics.trackUserAction('alerts-cache-hit');
+        return cachedAlerts;
+      }
+
+      const { data, error } = await supabase
+        .from('job_alerts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const alerts = data || [];
+      cache.set(cacheKey, alerts, { ttl: this.CACHE_TTL });
+      analytics.trackUserAction('alerts-fetch-success', `count:${alerts.length}`);
+      
+      return alerts;
+    } catch (error) {
+      errorHandler.handleError(error, 'NETWORK');
+      analytics.trackError(error as Error);
+      return [];
+    } finally {
+      performanceMonitor.endMeasure('fetch-alerts');
+    }
+  }
+
+  async deleteJobAlert(id: string): Promise<boolean> {
+    try {
+      performanceMonitor.startMeasure('delete-alert');
+
+      const { error } = await supabase
+        .from('job_alerts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      analytics.trackUserAction('alert-delete-success');
+      return true;
+    } catch (error) {
+      errorHandler.handleError(error, 'SERVER');
+      analytics.trackError(error as Error);
+      return false;
+    } finally {
+      performanceMonitor.endMeasure('delete-alert');
+    }
+  }
+
+  async getJobAnalytics(jobId: string): Promise<JobAnalytics> {
+    try {
+      performanceMonitor.startTimer('getJobAnalytics');
+
+      // Get analytics data from Supabase
+      const { data, error } = await supabase
+        .from('job_analytics')
+        .select('*')
+        .eq('job_id', jobId)
+        .single();
+
+      if (error) throw error;
+
+      // Get trending data
+      const { data: trendData, error: trendError } = await supabase
+        .from('job_analytics_daily')
+        .select('date, views, applications')
+        .eq('job_id', jobId)
+        .order('date', { ascending: true })
+        .limit(30);
+
+      if (trendError) throw trendError;
+
+      // Calculate averages and rates
+      const applicationConversionRate = data.applications > 0 
+        ? (data.applications / data.views) * 100 
+        : 0;
+
+      const analytics: JobAnalytics = {
+        jobId,
+        views: data.views,
+        applications: data.applications,
+        shares: data.shares,
+        saves: data.saves,
+        averageTimeSpent: data.average_time_spent,
+        uniqueVisitors: data.unique_visitors,
+        applicationConversionRate,
+        sourceBreakdown: data.source_breakdown,
+        trend: trendData,
+        updatedAt: data.updated_at
+      };
+
+      return analytics;
+    } catch (error) {
+      console.error('Error fetching job analytics:', error);
+      throw new Error('Failed to fetch job analytics');
+    } finally {
+      performanceMonitor.endTimer('getJobAnalytics');
+    }
   }
 }
 
 export const jobService = new JobService();
-export { JobService };
-export type { JobAnalyticsData, JobAlert, JobApplication };
+
+// Helper functions for job recommendations
+function calculateJobMatchScore(job: PostedJob | ScrapedJob, userPreferences: any): number {
+  let score = 0;
+  
+  // Match skills
+  if (job.skills && userPreferences?.skills) {
+    const matchingSkills = job.skills.filter(skill => 
+      userPreferences.skills.includes(skill)
+    );
+    score += matchingSkills.length * 10;
+  }
+
+  // Match location
+  if (job.location && userPreferences?.preferredLocations?.includes(job.location)) {
+    score += 20;
+  }
+
+  // Match job type
+  if (job.job_type && userPreferences?.preferredJobTypes?.includes(job.job_type)) {
+    score += 15;
+  }
+
+  // Match experience level
+  if (job.experience_level && userPreferences?.experienceLevel === job.experience_level) {
+    score += 15;
+  }
+
+  // Match remote preference
+  if (job.is_remote === userPreferences?.prefersRemote) {
+    score += 10;
+  }
+
+  return score;
+}
+
+function findMatchingSkills(job: PostedJob | ScrapedJob, userPreferences: any): string[] {
+  if (!job.skills || !userPreferences?.skills) return [];
+  return job.skills.filter(skill => userPreferences.skills.includes(skill));
+}
+
+function findMatchingKeywords(job: PostedJob | ScrapedJob, userPreferences: any): string[] {
+  if (!job.tags || !userPreferences?.keywords) return [];
+  return job.tags.filter(tag => userPreferences.keywords.includes(tag));
+}
+
+// Helper function for enhanced recommendations
+async function calculateEnhancedMatchScore(
+  job: PostedJob | ScrapedJob,
+  userData: {
+    profile: any;
+    preferences: any;
+    applicationHistory: JobApplication[];
+  }
+): Promise<number> {
+  // Implement AI-based matching algorithm here
+  // This could use embeddings, semantic similarity, or other ML techniques
+  // For now, return a basic score
+  return Math.random();
+}

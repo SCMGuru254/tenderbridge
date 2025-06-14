@@ -1,70 +1,136 @@
-
+import { supabase } from '@/lib/supabaseClient';
+import { JobAlert } from '@/types/jobs';
 import { Notification, NotificationType } from '@/types/notifications';
 
-// Mock notifications - in a real app, this would connect to your backend
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    title: 'New Job Match',
-    message: 'We found a new job that matches your profile!',
-    type: 'job_match' as NotificationType,
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    data: { jobId: 'job123' }
-  }
-];
+export class NotificationService {
+  private static instance: NotificationService;
 
-export const notificationService = {
-  getNotifications: async (userId: string, maxNotifications: number = 10): Promise<Notification[]> => {
-    // Simulate API call
-    return mockNotifications.filter(n => n.userId === userId).slice(0, maxNotifications);
-  },
+  private constructor() {}
 
-  markAsRead: async (notificationId: string): Promise<boolean> => {
-    // Simulate API call
-    const notification = mockNotifications.find(n => n.id === notificationId);
-    if (notification) {
-      notification.isRead = true;
-      return true;
+  static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
     }
-    return false;
-  },
-
-  markNotificationAsRead: async (notificationId: string): Promise<boolean> => {
-    return notificationService.markAsRead(notificationId);
-  },
-
-  markAllNotificationsAsRead: async (userId: string): Promise<boolean> => {
-    mockNotifications.forEach(n => {
-      if (n.userId === userId) {
-        n.isRead = true;
-      }
-    });
-    return true;
-  },
-
-  createNotification: async (notification: Omit<Notification, 'id' | 'createdAt'>): Promise<Notification> => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Math.random().toString(),
-      createdAt: new Date().toISOString()
-    };
-    mockNotifications.push(newNotification);
-    return newNotification;
-  },
-
-  subscribeToNotifications: (userId: string, callback: (notifications: Notification[]) => void) => {
-    // Mock subscription - in real app, this would use WebSocket or Server-Sent Events
-    const interval = setInterval(async () => {
-      const notifications = await notificationService.getNotifications(userId);
-      callback(notifications);
-    }, 30000); // Check every 30 seconds
-
-    return {
-      unsubscribe: () => clearInterval(interval)
-    };
+    return NotificationService.instance;
   }
-};
 
-export type { Notification };
+  async createNotification(userId: string, notification: Omit<Notification, 'id' | 'createdAt'>) {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .insert([{ ...notification, user_id: userId }]);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact' })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+      if (error) throw error;
+      return data?.length ?? 0;
+    } catch (error) {
+      console.error('Error getting unread count:', error);
+      return 0;
+    }
+  }
+
+  async markAsRead(notificationId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }
+
+  async markAllAsRead(userId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  }
+
+  async processJobAlerts(): Promise<void> {
+    try {
+      const { data: alerts, error } = await supabase
+        .from('job_alerts')
+        .select('*');
+
+      if (error) throw error;
+
+      for (const alert of alerts) {
+        const shouldTrigger = this.shouldTriggerAlert(alert);
+        if (shouldTrigger) {
+          await this.triggerJobAlert(alert);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing job alerts:', error);
+    }
+  }
+
+  private shouldTriggerAlert(alert: JobAlert): boolean {
+    const now = new Date();
+    const lastTriggered = alert.lastTriggered ? new Date(alert.lastTriggered) : null;
+
+    switch (alert.frequency) {
+      case 'instant':
+        return true;
+      case 'daily':
+        if (!lastTriggered) return true;
+        const hoursSinceLastTrigger = (now.getTime() - lastTriggered.getTime()) / (1000 * 60 * 60);
+        return hoursSinceLastTrigger >= 24;
+      case 'weekly':
+        if (!lastTriggered) return true;
+        const daysSinceLastTrigger = (now.getTime() - lastTriggered.getTime()) / (1000 * 60 * 60 * 24);
+        return daysSinceLastTrigger >= 7;
+      default:
+        return false;
+    }
+  }
+
+  private async triggerJobAlert(alert: JobAlert): Promise<void> {
+    try {
+      // Create a notification for the job alert
+      await this.createNotification(alert.userId, {
+        type: 'job_alert' as NotificationType,
+        title: 'New Job Matches',
+        message: `New jobs matching your alert "${alert.name}" are available.`,
+        userId: alert.userId,
+        isRead: false
+      });
+
+      // Update the last triggered timestamp
+      const { error } = await supabase
+        .from('job_alerts')
+        .update({ lastTriggered: new Date().toISOString() })
+        .eq('id', alert.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error triggering job alert:', error);
+    }
+  }
+}

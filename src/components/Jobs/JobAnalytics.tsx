@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { jobService, type JobAnalyticsData } from '@/services/jobService';
+import { jobService, type JobAnalytics } from '@/services/jobService';
 import {
   ChartBarIcon,
   UserGroupIcon,
@@ -15,10 +14,9 @@ interface JobAnalyticsProps {
 }
 
 export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
-  const [analytics, setAnalytics] = useState<JobAnalyticsData | null>(null);
+  const [analytics, setAnalytics] = useState<JobAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
   const loadAnalytics = React.useCallback(async () => {
     if (!jobId) return;
 
