@@ -1,8 +1,5 @@
 
-import * as React from "react"
-
-console.log("[DEBUG] ThemeProvider - React object:", React);
-console.log("[DEBUG] ThemeProvider - useState function:", React.useState);
+import React from "react";
 
 type Theme = "dark" | "light" | "system"
 
@@ -30,16 +27,12 @@ export function ThemeProvider({
   storageKey = "vite-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  console.log("[DEBUG] ThemeProvider render - about to call useState");
-  
   const [theme, setTheme] = React.useState<Theme>(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem(storageKey) as Theme) || defaultTheme
     }
     return defaultTheme
   })
-
-  console.log("[DEBUG] ThemeProvider - useState called successfully, theme:", theme);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return
