@@ -64,7 +64,6 @@ export const useCommunity = () => {
 };
 
 export const useCommunities = () => {
-  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
@@ -94,11 +93,10 @@ export const useCommunities = () => {
     } catch (err) {
       setError('Failed to fetch communities');
       return [];
-    } finally {
     }
   };
 
-  return { getCommunities, loading, error };
+  return { getCommunities, error };
 };
 
 export const useCommunityMembership = () => {
