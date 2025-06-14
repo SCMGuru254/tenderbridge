@@ -1,3 +1,4 @@
+
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -105,25 +106,14 @@ export const mockResizeObserver = () => {
 };
 
 // Custom matchers
-expect.extend({
-  toBeWithinRange(received: number, floor: number, ceiling: number) {
-    const pass = received >= floor && received <= ceiling;
-    if (pass) {
-      return {
-        message: () =>
-          `expected ${received} not to be within range ${floor} - ${ceiling}`,
-        pass: true
-      };
-    } else {
-      return {
-        message: () =>
-          `expected ${received} to be within range ${floor} - ${ceiling}`,
-        pass: false
-      };
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeWithinRange(floor: number, ceiling: number): R;
     }
   }
-});
+}
 
 // Export everything
 export * from '@testing-library/react';
-export { customRender as render }; 
+export { customRender as render };

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useJobData } from "@/hooks/useJobData";
 import { supabase } from "@/integrations/supabase/client";
-import { CircleCheck, ExternalLink, RefreshCw, AlertTriangle } from "lucide-react";
+import { CheckCircle, ExternalLink, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const ExternalJobWidget = () => {
@@ -112,7 +112,7 @@ export const ExternalJobWidget = () => {
               </>
             ) : importSuccess ? (
               <>
-                <CircleCheck className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-green-500" />
                 Jobs Imported
               </>
             ) : (
