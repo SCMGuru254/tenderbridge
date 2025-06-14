@@ -25,7 +25,8 @@ export const EnhancedSearch = ({
 }: EnhancedSearchProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Search suggestions based on supply chain terms  const supplyChainTerms = useMemo(() => [
+  // Search suggestions based on supply chain terms
+  const supplyChainTerms = useMemo(() => [
     'logistics optimization', 'supply chain disruption', 'inventory management',
     'freight transportation', 'warehouse automation', 'procurement strategy',
     'distribution networks', 'cold chain logistics', 'last mile delivery',
