@@ -1,171 +1,86 @@
-import { useCallback, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import type { JobReferral, ShareTemplate, SuccessStory, SharingAnalytics } from '../types/sharing';
 
-export function useReferrals() {
+import { useState } from 'react';
+import { JobReferral, ShareTemplate, SuccessStory } from '@/types/sharing';
+
+export const useSharing = () => {
+  const [referrals, setReferrals] = useState<JobReferral[]>([]);
+  const [templates, setTemplates] = useState<ShareTemplate[]>([]);
+  const [stories, setStories] = useState<SuccessStory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const createReferral = useCallback(async (jobId: string, referredUserId: string, notes?: string) => {
+  const createReferral = async (referral: Partial<JobReferral>) => {
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
-        .from('job_referrals')
-        .insert([{ jobId, referredUserId, notes }])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as JobReferral;
+      // Mock implementation - replace with actual Supabase call
+      const newReferral = {
+        id: Date.now().toString(),
+        ...referral,
+        created_at: new Date().toISOString(),
+        status: 'pending' as const
+      } as JobReferral;
+      
+      setReferrals(prev => [newReferral, ...prev]);
+      return newReferral;
     } catch (err) {
-      setError(err as Error);
-      throw err;
+      setError('Failed to create referral');
+      return null;
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const updateReferralStatus = useCallback(async (referralId: string, status: JobReferral['status']) => {
+  const createTemplate = async (template: Partial<ShareTemplate>) => {
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
-        .from('job_referrals')
-        .update({ status })
-        .eq('id', referralId)
-        .select()
-        .single();
-      if (error) throw error;
-      return data as JobReferral;
+      // Mock implementation
+      const newTemplate = {
+        id: Date.now().toString(),
+        ...template,
+        created_at: new Date().toISOString()
+      } as ShareTemplate;
+      
+      setTemplates(prev => [newTemplate, ...prev]);
+      return newTemplate;
     } catch (err) {
-      setError(err as Error);
-      throw err;
+      setError('Failed to create template');
+      return null;
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  return { createReferral, updateReferralStatus, loading, error };
-}
-
-export function useShareTemplates() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const createTemplate = useCallback(async (template: Omit<ShareTemplate, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+  const createStory = async (story: Partial<SuccessStory>) => {
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
-        .from('share_templates')
-        .insert([template])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as ShareTemplate;
+      // Mock implementation
+      const newStory = {
+        id: Date.now().toString(),
+        ...story,
+        created_at: new Date().toISOString()
+      } as SuccessStory;
+      
+      setStories(prev => [newStory, ...prev]);
+      return newStory;
     } catch (err) {
-      setError(err as Error);
-      throw err;
+      setError('Failed to create story');
+      return null;
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const getTemplates = useCallback(async (type?: ShareTemplate['templateType']) => {
-    setLoading(true);
-    try {
-      let query = supabase.from('share_templates').select('*');
-      if (type) query = query.eq('templateType', type);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as ShareTemplate[];
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { createTemplate, getTemplates, loading, error };
-}
-
-export function useSuccessStories() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const createStory = useCallback(async (story: Omit<SuccessStory, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('success_stories')
-        .insert([story])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as SuccessStory;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getPublicStories = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('success_stories')
-        .select('*')
-        .eq('isPublic', true);
-      if (error) throw error;
-      return data as SuccessStory[];
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { createStory, getPublicStories, loading, error };
-}
-
-export function useSharingAnalytics() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const trackShare = useCallback(async (analytics: Omit<SharingAnalytics, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('sharing_analytics')
-        .insert([analytics])
-        .select()
-        .single();
-      if (error) throw error;
-      return data as SharingAnalytics;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getAnalytics = useCallback(async (contentType?: SharingAnalytics['contentType']) => {
-    setLoading(true);
-    try {
-      let query = supabase.from('sharing_analytics').select('*');
-      if (contentType) query = query.eq('contentType', contentType);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as SharingAnalytics[];
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { trackShare, getAnalytics, loading, error };
-}
+  return {
+    referrals,
+    templates,
+    stories,
+    loading,
+    error,
+    createReferral,
+    createTemplate,
+    createStory
+  };
+};

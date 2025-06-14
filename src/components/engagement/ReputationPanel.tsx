@@ -1,112 +1,67 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Star, Award, TrendingUp } from 'lucide-react';
-
-interface UserReputation {
-  id: string;
-  score: number;
-  level: string;
-  totalReviews: number;
-  endorsements: number;
-  achievements: number;
-}
-
-interface UserAchievement {
-  id: string;
-  name: string;
-  description: string;
-  unlocked: boolean;
-  progress?: number;
-  target?: number;
-}
+import React from 'react';
+import { useEngagement } from '@/hooks/useEngagement';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Award } from 'lucide-react';
 
 export const ReputationPanel = () => {
-  const { user } = useAuth();
-  const [reputation, setReputation] = useState<UserReputation | null>(null);
-  const [achievements, setAchievements] = useState<UserAchievement[]>([]);
+  const { reputation, loading } = useEngagement();
 
-  useEffect(() => {
-    if (user) {
-      // Mock reputation data
-      setReputation({
-        id: '1',
-        score: 85,
-        level: 'Expert',
-        totalReviews: 12,
-        endorsements: 8,
-        achievements: 5
-      });
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Award className="h-5 w-5" />
+            Reputation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-      setAchievements([
-        {
-          id: '1',
-          name: 'First Connection',
-          description: 'Made your first professional connection',
-          unlocked: true
-        },
-        {
-          id: '2',
-          name: 'Profile Complete',
-          description: 'Complete your professional profile',
-          unlocked: false,
-          progress: 3,
-          target: 5
-        }
-      ]);
-    }
-  }, [user]);
-
-  if (!reputation) return null;
+  const categories = Object.entries(reputation);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold mb-4">Professional Reputation</h3>
-      
-      <div className="space-y-4">
-        <div className="text-center">
-          <div className="text-3xl font-bold text-blue-600">{reputation.score}</div>
-          <div className="text-sm text-gray-500">Reputation Score</div>
-          <div className="text-sm font-medium text-blue-600">{reputation.level}</div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-lg font-semibold">{reputation.totalReviews}</div>
-            <div className="text-xs text-gray-500">Reviews</div>
-          </div>
-          <div>
-            <div className="text-lg font-semibold">{reputation.endorsements}</div>
-            <div className="text-xs text-gray-500">Endorsements</div>
-          </div>
-          <div>
-            <div className="text-lg font-semibold">{reputation.achievements}</div>
-            <div className="text-xs text-gray-500">Achievements</div>
-          </div>
-        </div>
-
-        <div className="border-t pt-4">
-          <h4 className="font-medium mb-2">Recent Achievements</h4>
-          <div className="space-y-2">
-            {achievements.slice(0, 3).map(achievement => (
-              <div key={achievement.id} className="flex items-center space-x-2">
-                <Award className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">{achievement.name}</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Award className="h-5 w-5" />
+          Reputation
+        </CardTitle>
+        <CardDescription>
+          Your standing in different areas
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {categories.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            No reputation data yet. Start engaging to build your reputation!
+          </p>
+        ) : (
+          categories.map(([category, data]) => (
+            <div key={category} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium capitalize">{data.name}</span>
+                <Badge variant="outline">{data.score} pts</Badge>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Next Level Progress</span>
-            <span className="text-sm font-medium">75%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-            <div className="bg-blue-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-          </div>
-        </div>
-      </div>
-    </div>
+              <Progress value={Math.min((data.score / 1000) * 100, 100)} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                Last updated: {new Date(data.lastUpdated).toLocaleDateString()}
+              </p>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
   );
 };

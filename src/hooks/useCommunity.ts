@@ -1,131 +1,65 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Community, CommunityMember } from '@/types/community';
 
-export interface Community {
-  id: string;
-  name: string;
-  description: string;
-  memberCount: number;
-  isPrivate: boolean;
-  createdAt: string;
-  category?: string;
-  bannerUrl?: string;
-  avatarUrl?: string;
-}
-
-export interface CommunityWithMembership extends Community {
-  currentUserRole?: string;
-}
-
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-  comments: number;
-  tags: string[];
-  attachments?: string[];
-  replies?: Reply[];
-}
-
-export interface Reply {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-}
-
-export const useCommunities = () => {
+export const useCommunity = () => {
+  const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
+  const fetchCommunities = async (category?: string) => {
     setLoading(true);
     try {
-      // Mock implementation
-      const communities: CommunityWithMembership[] = [
-        {
-          id: '1',
-          name: 'Supply Chain Professionals',
-          description: 'Connect with other supply chain professionals',
-          memberCount: 1250,
-          isPrivate: false,
-          createdAt: new Date().toISOString(),
-          category: 'professional'
-        }
-      ];
-      return communities;
-    } catch (err) {
-      setError('Failed to load communities');
-      return [];
+      let query = supabase
+        .from('communities')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (category) {
+        query = query.eq('category', category);
+      }
+      
+      const { data, error } = await query;
+      
+      if (!error && data) {
+        setCommunities(data);
+      }
+    } catch (error) {
+      console.error('Error fetching communities:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const createCommunity = async (community: Omit<Community, 'id' | 'memberCount' | 'createdAt'>) => {
-    console.log('Creating community:', community);
-    // Mock implementation
-  };
-
-  return { getCommunities, loading, error, createCommunity };
-};
-
-export const useCommunityMembership = () => {
-  const joinCommunity = async (communityId: string, userId: string): Promise<boolean> => {
-    console.log('Joining community:', communityId, 'user:', userId);
-    // Mock implementation
-    return true;
-  };
-
-  const leaveCommunity = async (communityId: string, userId: string): Promise<boolean> => {
-    console.log('Leaving community:', communityId, 'user:', userId);
-    // Mock implementation
-    return true;
-  };
-
-  return { joinCommunity, leaveCommunity };
-};
-
-export const useCommunityPosts = (communityId: string) => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const loadPosts = async () => {
-    setLoading(true);
+  const createCommunity = async (community: Partial<Community>) => {
     try {
-      // Mock implementation
-      setPosts([
-        {
-          id: '1',
-          title: 'Welcome to the community!',
-          content: 'Hello everyone, welcome to our supply chain community!',
-          author: 'Admin',
-          createdAt: new Date().toISOString(),
-          likes: 15,
-          comments: 3,
-          tags: ['welcome', 'community'],
-          replies: []
-        }
-      ]);
-    } catch (err) {
-      console.error('Error loading posts:', err);
-    } finally {
-      setLoading(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('communities')
+        .insert([{ ...community, created_by: user.id }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setCommunities(prev => [data, ...prev]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating community:', error);
     }
+    return null;
   };
 
   useEffect(() => {
-    loadPosts();
-  }, [communityId]);
+    fetchCommunities();
+  }, []);
 
-  const createPost = async (post: Omit<Post, 'id' | 'createdAt' | 'likes' | 'comments'>) => {
-    console.log('Creating post:', post);
-    // Mock implementation
+  return {
+    communities,
+    loading,
+    createCommunity,
+    fetchCommunities
   };
-
-  return { posts, loading, createPost };
 };

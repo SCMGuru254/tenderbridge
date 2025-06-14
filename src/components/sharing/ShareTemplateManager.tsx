@@ -1,145 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { useShareTemplates } from '../hooks/useSharing';
-import type { ShareTemplate } from '../types/sharing';
 
-interface ShareTemplateManagerProps {
-  type?: ShareTemplate['templateType'];
-}
+import React, { useState } from 'react';
+import { useSharing } from '@/hooks/useSharing';
+import { ShareTemplate } from '@/types/sharing';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
-export const ShareTemplateManager: React.FC<ShareTemplateManagerProps> = ({ type }) => {
-  const [templates, setTemplates] = useState<ShareTemplate[]>([]);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [variables, setVariables] = useState<string[]>([]);
-  const { createTemplate, getTemplates, loading, error } = useShareTemplates();
-
-  useEffect(() => {
-    loadTemplates();
-  }, [type]);
-
-  const loadTemplates = async () => {
-    try {
-      const data = await getTemplates(type);
-      setTemplates(data);
-    } catch (err) {
-      console.error('Error loading templates:', err);
-    }
-  };
+export const ShareTemplateManager = () => {
+  const { templates, createTemplate, loading } = useSharing();
+  const [showForm, setShowForm] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({
+    name: '',
+    content: '',
+    variables: [] as string[]
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await createTemplate({
-        templateType: type || 'general',
-        title,
-        content,
-        variables
-      });
-      setTitle('');
-      setContent('');
-      setVariables([]);
-      loadTemplates();
-    } catch (err) {
-      console.error('Error creating template:', err);
+    
+    if (!newTemplate.name.trim() || !newTemplate.content.trim()) {
+      toast.error('Name and content are required');
+      return;
     }
-  };
 
-  const addVariable = () => {
-    setVariables([...variables, '']);
-  };
-
-  const updateVariable = (index: number, value: string) => {
-    const newVariables = [...variables];
-    newVariables[index] = value;
-    setVariables(newVariables);
+    const result = await createTemplate(newTemplate);
+    if (result) {
+      toast.success('Template created successfully!');
+      setShowForm(false);
+      setNewTemplate({ name: '', content: '', variables: [] });
+    }
   };
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Template Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-            Template Content
-          </label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            required
-          />
-        </div>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-semibold">Share Templates</h2>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Template
+        </Button>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Template Variables
-          </label>
-          {variables.map((variable, index) => (
-            <input
-              key={index}
-              type="text"
-              value={variable}
-              onChange={(e) => updateVariable(index, e.target.value)}
-              placeholder={`Variable ${index + 1}`}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          ))}
-          <button
-            type="button"
-            onClick={addVariable}
-            className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Add Variable
-          </button>
-        </div>
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Create Share Template</CardTitle>
+            <CardDescription>
+              Create reusable templates for sharing jobs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium mb-1">
+                  Template Name
+                </label>
+                <Input
+                  id="name"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                  placeholder="Template name"
+                  required
+                />
+              </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create Template'}
-        </button>
-      </form>
+              <div>
+                <label htmlFor="content" className="block text-sm font-medium mb-1">
+                  Template Content
+                </label>
+                <Textarea
+                  id="content"
+                  value={newTemplate.content}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, content: e.target.value })}
+                  placeholder="Template content with variables like {{jobTitle}}"
+                  rows={4}
+                  required
+                />
+              </div>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-medium text-gray-900">Existing Templates</h3>
-        <div className="mt-4 space-y-4">
-          {templates.map((template) => (
-            <div
-              key={template.id}
-              className="border rounded-lg p-4 bg-white shadow-sm"
-            >
-              <h4 className="text-md font-medium">{template.title}</h4>
-              <p className="mt-2 text-gray-600">{template.content}</p>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Creating...' : 'Create Template'}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4">
+        {templates.map((template) => (
+          <Card key={template.id}>
+            <CardHeader>
+              <CardTitle>{template.name}</CardTitle>
+              <CardDescription>
+                Created {new Date(template.created_at).toLocaleDateString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-2">{template.content}</p>
               {template.variables.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    Variables: {template.variables.join(', ')}
-                  </p>
+                <div className="flex gap-1 flex-wrap">
+                  {template.variables.map((variable, index) => (
+                    <span key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      {variable}
+                    </span>
+                  ))}
                 </div>
               )}
-            </div>
-          ))}
-        </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
 };
-
-export default ShareTemplateManager;

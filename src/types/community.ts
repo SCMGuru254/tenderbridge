@@ -2,36 +2,19 @@
 export interface Community {
   id: string;
   name: string;
-  description: string;
-  memberCount: number;
-  isPrivate: boolean;
-  createdAt: string;
+  description?: string;
   category?: string;
-  bannerUrl?: string;
-  avatarUrl?: string;
+  member_count: number;
+  is_private: boolean;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface CommunityWithMembership extends Community {
-  currentUserRole?: string;
-}
-
-export interface Post {
+export interface CommunityMember {
   id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-  comments: number;
-  tags: string[];
-  attachments?: string[];
-  replies?: Reply[];
-}
-
-export interface Reply {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
+  community_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
 }

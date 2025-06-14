@@ -1,225 +1,109 @@
-import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { Connection, SkillEndorsement, ProfessionalRecommendation, ConnectionSuggestion } from '@/types/networking';
+import { useAuth } from './useAuth';
 
-export const useConnections = (userId: string) => {
-  const queryClient = useQueryClient();
+interface NetworkingConnection {
+  id: string;
+  requester_id: string;
+  recipient_id: string;
+  status: string;
+  message?: string;
+  created_at: string;
+}
 
-  // Fetch user's connections
-  const { data: connections = [], isLoading } = useQuery({
-    queryKey: ['connections', userId],
-    queryFn: async () => {
+interface SkillEndorsement {
+  id: string;
+  endorser_id: string;
+  endorsee_id: string;
+  skill: string;
+  created_at: string;
+}
+
+export const useNetworking = () => {
+  const { user } = useAuth();
+  const [connections, setConnections] = useState<NetworkingConnection[]>([]);
+  const [endorsements, setEndorsements] = useState<SkillEndorsement[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchConnections = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
       const { data, error } = await supabase
-        .from('professional_connections')
+        .from('networking_connections')
         .select('*')
-        .or(`requestor_id.eq.${userId},target_id.eq.${userId}`)
-        .order('created_at', { ascending: false });
+        .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`);
+      
+      if (!error && data) {
+        setConnections(data);
+      }
+    } catch (error) {
+      console.error('Error fetching connections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (error) throw error;
-      return data as Connection[];
-    },
-  });
+  const createConnection = async (recipientId: string, message?: string) => {
+    if (!user) return null;
+    try {
+      const { data, error } = await supabase
+        .from('networking_connections')
+        .insert([{
+          requester_id: user.id,
+          recipient_id: recipientId,
+          message,
+          status: 'pending'
+        }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setConnections(prev => [...prev, data]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating connection:', error);
+    }
+    return null;
+  };
 
-  // Send connection request
-  const { mutate: sendConnectionRequest } = useMutation({
-    mutationFn: async (targetId: string) => {
-      const { error } = await supabase
-        .from('professional_connections')
-        .insert({
-          requestor_id: userId,
-          target_id: targetId,
-          status: 'pending',
-        });
+  const endorseSkill = async (endorseeId: string, skill: string) => {
+    if (!user) return null;
+    try {
+      const { data, error } = await supabase
+        .from('skill_endorsements')
+        .insert([{
+          endorser_id: user.id,
+          endorsee_id: endorseeId,
+          skill
+        }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setEndorsements(prev => [...prev, data]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error endorsing skill:', error);
+    }
+    return null;
+  };
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['connections']);
-      toast.success('Connection request sent successfully');
-    },
-    onError: (error) => {
-      console.error('Error sending connection request:', error);
-      toast.error('Failed to send connection request');
-    },
-  });
-
-  // Respond to connection request
-  const { mutate: respondToRequest } = useMutation({
-    mutationFn: async ({ connectionId, status }: { connectionId: string; status: 'accepted' | 'rejected' }) => {
-      const { error } = await supabase
-        .from('professional_connections')
-        .update({ status })
-        .eq('id', connectionId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['connections']);
-      toast.success('Connection request updated successfully');
-    },
-    onError: (error) => {
-      console.error('Error updating connection request:', error);
-      toast.error('Failed to update connection request');
-    },
-  });
+  useEffect(() => {
+    if (user) {
+      fetchConnections();
+    }
+  }, [user]);
 
   return {
     connections,
-    isLoading,
-    sendConnectionRequest,
-    respondToRequest,
-  };
-};
-
-export const useEndorsements = (userId: string) => {
-  const queryClient = useQueryClient();
-
-  // Fetch endorsements received by user
-  const { data: receivedEndorsements = [], isLoading: loadingReceived } = useQuery({
-    queryKey: ['endorsements', 'received', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('skill_endorsements')
-        .select('*, profiles!endorser_id(*)')
-        .eq('endorsed_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as (SkillEndorsement & { profiles: any })[];
-    },
-  });
-
-  // Endorse a user's skill
-  const { mutate: endorseSkill } = useMutation({
-    mutationFn: async ({ endorsedId, skill, level }: { endorsedId: string; skill: string; level: number }) => {
-      const { error } = await supabase
-        .from('skill_endorsements')
-        .insert({
-          endorser_id: userId,
-          endorsed_id: endorsedId,
-          skill,
-          level,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['endorsements']);
-      toast.success('Skill endorsed successfully');
-    },
-    onError: (error) => {
-      console.error('Error endorsing skill:', error);
-      toast.error('Failed to endorse skill');
-    },
-  });
-
-  return {
-    receivedEndorsements,
-    loadingReceived,
+    endorsements,
+    loading,
+    createConnection,
     endorseSkill,
-  };
-};
-
-export const useRecommendations = (userId: string) => {
-  const queryClient = useQueryClient();
-
-  // Fetch recommendations for user
-  const { data: recommendations = [], isLoading } = useQuery({
-    queryKey: ['recommendations', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('professional_recommendations')
-        .select('*, profiles!recommender_id(*)')
-        .eq('recommended_id', userId)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as (ProfessionalRecommendation & { profiles: any })[];
-    },
-  });
-
-  // Write a recommendation
-  const { mutate: writeRecommendation } = useMutation({
-    mutationFn: async ({
-      recommendedId,
-      content,
-      relationship,
-      duration,
-    }: {
-      recommendedId: string;
-      content: string;
-      relationship: string;
-      duration: string;
-    }) => {
-      const { error } = await supabase
-        .from('professional_recommendations')
-        .insert({
-          recommender_id: userId,
-          recommended_id: recommendedId,
-          content,
-          relationship,
-          duration,
-          status: 'pending',
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['recommendations']);
-      toast.success('Recommendation submitted successfully');
-    },
-    onError: (error) => {
-      console.error('Error submitting recommendation:', error);
-      toast.error('Failed to submit recommendation');
-    },
-  });
-
-  // Update recommendation status
-  const { mutate: updateRecommendationStatus } = useMutation({
-    mutationFn: async ({ recommendationId, status }: { recommendationId: string; status: 'published' | 'rejected' }) => {
-      const { error } = await supabase
-        .from('professional_recommendations')
-        .update({ status })
-        .eq('id', recommendationId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['recommendations']);
-      toast.success('Recommendation status updated successfully');
-    },
-    onError: (error) => {
-      console.error('Error updating recommendation status:', error);
-      toast.error('Failed to update recommendation status');
-    },
-  });
-
-  return {
-    recommendations,
-    isLoading,
-    writeRecommendation,
-    updateRecommendationStatus,
-  };
-};
-
-export const useConnectionSuggestions = (userId: string) => {
-  // Fetch connection suggestions
-  const { data: suggestions = [], isLoading } = useQuery({
-    queryKey: ['connection-suggestions', userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('get_connection_suggestions', { user_id_param: userId, limit_param: 10 });
-
-      if (error) throw error;
-      return data as ConnectionSuggestion[];
-    },
-  });
-
-  return {
-    suggestions,
-    isLoading,
+    refetch: fetchConnections
   };
 };

@@ -1,180 +1,144 @@
+
 import { useState, useEffect } from 'react';
-import type { CompanyEvent, CompanyMember, CompanyUpdate } from '@/types/company';
+import { supabase } from '@/integrations/supabase/client';
+import { CompanyEvent, CompanyMember, CompanyUpdate } from '@/types/careers';
 
-export const useCompanyEvents = (companyId: string) => {
+export const useCompany = (companyId?: string) => {
   const [events, setEvents] = useState<CompanyEvent[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (companyId) {
-      loadEvents();
-    }
-  }, [companyId]);
-
-  const loadEvents = async () => {
-    setLoading(true);
-    try {
-      // Mock implementation
-      setEvents([
-        {
-          id: '1',
-          title: 'Quarterly All-Hands Meeting',
-          description: 'Company-wide meeting to discuss quarterly results',
-          eventType: 'conference',
-          startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + 3600000).toISOString(),
-          location: {
-            type: 'hybrid',
-            url: 'https://example.com/meeting'
-          },
-          maxAttendees: 100,
-          attendeesCount: 45,
-          companyId,
-          createdAt: new Date().toISOString()
-        }
-      ]);
-    } catch (err) {
-      setError('Failed to load events');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createEvent = async (event: Omit<CompanyEvent, 'id' | 'attendeesCount' | 'createdAt'>): Promise<boolean> => {
-    console.log('Creating event:', event);
-    // Mock implementation
-    return true;
-  };
-
-  const registerForEvent = async (eventId: string, userId: string): Promise<boolean> => {
-    console.log('Registering for event:', eventId, 'user:', userId);
-    // Mock implementation
-    return true;
-  };
-
-  return { events, loading, error, createEvent, registerForEvent };
-};
-
-export const useCompanyProfile = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const getProfile = async (companyId: string) => {
-    setLoading(true);
-    try {
-      // Mock implementation
-      return {
-        id: companyId,
-        name: 'TechCorp Solutions',
-        description: 'Leading technology solutions provider',
-        founded: '2010',
-        employees: '100-500',
-        industry: 'Technology',
-        headquarters: 'Nairobi, Kenya',
-        website: 'https://techcorp.example.com',
-        benefits: ['Health Insurance', 'Remote Work', 'Professional Development']
-      };
-    } catch (err) {
-      setError('Failed to load profile');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (updates: any): Promise<boolean> => {
-    console.log('Updating profile:', updates);
-    // Mock implementation
-    return true;
-  };
-
-  return { getProfile, updateProfile, loading, error };
-};
-
-export const useCompanyTeam = (companyId: string) => {
-  const [members, setMembers] = useState<CompanyMember[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (companyId) {
-      loadTeamMembers();
-    }
-  }, [companyId]);
-
-  const loadTeamMembers = async () => {
-    setLoading(true);
-    try {
-      // Mock implementation
-      setMembers([
-        {
-          id: '1',
-          userId: 'user1',
-          role: 'CEO',
-          department: 'Executive',
-          isFeatured: true,
-          testimonial: 'Leading the company to new heights',
-          companyId,
-          joinedAt: '2020-01-01'
-        }
-      ]);
-    } catch (err) {
-      setError('Failed to load team members');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addTeamMember = async (member: Omit<CompanyMember, 'id' | 'joinedAt'>): Promise<boolean> => {
-    console.log('Adding team member:', member);
-    // Mock implementation
-    return true;
-  };
-
-  return { members, loading, error, addTeamMember };
-};
-
-export const useCompanyUpdates = (companyId: string) => {
+  const [teamMembers, setTeamMembers] = useState<CompanyMember[]>([]);
   const [updates, setUpdates] = useState<CompanyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (companyId) {
-      loadUpdates();
-    }
-  }, [companyId]);
-
-  const loadUpdates = async () => {
+  const fetchEvents = async () => {
+    if (!companyId) return;
     setLoading(true);
     try {
-      // Mock implementation
-      setUpdates([
-        {
-          id: '1',
-          title: 'Company Expansion Update',
-          content: 'We are excited to announce our expansion into new markets...',
-          updateType: 'news',
-          isFeatured: false,
-          likesCount: 25,
-          commentsCount: 5,
-          companyId,
-          createdAt: new Date().toISOString()
-        }
-      ]);
-    } catch (err) {
-      setError('Failed to load updates');
+      const { data, error } = await supabase
+        .from('company_events')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('date', { ascending: false });
+      
+      if (!error && data) {
+        setEvents(data);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const createUpdate = async (update: Omit<CompanyUpdate, 'id' | 'likesCount' | 'commentsCount' | 'createdAt'>): Promise<boolean> => {
-    console.log('Creating update:', update);
-    // Mock implementation
-    return true;
+  const fetchTeamMembers = async () => {
+    if (!companyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('company_team_members')
+        .select('*')
+        .eq('company_id', companyId);
+      
+      if (!error && data) {
+        setTeamMembers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+    }
   };
 
-  return { updates, loading, error, createUpdate };
+  const fetchUpdates = async () => {
+    if (!companyId) return;
+    try {
+      const { data, error } = await supabase
+        .from('company_updates')
+        .select('*')
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setUpdates(data);
+      }
+    } catch (error) {
+      console.error('Error fetching updates:', error);
+    }
+  };
+
+  const createEvent = async (event: Partial<CompanyEvent>) => {
+    if (!companyId) return null;
+    try {
+      const { data, error } = await supabase
+        .from('company_events')
+        .insert([{ ...event, company_id: companyId }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setEvents(prev => [data, ...prev]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+    }
+    return null;
+  };
+
+  const createTeamMember = async (member: Partial<CompanyMember>) => {
+    if (!companyId) return null;
+    try {
+      const { data, error } = await supabase
+        .from('company_team_members')
+        .insert([{ ...member, company_id: companyId }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setTeamMembers(prev => [...prev, data]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating team member:', error);
+    }
+    return null;
+  };
+
+  const createUpdate = async (update: Partial<CompanyUpdate>) => {
+    if (!companyId) return null;
+    try {
+      const { data, error } = await supabase
+        .from('company_updates')
+        .insert([{ ...update, company_id: companyId }])
+        .select()
+        .single();
+      
+      if (!error && data) {
+        setUpdates(prev => [data, ...prev]);
+        return data;
+      }
+    } catch (error) {
+      console.error('Error creating update:', error);
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (companyId) {
+      fetchEvents();
+      fetchTeamMembers();
+      fetchUpdates();
+    }
+  }, [companyId]);
+
+  return {
+    events,
+    teamMembers,
+    updates,
+    loading,
+    createEvent,
+    createTeamMember,
+    createUpdate,
+    refetch: () => {
+      fetchEvents();
+      fetchTeamMembers();
+      fetchUpdates();
+    }
+  };
 };
