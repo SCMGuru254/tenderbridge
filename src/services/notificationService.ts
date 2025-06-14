@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { handleAsyncError } from '@/utils/errorHandling';
 
 export interface Notification {
@@ -32,41 +33,35 @@ export class NotificationService {
     return NotificationService.instance;
   }
 
+  // Fetch notifications from Supabase
   async getNotifications(userId: string, maxNotifications?: number): Promise<Notification[]> {
     try {
-      // Mock notifications for now - in production this would fetch from database
-      const mockNotifications: Notification[] = [
-        {
-          id: '1',
-          type: 'job_alert',
-          title: 'New Job Match Found',
-          message: 'A new supply chain manager position has been posted that matches your criteria',
-          userId,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-          data: { jobId: 'job-123' }
-        },
-        {
-          id: '2',
-          type: 'application_update',
-          title: 'Application Status Update',
-          message: 'Your application for Logistics Coordinator at ABC Corp has been reviewed',
-          userId,
-          isRead: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: '3',
-          type: 'system',
-          title: 'Welcome to Supply Chain Jobs Kenya',
-          message: 'Complete your profile to get better job recommendations',
-          userId,
-          isRead: true,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        }
-      ];
+      let query = supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      return maxNotifications ? mockNotifications.slice(0, maxNotifications) : mockNotifications;
+      if (maxNotifications) {
+        query = query.limit(maxNotifications);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Map to Notification interface used by frontend
+      const notifications: Notification[] = (data || []).map((n: any) => ({
+        id: n.id,
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        userId: n.user_id,
+        isRead: n.is_read,
+        createdAt: n.created_at,
+        data: n.data || undefined,
+      }));
+
+      return notifications;
     } catch (error) {
       const handledError = handleAsyncError(error as Error, 'CLIENT');
       console.error('Error fetching notifications:', handledError);
@@ -74,32 +69,43 @@ export class NotificationService {
     }
   }
 
+  // Mark a notification as read in Supabase
   async markNotificationAsRead(notificationId: string): Promise<void> {
     try {
-      console.log(`Marking notification ${notificationId} as read`);
-      // In production, this would update the database
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
     } catch (error) {
       const handledError = handleAsyncError(error as Error, 'CLIENT');
       console.error('Error marking notification as read:', handledError);
     }
   }
 
+  // Mark all notifications for a user as read in Supabase
   async markAllNotificationsAsRead(userId: string): Promise<void> {
     try {
-      console.log(`Marking all notifications for user ${userId} as read`);
-      // In production, this would update the database
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId);
+
+      if (error) throw error;
     } catch (error) {
       const handledError = handleAsyncError(error as Error, 'CLIENT');
       console.error('Error marking all notifications as read:', handledError);
     }
   }
 
+  // Real subscription would need Supabase Realtime or polling
   subscribeToNotifications(userId: string, callback: (notifications: Notification[]) => void) {
-    // Mock subscription - in production this would use real-time updates
+    // For now, fallback to polling (since Realtime may not be set up for notifications table)
     const interval = setInterval(async () => {
       const notifications = await this.getNotifications(userId);
       callback(notifications);
-    }, 30000); // Check every 30 seconds
+    }, 30000);
 
     return {
       unsubscribe: () => clearInterval(interval)
@@ -108,3 +114,4 @@ export class NotificationService {
 }
 
 export const notificationService = NotificationService.getInstance();
+
