@@ -1,3 +1,6 @@
+
+// Add missing React import for React.version
+import React from "react";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -64,3 +67,4 @@ root.render(
     </QueryClientProvider>
   </StrictMode>
 )
+

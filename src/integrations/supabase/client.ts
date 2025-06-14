@@ -8,7 +8,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 if (
   !SUPABASE_URL ||
   SUPABASE_URL.includes("localhost") ||
-  SUPABASE_ANON_KEY === "fallback-anon-key"
+  !SUPABASE_ANON_KEY // just check falsy, don't compare strings
 ) {
   // Log serious configuration error
   console.error(
