@@ -18,6 +18,9 @@ interface JobListProps {
 export const JobList = ({ jobs, isLoading }: JobListProps) => {
   const isMobile = useIsMobile();
   
+  console.log("JobList - jobs received:", jobs);
+  console.log("JobList - isLoading:", isLoading);
+  
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -27,6 +30,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   }
 
   if (!jobs || jobs.length === 0) {
+    console.log("JobList - No jobs to display");
     return (
       <div className="text-center text-gray-500 py-12">
         No jobs found matching your criteria
@@ -38,16 +42,20 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
   const filteredJobs = jobs.filter(job => {
     // Skip jobs without critical information
     if (!job.title || (job.title.trim() === '')) {
+      console.log("JobList - Filtering out job without title:", job);
       return false;
     }
     
     // Remove Fuzu jobs as they have formatting issues
     if ((job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu')) {
+      console.log("JobList - Filtering out Fuzu job:", job);
       return false;
     }
     
     return true;
   });
+
+  console.log("JobList - Filtered jobs count:", filteredJobs.length);
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -124,7 +132,7 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={getJobUrl(job)}
-              application_deadline: deadlineValue,
+              application_deadline={deadlineValue}
               social_shares={job.social_shares || {}}
             />
           );
