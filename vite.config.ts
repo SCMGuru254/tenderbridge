@@ -21,7 +21,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
-    }
+    },
+    dedupe: ['react', 'react-dom']
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -30,6 +31,7 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
         global: 'globalThis',
       },
     },
+    include: ['react', 'react-dom'],
     dedupe: ['react', 'react-dom'], // Ensure a single React version (Fixes double hook runtime)
   },
   build: {
