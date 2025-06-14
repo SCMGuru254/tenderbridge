@@ -1,17 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ReputationCategory, UserAchievement } from '@/types/engagement';
+import { UserReputation, ReputationCategory, UserAchievement } from '@/types/engagement';
 import { useAuth } from './useAuth';
-
-interface UserReputation {
-  id: string;
-  user_id: string;
-  category: string;
-  score: number;
-  level: number;
-  last_updated: string;
-}
 
 export const useEngagement = () => {
   const { user } = useAuth();
@@ -31,8 +22,8 @@ export const useEngagement = () => {
       if (!error && data) {
         const reputationMap: Record<string, ReputationCategory> = {};
         data.forEach((rep: UserReputation) => {
-          reputationMap[rep.category] = {
-            name: rep.category,
+          reputationMap[rep.name] = {
+            name: rep.name,
             score: rep.score,
             level: rep.level,
             lastUpdated: rep.last_updated
