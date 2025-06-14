@@ -1,41 +1,34 @@
 
 import { SocialPost } from '@/types/social';
 
-export class SocialMediaService {
-  private posts: SocialPost[] = [];
-
-  async createPost(content: string, platform: string): Promise<SocialPost> {
+export const socialMediaService = {
+  async shareToLinkedIn(content: string, accessToken: string): Promise<SocialPost> {
+    // Mock implementation
     const post: SocialPost = {
-      id: Date.now().toString(),
+      id: Math.random().toString(),
       content,
-      platform,
-      timestamp: Date.now(),
+      author: 'Current User',
+      platform: 'LinkedIn',
+      createdAt: new Date().toISOString(),
       likes: 0,
-      shares: 0,
-      comments: []
+      shares: 0
     };
+    
+    return post;
+  },
 
-    this.posts.push(post);
+  async shareToTwitter(content: string, accessToken: string): Promise<SocialPost> {
+    // Mock implementation
+    const post: SocialPost = {
+      id: Math.random().toString(),
+      content,
+      author: 'Current User',
+      platform: 'Twitter',
+      createdAt: new Date().toISOString(),
+      likes: 0,
+      shares: 0
+    };
+    
     return post;
   }
-
-  async getPosts(): Promise<SocialPost[]> {
-    return [...this.posts];
-  }
-
-  async likePost(postId: string): Promise<void> {
-    const post = this.posts.find(p => p.id === postId);
-    if (post) {
-      post.likes += 1;
-    }
-  }
-
-  async sharePost(postId: string): Promise<void> {
-    const post = this.posts.find(p => p.id === postId);
-    if (post) {
-      post.shares += 1;
-    }
-  }
-}
-
-export const socialMediaService = new SocialMediaService();
+};

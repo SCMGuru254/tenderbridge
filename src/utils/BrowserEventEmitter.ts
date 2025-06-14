@@ -29,3 +29,6 @@ export class BrowserEventEmitter {
     }
   }
 }
+
+// Export as EventEmitter for compatibility
+export const EventEmitter = BrowserEventEmitter;

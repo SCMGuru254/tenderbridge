@@ -16,9 +16,9 @@ const mockNotifications: Notification[] = [
 ];
 
 export const notificationService = {
-  getNotifications: async (userId: string): Promise<Notification[]> => {
+  getNotifications: async (userId: string, maxNotifications: number = 10): Promise<Notification[]> => {
     // Simulate API call
-    return mockNotifications.filter(n => n.userId === userId);
+    return mockNotifications.filter(n => n.userId === userId).slice(0, maxNotifications);
   },
 
   markAsRead: async (notificationId: string): Promise<boolean> => {
@@ -31,6 +31,19 @@ export const notificationService = {
     return false;
   },
 
+  markNotificationAsRead: async (notificationId: string): Promise<boolean> => {
+    return notificationService.markAsRead(notificationId);
+  },
+
+  markAllNotificationsAsRead: async (userId: string): Promise<boolean> => {
+    mockNotifications.forEach(n => {
+      if (n.userId === userId) {
+        n.isRead = true;
+      }
+    });
+    return true;
+  },
+
   createNotification: async (notification: Omit<Notification, 'id' | 'createdAt'>): Promise<Notification> => {
     const newNotification: Notification = {
       ...notification,
@@ -39,5 +52,19 @@ export const notificationService = {
     };
     mockNotifications.push(newNotification);
     return newNotification;
+  },
+
+  subscribeToNotifications: (userId: string, callback: (notifications: Notification[]) => void) => {
+    // Mock subscription - in real app, this would use WebSocket or Server-Sent Events
+    const interval = setInterval(async () => {
+      const notifications = await notificationService.getNotifications(userId);
+      callback(notifications);
+    }, 30000); // Check every 30 seconds
+
+    return {
+      unsubscribe: () => clearInterval(interval)
+    };
   }
 };
+
+export type { Notification };

@@ -22,3 +22,15 @@ export const handleAsyncError = (error: unknown, type: ErrorType = 'CLIENT'): Ap
   }
   return createError(type, 'Unknown error occurred');
 };
+
+export const errorHandler = {
+  handleError: (error: unknown, type: ErrorType = 'CLIENT'): AppError => {
+    if (error instanceof Error) {
+      console.error(`${type} Error:`, error.message);
+      return createError(type, error.message);
+    }
+    return createError(type, 'Unknown error occurred');
+  }
+};
+
+export { ErrorType } from './errors';

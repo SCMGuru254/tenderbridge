@@ -19,7 +19,8 @@ export class AIAgentService {
     
     roles.forEach(role => {
       const context: AgentContext = {
-        preferences: {},
+        sessionId: 'default',
+        metadata: {},
         history: []
       };
       
@@ -31,7 +32,7 @@ export class AIAgentService {
     });
   }
 
-  async activateAgent(agentRole: AgentRole): Promise<void> {
+  async activateAgent(agentRole: AgentRole): Promise<void> => {
     try {
       // Deactivate current agent
       if (this.activeAgent) {
@@ -49,7 +50,7 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      errorHandler.handleError(error, ErrorType.UNKNOWN);
+      errorHandler.handleError(error, 'UNKNOWN' as ErrorType);
       throw error;
     }
   }
@@ -104,18 +105,19 @@ export class AIAgentService {
       }
 
       // Update agent history
-      agent.context.history.push({
+      const userMessage: AgentMessage = {
         id: Date.now().toString(),
         content: message,
         role: 'user',
-        timestamp: Date.now()
-      });
+        timestamp: new Date()
+      };
+      agent.context.history.push(userMessage);
 
       const response: AgentMessage = {
         id: (Date.now() + 1).toString(),
         content,
-        role: this.activeAgent,
-        timestamp: Date.now(),
+        role: 'assistant',
+        timestamp: new Date(),
         confidence
       };
 
@@ -124,15 +126,15 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      errorHandler.handleError(error, ErrorType.SERVER);
+      errorHandler.handleError(error, 'SERVER' as ErrorType);
       analytics.trackError(error as Error);
       
       // Return fallback response
       return {
         id: Date.now().toString(),
         content: 'I apologize, but I\'m experiencing technical difficulties. Please try again later.',
-        role: this.activeAgent || 'career_advisor',
-        timestamp: Date.now(),
+        role: 'assistant',
+        timestamp: new Date(),
         confidence: 0.1
       };
     } finally {
