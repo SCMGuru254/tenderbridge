@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/hooks/useUser";
@@ -29,7 +29,7 @@ export const AppDebugger = () => {
         userAgent: navigator.userAgent.substring(0, 50)
       },
       react: {
-        version: typeof React !== 'undefined' ? React.version : 'React not accessible'
+        version: React.version
       }
     };
     
