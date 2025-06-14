@@ -34,7 +34,7 @@ export const useEngagement = () => {
           reputationMap[rep.category] = {
             name: rep.category,
             score: rep.score,
-            level: rep.level || 1,
+            level: rep.level,
             lastUpdated: rep.last_updated
           };
         });

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
-import { errorHandler } from '@/utils/errorHandling';
+import { handleAsyncError } from '@/utils/errorHandling';
 
 const JobAlertForm = () => {
   const [email, setEmail] = useState('');
@@ -29,11 +29,11 @@ const JobAlertForm = () => {
       setKeywords('');
       setLocation('');
     } catch (error) {
-      const handledError = errorHandler.handleError(error);
+      const handledError = handleAsyncError(error as Error, 'CLIENT');
       toast({
         variant: "destructive",
         title: "Error",
-        description: handledError.message,
+        description: handledError.message || 'An error occurred while creating the job alert.',
       });
     }
   };

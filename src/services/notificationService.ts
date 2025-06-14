@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { handleAsyncError } from '@/utils/errorHandling';
 
 export interface Notification {
   id: string;
@@ -32,7 +32,7 @@ export class NotificationService {
     return NotificationService.instance;
   }
 
-  async getNotifications(userId: string, limit: number = 10): Promise<Notification[]> {
+  async getNotifications(userId: string): Promise<Notification[]> {
     try {
       // Mock notifications for now
       return [
@@ -47,7 +47,8 @@ export class NotificationService {
         }
       ];
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      const handledError = handleAsyncError(error as Error, 'CLIENT');
+      console.error('Error fetching notifications:', handledError);
       return [];
     }
   }
@@ -56,7 +57,8 @@ export class NotificationService {
     try {
       console.log(`Marking notification ${notificationId} as read`);
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      const handledError = handleAsyncError(error as Error, 'CLIENT');
+      console.error('Error marking notification as read:', handledError);
     }
   }
 
@@ -64,7 +66,8 @@ export class NotificationService {
     try {
       console.log(`Marking all notifications for user ${userId} as read`);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      const handledError = handleAsyncError(error as Error, 'CLIENT');
+      console.error('Error marking all notifications as read:', handledError);
     }
   }
 
