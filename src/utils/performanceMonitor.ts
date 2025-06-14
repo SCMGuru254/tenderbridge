@@ -20,6 +20,16 @@ class PerformanceMonitor {
     return duration;
   }
 
+  async measureAsyncTime<T>(fn: () => Promise<T>, name: string): Promise<T> {
+    const start = Date.now();
+    const result = await fn();
+    const end = Date.now();
+    
+    const duration = end - start;
+    console.log(`Async measurement ${name}: ${duration}ms`);
+    return result;
+  }
+
   mark(name: string): void {
     console.log(`Performance mark: ${name} at ${Date.now()}`);
   }

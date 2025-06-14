@@ -2,7 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { rateLimiter } from "@/utils/rateLimiter";
-import { performanceMonitor } from "@/utils/performanceMonitor";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
@@ -10,64 +9,58 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 export class UserService {
   // Get user profile with caching
   async getProfile(userId: string): Promise<Profile | null> {
-    return performanceMonitor.measureAsyncTime(async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
 
-      return data;
-    }, 'getProfile');
+    return data;
   }
 
   // Update user profile
   async updateProfile(userId: string, updates: ProfileUpdate): Promise<Profile | null> {
-    if (!rateLimiter.checkLimit('profile_update', userId, 5, 60000)) {
+    if (!rateLimiter.checkLimit('profile_update', userId)) {
       throw new Error('Too many profile updates. Please wait before trying again.');
     }
 
-    return performanceMonitor.measureAsyncTime(async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', userId)
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
 
-      if (error) {
-        console.error('Error updating profile:', error);
-        throw error;
-      }
+    if (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
 
-      return data;
-    }, 'updateProfile');
+    return data;
   }
 
   // Create user profile
   async createProfile(userId: string, profileData: Partial<Profile>): Promise<Profile | null> {
-    return performanceMonitor.measureAsyncTime(async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          ...profileData
-        })
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        ...profileData
+      })
+      .select()
+      .single();
 
-      if (error) {
-        console.error('Error creating profile:', error);
-        throw error;
-      }
+    if (error) {
+      console.error('Error creating profile:', error);
+      throw error;
+    }
 
-      return data;
-    }, 'createProfile');
+    return data;
   }
 
   // Get user preferences
@@ -130,7 +123,7 @@ export class UserService {
     resource_id?: string;
     metadata?: any;
   }) {
-    if (!rateLimiter.checkLimit('track_activity', userId, 100, 60000)) {
+    if (!rateLimiter.checkLimit('track_activity', userId)) {
       return; // Silently fail for activity tracking
     }
 
@@ -170,7 +163,7 @@ export class UserService {
 
   // Send connection request
   async sendConnectionRequest(fromUserId: string, toUserId: string, message?: string) {
-    if (!rateLimiter.checkLimit('connection_request', fromUserId, 10, 3600000)) {
+    if (!rateLimiter.checkLimit('connection_request', fromUserId)) {
       throw new Error('Too many connection requests. Please wait before sending more.');
     }
 
