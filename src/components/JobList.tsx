@@ -1,4 +1,3 @@
-
 import { Loader2 } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -58,27 +57,23 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // Only filter out jobs with severe formatting issues
+  // More lenient filtering - only filter out jobs with completely missing essential data
   const filteredJobs = jobs.filter(job => {
-    console.log("JobList - Processing job:", job.title, "from source:", getJobSource(job));
+    console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
-    // Skip jobs without critical information
-    if (!job.title || (job.title.trim() === '')) {
-      console.log("JobList - Filtering out job without title:", job);
+    // Only skip jobs that are completely unusable
+    if (!job.title || job.title.trim() === '' || job.title.toLowerCase() === 'null') {
+      console.log("JobList - Filtering out job without valid title:", job);
       return false;
     }
     
-    // Remove Fuzu jobs as they have formatting issues
-    if ((job as ScrapedJob)?.source?.toLowerCase()?.includes('fuzu')) {
-      console.log("JobList - Filtering out Fuzu job:", job);
-      return false;
-    }
-    
+    // Keep all jobs including Fuzu - don't filter them out
     return true;
   });
 
   console.log("JobList - Filtered jobs count:", filteredJobs.length);
   console.log("JobList - Original jobs count:", jobs.length);
+  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: j.title, company: getCompanyName(j), source: getJobSource(j) })));
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -107,7 +102,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
       {/* Source Statistics */}
       <Card className="bg-muted/30">
         <CardHeader>
-          <CardTitle className="text-lg">Job Sources</CardTitle>
+          <CardTitle className="text-lg">Job Sources ({sortedJobs.length} total jobs)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -117,18 +112,32 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
               </Badge>
             ))}
           </div>
+          {sortedJobs.length === 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              No jobs are being displayed. Check console for filtering details.
+            </p>
+          )}
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sortedJobs.map((job) => {
+        {sortedJobs.map((job, index) => {
           const deadline = getDeadline(job);
           const jobUrl = getJobUrl(job);
+          const company = getCompanyName(job);
+          const location = getLocation(job);
+          
           // Convert null to undefined to match expected type
           const deadlineValue: string | undefined = deadline ?? undefined;
           const jobUrlValue: string | undefined = jobUrl ?? undefined;
           
-          console.log("JobList - Rendering job:", job.title, "deadline:", deadlineValue);
+          console.log(`JobList - Rendering job ${index + 1}:`, {
+            title: job.title,
+            company,
+            location,
+            source: getJobSource(job),
+            deadline: deadlineValue
+          });
           
           return isMobile ? (
             <SwipeableJobCard
@@ -136,8 +145,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
               job={{
                 id: job.id,
                 title: job.title,
-                company: getCompanyName(job) || "Company not specified",
-                location: getLocation(job) || "Location not specified",
+                company: company || "Company not specified",
+                location: location || "Location not specified",
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
                 job_url: jobUrlValue,
@@ -155,8 +164,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
             <JobCard
               key={job.id}
               title={job.title}
-              company={getCompanyName(job)}
-              location={getLocation(job)}
+              company={company}
+              location={location}
               job_type={job.job_type || null}
               category={getJobSource(job)}
               job_url={jobUrlValue}

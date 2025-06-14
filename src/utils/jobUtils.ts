@@ -9,11 +9,11 @@ export const formatSalary = (job: PostedJob | ScrapedJob): string | null => {
 };
 
 export const getJobCompany = (job: PostedJob | ScrapedJob): string | null => {
-  if ('company' in job && job.company) {
-    return job.company;
+  if ('company' in job && job.company && job.company.trim() !== '') {
+    return job.company.trim();
   }
-  if ('posted_by' in job && job.posted_by) {
-    return job.posted_by;
+  if ('posted_by' in job && job.posted_by && job.posted_by.trim() !== '') {
+    return job.posted_by.trim();
   }
   return 'Company not specified';
 };
@@ -22,8 +22,8 @@ export const getJobCompany = (job: PostedJob | ScrapedJob): string | null => {
 export const getCompanyName = getJobCompany;
 
 export const getJobLocation = (job: PostedJob | ScrapedJob): string | null => {
-  if (job.location) {
-    return job.location;
+  if (job.location && job.location.trim() !== '') {
+    return job.location.trim();
   }
   return 'Location not specified';
 };
@@ -32,11 +32,11 @@ export const getJobLocation = (job: PostedJob | ScrapedJob): string | null => {
 export const getLocation = getJobLocation;
 
 export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
-  if ('job_url' in job && job.job_url) {
-    return job.job_url;
+  if ('job_url' in job && job.job_url && job.job_url.trim() !== '') {
+    return job.job_url.trim();
   }
-  if ('application_url' in job && job.application_url) {
-    return job.application_url;
+  if ('application_url' in job && job.application_url && job.application_url.trim() !== '') {
+    return job.application_url.trim();
   }
   return null;
 };
@@ -46,7 +46,7 @@ export const isScrapedJob = (job: PostedJob | ScrapedJob): job is ScrapedJob => 
 };
 
 export const formatJobType = (jobType: string | undefined): string => {
-  if (!jobType) return 'Not specified';
+  if (!jobType || jobType.trim() === '') return 'Not specified';
   return jobType.charAt(0).toUpperCase() + jobType.slice(1);
 };
 
@@ -61,13 +61,13 @@ export const getJobDeadline = (job: PostedJob | ScrapedJob): string | null => {
 export const getDeadline = getJobDeadline;
 
 export const getJobSource = (job: PostedJob | ScrapedJob): string => {
-  if (isScrapedJob(job) && job.source) {
-    return job.source;
+  if (isScrapedJob(job) && job.source && job.source.trim() !== '') {
+    return job.source.trim();
   }
   if ('posted_by' in job) {
     return 'Posted Job';
   }
-  return 'Unknown';
+  return 'Unknown Source';
 };
 
 export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
@@ -86,13 +86,19 @@ export const filterJobs = (
   jobs: (PostedJob | ScrapedJob)[] | undefined,
   filters: { searchTerm?: string; category?: string | null }
 ): (PostedJob | ScrapedJob)[] => {
-  if (!jobs) return [];
+  if (!jobs) {
+    console.log("filterJobs - No jobs provided");
+    return [];
+  }
   
-  return jobs.filter(job => {
+  console.log("filterJobs - Input jobs:", jobs.length);
+  console.log("filterJobs - Filters:", filters);
+  
+  const filtered = jobs.filter(job => {
     // Search term filter
-    if (filters.searchTerm) {
+    if (filters.searchTerm && filters.searchTerm.trim() !== '') {
       const searchLower = filters.searchTerm.toLowerCase();
-      const matchesTitle = job.title.toLowerCase().includes(searchLower);
+      const matchesTitle = job.title && job.title.toLowerCase().includes(searchLower);
       const matchesCompany = getCompanyName(job)?.toLowerCase().includes(searchLower) || false;
       const matchesLocation = getLocation(job)?.toLowerCase().includes(searchLower) || false;
       
@@ -102,7 +108,7 @@ export const filterJobs = (
     }
     
     // Category filter
-    if (filters.category && filters.category !== 'all') {
+    if (filters.category && filters.category !== 'all' && filters.category !== null) {
       if (job.job_type !== filters.category) {
         return false;
       }
@@ -110,4 +116,7 @@ export const filterJobs = (
     
     return true;
   });
+  
+  console.log("filterJobs - Filtered jobs:", filtered.length);
+  return filtered;
 };
