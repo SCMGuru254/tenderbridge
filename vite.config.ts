@@ -18,13 +18,10 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'react': path.resolve(__dirname, './node_modules/react'),
-      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
     },
   },
   optimizeDeps: {
     include: ['react', 'react-dom'],
-    exclude: ['react', 'react-dom']
   },
   build: {
     target: "esnext",
