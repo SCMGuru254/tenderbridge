@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -14,10 +15,6 @@ export const usePostedJobs = () => {
     queryKey: ['posted-jobs'],
     queryFn: async () => {
       console.log("🔍 usePostedJobs - Starting fetch...");
-      console.log("🔍 usePostedJobs - Supabase client config:", { 
-        url: supabase.supabaseUrl, 
-        key: supabase.supabaseKey?.substring(0, 20) + '...' 
-      });
       trackNetworkRequest();
       
       try {
@@ -63,7 +60,7 @@ export const usePostedJobs = () => {
         });
         
         // Let's also check without the is_active filter
-        const { data: allData, error: allError, count: allCount } = await supabase
+        const { error: allError, count: allCount } = await supabase
           .from('jobs')
           .select('*', { count: 'exact', head: true });
           
@@ -106,17 +103,13 @@ export const useScrapedJobs = (limit: number = 1000) => {
     queryKey: ['scraped-jobs', limit],
     queryFn: async () => {
       console.log("🔍 useScrapedJobs - Starting fetch...");
-      console.log("🔍 useScrapedJobs - Supabase client config:", { 
-        url: supabase.supabaseUrl, 
-        key: supabase.supabaseKey?.substring(0, 20) + '...' 
-      });
       trackNetworkRequest();
       
       try {
         console.log("🔍 useScrapedJobs - Making Supabase query to 'scraped_jobs' table...");
         
         // First, let's check the total count in scraped_jobs
-        const { data: testConnection, error: connectionError, count: totalCount } = await supabase
+        const { error: connectionError, count: totalCount } = await supabase
           .from('scraped_jobs')
           .select('*', { count: 'exact', head: true });
         
