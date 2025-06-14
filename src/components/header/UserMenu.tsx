@@ -1,5 +1,5 @@
 
-import { useUser } from '@/hooks/useUser';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,12 +10,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut, Trophy } from 'lucide-react';
+import { User, Settings, LogOut, Trophy, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PointsDisplay from '../rewards/PointsDisplay';
 
 const UserMenu = () => {
-  const { user, signOut } = useUser();
+  const { user, signOut } = useAuth();
 
   if (!user) {
     return (
@@ -53,6 +53,12 @@ const UserMenu = () => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/dashboard" className="flex items-center">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/profile" className="flex items-center">
               <User className="mr-2 h-4 w-4" />

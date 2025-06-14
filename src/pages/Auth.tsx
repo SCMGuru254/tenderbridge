@@ -10,14 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isBlocked, setIsBlocked] = useState(false);
-  const [attemptsLeft, setAttemptsLeft] = useState(5);
+  const [socialLoading, setSocialLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,66 +30,23 @@ const Auth = () => {
       navigate("/");
     }
   };
-  const handleSignIn = async () => {
-    if (isBlocked) {
-      toast.error("Too many failed attempts. Please try again later.");
-      return;
-    }
 
+  const handleSignIn = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          action: 'signin'
-        }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limit exceeded
-          setIsBlocked(true);
-          const retryAfter = response.headers.get('Retry-After');
-          toast.error(`Too many attempts. Please try again in ${retryAfter} seconds.`);
-        } else if (response.status === 423) {
-          // Account locked
-          setIsBlocked(true);
-          toast.error(`Account temporarily locked. ${data.error}`);
-        } else if (response.status === 401) {
-          const newAttemptsLeft = attemptsLeft - 1;
-          setAttemptsLeft(newAttemptsLeft);
-          
-          if (newAttemptsLeft <= 0) {
-            setIsBlocked(true);
-            toast.error("Account temporarily blocked due to too many failed attempts.");
-          } else {
-            toast.error(`Invalid credentials. ${newAttemptsLeft} attempts remaining.`);
-          }
-        } else {
-          toast.error(data.error || 'Sign in failed');
-        }
+      if (error) {
+        toast.error(error.message);
         return;
       }
 
       if (data.user) {
-        // Update the Supabase session
-        const { data: sessionData } = await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-
-        if (sessionData.session) {
-          toast.success("Successfully signed in!");
-          navigate("/");
-        }
+        toast.success("Successfully signed in!");
+        navigate("/");
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -98,37 +55,23 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
   const handleSignUp = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
         },
-        body: JSON.stringify({
-          email,
-          password,
-          fullName,
-          action: 'signup'
-        }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          // Rate limit exceeded
-          setIsBlocked(true);
-          const retryAfter = response.headers.get('Retry-After');
-          toast.error(`Too many attempts. Please try again in ${retryAfter} seconds.`);
-        } else if (response.status === 400) {
-          // Validation error
-          toast.error(data.error);
-        } else {
-          toast.error(data.error || 'Sign up failed');
-        }
+      if (error) {
+        toast.error(error.message);
         return;
       }
 
@@ -143,22 +86,34 @@ const Auth = () => {
     }
   };
 
+  const handleLinkedInSignIn = async () => {
+    setSocialLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) {
+        toast.error("LinkedIn sign-in failed: " + error.message);
+      }
+    } catch (error) {
+      console.error("LinkedIn sign-in error:", error);
+      toast.error("An unexpected error occurred with LinkedIn sign-in");
+    } finally {
+      setSocialLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
       <Card>
         <CardHeader>
-          <CardTitle className="text-center">Welcome</CardTitle>
+          <CardTitle className="text-center">Welcome to SupplyChain_KE</CardTitle>
         </CardHeader>
         <CardContent>
-          {isBlocked && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Account temporarily blocked. Please try again later.
-              </AlertDescription>
-            </Alert>
-          )}
-
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -173,7 +128,7 @@ const Auth = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading || isBlocked}
+                  disabled={loading || socialLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -183,22 +138,38 @@ const Auth = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading || isBlocked}
+                  disabled={loading || socialLoading}
                 />
               </div>
               <Button 
                 onClick={handleSignIn} 
                 className="w-full" 
-                disabled={loading || isBlocked}
+                disabled={loading || socialLoading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign In
               </Button>
-              {attemptsLeft < 5 && attemptsLeft > 0 && (
-                <p className="text-sm text-muted-foreground text-center">
-                  {attemptsLeft} attempts remaining
-                </p>
-              )}
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={handleLinkedInSignIn}
+                className="w-full"
+                disabled={loading || socialLoading}
+              >
+                {socialLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continue with LinkedIn
+              </Button>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
@@ -209,7 +180,7 @@ const Auth = () => {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || socialLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -219,7 +190,7 @@ const Auth = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || socialLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -229,12 +200,37 @@ const Auth = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || socialLoading}
                 />
               </div>
-              <Button onClick={handleSignUp} className="w-full" disabled={loading}>
+              <Button 
+                onClick={handleSignUp} 
+                className="w-full" 
+                disabled={loading || socialLoading}
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign Up
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={handleLinkedInSignIn}
+                className="w-full"
+                disabled={loading || socialLoading}
+              >
+                {socialLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continue with LinkedIn
               </Button>
             </TabsContent>
           </Tabs>

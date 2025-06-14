@@ -10,6 +10,7 @@ import Jobs from "@/pages/Jobs";
 import Profile from "@/pages/Profile";
 import PostJob from "@/pages/PostJob";
 import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
 import Companies from "@/pages/Companies";
 import Discussions from "@/pages/Discussions";
 import PayPalPortal from "@/pages/PayPalPortal";
@@ -42,6 +43,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/post-job" element={<PostJob />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/companies" element={<Companies />} />
