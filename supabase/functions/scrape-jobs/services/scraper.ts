@@ -68,12 +68,15 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
     }
     
     const html = await response.text();
-    console.log(`HTML response length: ${html.length} characters`);
+    console.log(`HTML response length for ${jobSite.source}: ${html.length} characters`);
     
     const $ = load(html);
+    const pageTitle = $('title').text();
+    console.log(`Page title for ${jobSite.source}: ${pageTitle}`);
+
     const jobElements = $(jobSite.selectors.jobContainer);
     
-    console.log(`Found ${jobElements.length} job containers`);
+    console.log(`Found ${jobElements.length} job containers for ${jobSite.source}`);
     
     jobElements.each((index, element) => {
       try {

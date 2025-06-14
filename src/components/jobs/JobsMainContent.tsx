@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobData } from "@/hooks/useJobData";
@@ -7,7 +8,7 @@ import { MobileJobFilters } from "@/components/MobileJobFilters";
 import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface JobsMainContentProps {
   onRefreshComplete: () => void;
