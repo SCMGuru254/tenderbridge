@@ -1,6 +1,8 @@
 
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useJobData } from "@/hooks/useJobData";
 import { filterJobs } from "@/utils/jobUtils";
 import { JobFilters } from "@/components/JobFilters";
@@ -17,6 +19,7 @@ interface JobsMainContentProps {
 export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [onlyRecent, setOnlyRecent] = useState(true); // Default to showing only recent jobs
   const isMobile = useIsMobile();
   
   const { 
@@ -27,14 +30,26 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
     errors
   } = useJobData();
 
-  // Filter jobs based on search term and category
-  const filteredJobs = filterJobs(allJobs, { searchTerm, category });
+  // Filter jobs based on search term, category, and recent filter
+  const filteredJobs = filterJobs(allJobs, { searchTerm, category, onlyRecent });
   const jobFetchError = errors.postedJobsError || errors.scrapedJobsError;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <h1 className="text-3xl font-bold mb-4 md:mb-0">Supply Chain Jobs in Kenya</h1>
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Supply Chain Jobs in Kenya</h1>
+          <div className="flex items-center space-x-2 mb-4 md:mb-0">
+            <Switch
+              id="recent-jobs"
+              checked={onlyRecent}
+              onCheckedChange={setOnlyRecent}
+            />
+            <Label htmlFor="recent-jobs" className="text-sm">
+              Show only jobs posted in last 24 hours
+            </Label>
+          </div>
+        </div>
         <JobRefreshButton onRefreshComplete={onRefreshComplete} />
       </div>
       

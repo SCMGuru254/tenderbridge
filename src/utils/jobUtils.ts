@@ -82,9 +82,50 @@ export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
   }
 };
 
+// New function to check if a job was posted within the last 24 hours
+export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean => {
+  try {
+    const jobCreatedAt = new Date(job.created_at);
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    
+    console.log(`🔍 Job "${job.title}" created at:`, jobCreatedAt.toISOString(), 
+                'vs 24h ago:', twentyFourHoursAgo.toISOString(), 
+                'is recent:', jobCreatedAt >= twentyFourHoursAgo);
+    
+    return jobCreatedAt >= twentyFourHoursAgo;
+  } catch (error) {
+    console.error('Error checking if job is within 24 hours:', error);
+    return false;
+  }
+};
+
+// New function to get human-readable time since posting
+export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
+  try {
+    const jobCreatedAt = new Date(job.created_at);
+    const now = new Date();
+    const diffInMs = now.getTime() - jobCreatedAt.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    
+    if (diffInHours < 1) {
+      return `${diffInMinutes} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hours ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} days ago`;
+    }
+  } catch (error) {
+    console.error('Error calculating time since posted:', error);
+    return 'Recently posted';
+  }
+};
+
 export const filterJobs = (
   jobs: (PostedJob | ScrapedJob)[] | undefined,
-  filters: { searchTerm?: string; category?: string | null }
+  filters: { searchTerm?: string; category?: string | null; onlyRecent?: boolean }
 ): (PostedJob | ScrapedJob)[] => {
   if (!jobs) {
     console.log("filterJobs - No jobs provided");
@@ -95,6 +136,11 @@ export const filterJobs = (
   console.log("filterJobs - Filters:", filters);
   
   const filtered = jobs.filter(job => {
+    // Filter for jobs posted within 24 hours if onlyRecent is true
+    if (filters.onlyRecent && !isJobPostedWithin24Hours(job)) {
+      return false;
+    }
+    
     // Search term filter
     if (filters.searchTerm && filters.searchTerm.trim() !== '') {
       const searchLower = filters.searchTerm.toLowerCase();
