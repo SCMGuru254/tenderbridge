@@ -3,6 +3,22 @@ import { JobSite } from "../types/jobSite.ts";
 
 export const getJobSites = (): JobSite[] => {
   return [
+    // LinkedIn - Added with working search URL
+    {
+      url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain&location=Kenya",
+      source: "LinkedIn",
+      selectors: {
+        jobContainer: ".job-search-card, .jobs-search__results-list li, [data-job-id]",
+        title: ".job-search-card__title a, h3 a, .job-title",
+        company: ".job-search-card__subtitle-primary-grouping .job-search-card__subtitle-primary, .company",
+        location: ".job-search-card__subtitle-secondary-grouping, .location",
+        jobLink: ".job-search-card__title a, h3 a"
+      },
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'distribution'],
+      retryAttempts: 2,
+      timeout: 25000
+    },
+    
     // BrighterMonday - Updated with working URL
     {
       url: "https://www.brightermonday.co.ke/jobs?q=supply+chain",
@@ -67,22 +83,6 @@ export const getJobSites = (): JobSite[] => {
       keywords: ['supply chain', 'logistics', 'procurement', 'warehouse'],
       retryAttempts: 2,
       timeout: 25000
-    },
-
-    // Glassdoor Kenya - More lenient scraping
-    {
-      url: "https://www.glassdoor.com/Job/kenya-supply-chain-jobs-SRCH_IL.0,5_IN117_KO6,18.htm",
-      source: "Glassdoor",
-      selectors: {
-        jobContainer: "[data-test='jobListing'], .react-job-listing, .job-search-card, article",
-        title: "a[data-test='job-title'], .job-title, h2 a",
-        company: "[data-test='employer-name'], .company, .employer",
-        location: ".location, [data-test='job-location']",
-        jobLink: "a[data-test='job-title'], .job-title a"
-      },
-      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse'],
-      retryAttempts: 1,
-      timeout: 20000
     }
   ];
 };
