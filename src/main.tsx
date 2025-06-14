@@ -1,4 +1,5 @@
-import { StrictMode } from "react";
+
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
@@ -72,10 +73,5 @@ function initializeApp() {
   );
 }
 
-// Ensure DOM is ready before initializing
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  // Add a small delay to ensure React is fully loaded
-  setTimeout(initializeApp, 0);
-}
+// Simple immediate initialization
+initializeApp();
