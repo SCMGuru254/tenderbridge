@@ -12,27 +12,19 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     port: 8080,
   },
   plugins: [
-    react({
-      // Enforce deduplication at plugin-level for React and ReactDOM
-      dedupe: ['react', 'react-dom'],
-    }),
+    react(),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src'),
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom')
     },
-    dedupe: ['react', 'react-dom']
   },
   optimizeDeps: {
-    esbuildOptions: {
-      // Node.js global to browser globalThis
-      define: {
-        global: 'globalThis',
-      },
-    },
     include: ['react', 'react-dom'],
-    dedupe: ['react', 'react-dom'], // Ensure a single React version (Fixes double hook runtime)
+    force: true,
   },
   build: {
     target: "esnext",
@@ -42,11 +34,6 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     },
     rollupOptions: {
       external: [],
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom']
-        }
-      }
     }
   }
 }));

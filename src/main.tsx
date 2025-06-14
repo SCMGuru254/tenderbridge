@@ -1,12 +1,9 @@
 
-// Add missing React import for React.version
-import React from "react";
-import { StrictMode } from 'react'
+import * as React from "react";
 import { createRoot } from 'react-dom/client'
 
 console.log("[DEBUG] main.tsx - React object:", React);
 console.log("[DEBUG] main.tsx - React version:", React.version);
-console.log("[DEBUG] main.tsx - StrictMode:", StrictMode);
 
 import App from './App'
 import './index.css'
@@ -59,17 +56,17 @@ console.log("[DIAGNOSTIC] React version:", React.version);
 console.log("[DEBUG] main.tsx - About to render app");
 
 root.render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="vite-react-theme"
-        >
-          <App />
-          <Toaster />
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </StrictMode>
+  React.createElement(React.StrictMode, null,
+    React.createElement(QueryClientProvider, { client: queryClient },
+      React.createElement(BrowserRouter, null,
+        React.createElement(ThemeProvider, {
+          defaultTheme: "system",
+          storageKey: "vite-react-theme"
+        },
+          React.createElement(App),
+          React.createElement(Toaster)
+        )
+      )
+    )
+  )
 )
