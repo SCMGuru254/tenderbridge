@@ -1,26 +1,15 @@
 
-export type ErrorType = 'NETWORK' | 'SERVER' | 'CLIENT' | 'VALIDATION' | 'AUTH';
-
-export interface AppError {
-  type: ErrorType;
-  message: string;
-  code?: string;
-  details?: any;
+export interface ErrorHandler {
+  handleError: (error: Error, context?: string) => void;
 }
 
-export const createError = (type: ErrorType, message: string, code?: string, details?: any): AppError => ({
-  type,
-  message,
-  code,
-  details
-});
-
-export const handleError = (error: AppError | Error, type?: ErrorType) => {
-  if (error instanceof Error) {
-    console.error(`${type || 'UNKNOWN'} Error:`, error.message);
-    return createError(type || 'CLIENT', error.message);
+class ErrorHandlerImpl implements ErrorHandler {
+  handleError(error: Error, context?: string): void {
+    console.error(`Error ${context ? `in ${context}` : ''}:`, error);
+    
+    // Here you could add additional error reporting logic
+    // such as sending to an error tracking service
   }
-  
-  console.error(`${error.type} Error:`, error.message);
-  return error;
-};
+}
+
+export const errorHandler = new ErrorHandlerImpl();

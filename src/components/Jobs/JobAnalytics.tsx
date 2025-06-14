@@ -1,13 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { jobService, type JobAnalytics } from '@/services/jobService';
 import {
-  ChartBarIcon,
-  UserGroupIcon,
-  DocumentTextIcon,
-  BookmarkIcon,
-  ShareIcon,
-  ClockIcon
-} from '@heroicons/react/24/outline';
+  BarChart3,
+  Users,
+  FileText,
+  Bookmark,
+  Share,
+  Clock
+} from 'lucide-react';
 
 interface JobAnalyticsProps {
   jobId: string;
@@ -17,6 +18,7 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
   const [analytics, setAnalytics] = useState<JobAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const loadAnalytics = React.useCallback(async () => {
     if (!jobId) return;
 
@@ -64,38 +66,38 @@ export const JobAnalytics: React.FC<JobAnalyticsProps> = ({ jobId }) => {
   const stats = [
     {
       name: 'Total Views',
-      value: analytics.totalViews,
-      icon: ChartBarIcon,
+      value: analytics.views,
+      icon: BarChart3,
       color: 'text-blue-500'
     },
     {
       name: 'Unique Viewers',
-      value: analytics.uniqueViewers,
-      icon: UserGroupIcon,
+      value: analytics.uniqueVisitors,
+      icon: Users,
       color: 'text-green-500'
     },
     {
       name: 'Applications',
       value: analytics.applications,
-      icon: DocumentTextIcon,
+      icon: FileText,
       color: 'text-purple-500'
     },
     {
       name: 'Saved',
-      value: analytics.saveCount,
-      icon: BookmarkIcon,
+      value: analytics.saves,
+      icon: Bookmark,
       color: 'text-yellow-500'
     },
     {
       name: 'Shares',
-      value: analytics.shareCount,
-      icon: ShareIcon,
+      value: analytics.shares,
+      icon: Share,
       color: 'text-red-500'
     },
     {
       name: 'Avg. Time Spent',
       value: `${Math.round(analytics.averageTimeSpent / 60)}m`,
-      icon: ClockIcon,
+      icon: Clock,
       color: 'text-gray-500'
     }
   ];

@@ -1,19 +1,37 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { jobService, type JobAlert } from '@/services/jobService';
+import { jobService } from '@/services/jobService';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  BellIcon,
-  PencilIcon,
-  TrashIcon,
-  ClockIcon
-} from '@heroicons/react/24/outline';
+  Bell,
+  Edit,
+  Trash2,
+  Clock
+} from 'lucide-react';
+
+interface JobAlert {
+  id: string;
+  userId: string;
+  searchParams: {
+    category?: string;
+    location?: string;
+    jobType?: string;
+    experienceLevel?: string;
+    isRemote?: boolean;
+  };
+  isActive: boolean;
+  frequency: 'instant' | 'daily' | 'weekly';
+  lastTriggered?: string;
+  createdAt: string;
+}
 
 export const JobAlertsList: React.FC = () => {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState<JobAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const loadAlerts = async () => {
     if (!user) return;
     
@@ -106,7 +124,7 @@ export const JobAlertsList: React.FC = () => {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
-                  <BellIcon className="h-5 w-5 text-blue-500" />
+                  <Bell className="h-5 w-5 text-blue-500" />
                   <h4 className="text-sm font-medium text-gray-900">
                     {alert.searchParams.category || 'Any Category'}
                   </h4>
@@ -138,7 +156,7 @@ export const JobAlertsList: React.FC = () => {
                   )}
                 </div>
                 <div className="mt-2 flex items-center text-xs text-gray-400">
-                  <ClockIcon className="h-4 w-4 mr-1" />
+                  <Clock className="h-4 w-4 mr-1" />
                   <span>
                     {alert.lastTriggered
                       ? `Last triggered ${formatDistanceToNow(
@@ -160,13 +178,13 @@ export const JobAlertsList: React.FC = () => {
                   }
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  <PencilIcon className="h-5 w-5" />
+                  <Edit className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleDeleteAlert(alert.id)}
                   className="text-gray-400 hover:text-red-600"
                 >
-                  <TrashIcon className="h-5 w-5" />
+                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
             </div>

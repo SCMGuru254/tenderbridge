@@ -1,3 +1,4 @@
+
 interface Timer {
   startTime: number;
   name: string;
@@ -51,6 +52,15 @@ class PerformanceMonitor {
     this.recordMetric(name, duration);
     this.metrics.timers.delete(name);
     return duration;
+  }
+
+  // Aliases for backward compatibility
+  startMeasure(name: string): void {
+    this.startTimer(name);
+  }
+
+  endMeasure(name: string): number {
+    return this.endTimer(name);
   }
 
   private recordMetric(name: string, value: number, labels?: Record<string, string>): void {
