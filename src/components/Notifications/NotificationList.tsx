@@ -29,7 +29,7 @@ export const NotificationList: React.FC<NotificationListProps> = ({
     if (user) {
       loadNotifications();
     }
-  }, [user]);
+  }, [user, maxNotifications]);
 
   const loadNotifications = async () => {
     try {

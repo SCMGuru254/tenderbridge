@@ -58,7 +58,7 @@ export class JobService {
     return JobService.instance;
   }
 
-  async getJobs(filters?: any): Promise<Job[]> {
+  async getJobs(): Promise<Job[]> {
     try {
       const { data, error } = await supabase
         .from('jobs')
@@ -92,7 +92,7 @@ export class JobService {
     }
   }
 
-  async searchJobs(query: string, filters?: any): Promise<Job[]> {
+  async searchJobs(query: string): Promise<Job[]> {
     try {
       let queryBuilder = supabase
         .from('jobs')
@@ -152,10 +152,10 @@ export class JobService {
     }
   }
 
-  async shareJob(jobId: string): Promise<void> {
+  async shareJob(): Promise<void> {
     try {
       // Mock implementation for sharing
-      console.log(`Sharing job ${jobId}`);
+      console.log('Sharing job functionality');
     } catch (error) {
       const handledError = handleAsyncError(error as Error, 'CLIENT');
       console.error('Error sharing job:', handledError);
@@ -163,7 +163,7 @@ export class JobService {
     }
   }
 
-  async getJobAnalytics(jobId: string): Promise<any> {
+  async getJobAnalytics(): Promise<any> {
     try {
       // Mock analytics data
       return {

@@ -26,4 +26,10 @@ export const handleAsyncError = (error: unknown, type: ErrorType = 'CLIENT') => 
   return errorObj;
 };
 
+export const errorHandler = {
+  handleError: (error: Error, context?: string) => {
+    console.error(`Error ${context ? `in ${context}` : ''}:`, error);
+  }
+};
+
 export { type ErrorType };
