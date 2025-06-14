@@ -6,6 +6,13 @@ export interface Community {
   memberCount: number;
   isPrivate: boolean;
   createdAt: string;
+  category?: string;
+  bannerUrl?: string;
+  avatarUrl?: string;
+}
+
+export interface CommunityWithMembership extends Community {
+  currentUserRole?: string;
 }
 
 export interface Post {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useCompanyEvents } from '../hooks/useCompany';
-import { useAuth } from '../hooks/useAuth';
-import type { CompanyEvent } from '../types/company';
+import React, { useState } from 'react';
+import { useCompanyEvents } from '@/hooks/useCompany';
+import { useAuth } from '@/hooks/useAuth';
+import type { CompanyEvent } from '@/types/company';
 
 interface CompanyEventsProps {
   companyId: string;
@@ -177,13 +177,13 @@ const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId, canCreate = fa
                   value={formData.location.type}
                   onChange={(e) => setFormData({
                     ...formData,
-                    location: { type: e.target.value as 'online' | 'physical' | 'hybrid', url: '' }
+                    location: { type: e.target.value as 'online' | 'hybrid' | 'physical', url: '' }
                   })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option value="online">Online</option>
-                  <option value="physical">Physical</option>
                   <option value="hybrid">Hybrid</option>
+                  <option value="physical">Physical</option>
                 </select>
               </div>
 

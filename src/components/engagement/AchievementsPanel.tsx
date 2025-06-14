@@ -1,48 +1,76 @@
-import React from 'react';
-import { useEngagement } from '../../hooks/useEngagement';
-import { UserAchievement } from '../../types/engagement';
-import { Card, Progress } from '@/components/ui';
+import { useState, useEffect } from 'react';
+import { useEngagement } from '@/hooks/useEngagement';
+import { useAuth } from '@/hooks/useAuth';
+
+interface UserAchievement {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  progress?: number;
+  target?: number;
+}
 
 export const AchievementsPanel = () => {
-  const { achievements } = useEngagement();
+  const { user } = useAuth();
+  const engagement = useEngagement();
+  const [achievements, setAchievements] = useState<UserAchievement[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      // Mock achievements data
+      setAchievements([
+        {
+          id: '1',
+          name: 'First Application',
+          description: 'Submit your first job application',
+          unlocked: true,
+          progress: 1,
+          target: 1
+        },
+        {
+          id: '2',
+          name: 'Profile Complete',
+          description: 'Complete your profile',
+          unlocked: false,
+          progress: 3,
+          target: 5
+        }
+      ]);
+    }
+  }, [user]);
 
   return (
-    <Card className="w-full max-w-md p-4">
-      <h2 className="text-xl font-semibold mb-4">Achievements</h2>
-      <div className="grid gap-4">
-        {achievements.map((achievement: UserAchievement) => (
-          <div
-            key={achievement.id}
-            className={`p-4 rounded-lg ${
-              achievement.unlocked
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                : 'bg-gray-100'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                {/* Add achievement icon here */}
-                <span className="text-2xl">{achievement.icon}</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">{achievement.title}</h3>
-                <p className="text-sm opacity-90">{achievement.description}</p>
-                {!achievement.unlocked && achievement.progress !== undefined && (
-                  <div className="mt-2">
-                    <Progress
-                      value={(achievement.progress / achievement.target) * 100}
-                      className="h-2"
-                    />
-                    <p className="text-xs mt-1">
-                      {achievement.progress} / {achievement.target}
-                    </p>
-                  </div>
+    <div className="bg-white rounded-lg shadow p-4">
+      <h3 className="text-lg font-semibold mb-4">Achievements</h3>
+      {achievements.length === 0 ? (
+        <p className="text-gray-500">No achievements yet.</p>
+      ) : (
+        <ul className="space-y-4">
+          {achievements.map(achievement => (
+            <li key={achievement.id} className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium">{achievement.name}</h4>
+                <p className="text-xs text-gray-500">{achievement.description}</p>
+                {achievement.progress !== undefined && achievement.target !== undefined && (
+                  <p className="text-xs text-gray-500">
+                    Progress: {achievement.progress} / {achievement.target}
+                  </p>
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
+              {achievement.unlocked ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Unlocked
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  Locked
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 };

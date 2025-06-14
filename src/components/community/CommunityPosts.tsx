@@ -1,341 +1,237 @@
 import React, { useState, useEffect } from 'react';
-import { useCommunityPosts, useCommunityComments } from '../hooks/useCommunity';
-import type { PostWithAuthor, CommentWithAuthor } from '../types/community';
-import { useAuth } from '../hooks/useAuth';
+import { useCommunityPosts } from '@/hooks/useCommunity';
+import type { Post, Reply } from '@/types/community';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CommunityPostsProps {
   communityId: string;
-  isLocked?: boolean;
 }
 
-const CommunityPosts: React.FC<CommunityPostsProps> = ({ communityId, isLocked = false }) => {
+const CommunityPosts: React.FC<CommunityPostsProps> = ({ communityId }) => {
   const { user } = useAuth();
-  const { getPosts, createPost, toggleReaction } = useCommunityPosts();
-  const { getComments, createComment } = useCommunityComments();
-  const [posts, setPosts] = useState<PostWithAuthor[]>([]);
-  const [selectedPost, setSelectedPost] = useState<string | null>(null);
-  const [comments, setComments] = useState<CommentWithAuthor[]>([]);
-  const [newPost, setNewPost] = useState({
-    title: '',
-    content: '',
-    postType: 'discussion' as const,
-    mediaUrls: [] as string[]
-  });
-  const [newComment, setNewComment] = useState('');
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const { posts, loading, createPost } = useCommunityPosts(communityId);
+  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [showAttachmentInput, setShowAttachmentInput] = useState(false);
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [newAttachment, setNewAttachment] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
-    loadPosts();
-  }, [communityId]);
+    console.log('Attachments:', attachments);
+  }, [attachments]);
 
-  useEffect(() => {
-    if (selectedPost) {
-      loadComments(selectedPost);
-    }
-  }, [selectedPost]);
-
-  const loadPosts = async () => {
-    const data = await getPosts(communityId);
-    setPosts(data);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setNewPost({ ...newPost, [e.target.name]: e.target.value });
   };
 
-  const loadComments = async (postId: string) => {
-    const data = await getComments(postId);
-    setComments(data);
-  };
-
-  const handleCreatePost = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    const success = await createPost({
+    const postData = {
       ...newPost,
-      communityId,
-      authorId: user.id,
-      mediaUrls: [],
-      isPinned: false,
-      isLocked: false
-    });
+      author: user.id,
+      tags: tags,
+      attachments: attachments,
+    };
 
-    if (success) {
-      setNewPost({
-        title: '',
-        content: '',
-        postType: 'discussion',
-        mediaUrls: []
-      });
-      await loadPosts();
+    await createPost(postData);
+    setNewPost({ title: '', content: '' });
+    setAttachments([]);
+    setTags([]);
+  };
+
+  const handleAddAttachment = () => {
+    if (newAttachment.trim() !== '') {
+      setAttachments([...attachments, newAttachment]);
+      setNewAttachment('');
+      setShowAttachmentInput(false);
     }
   };
 
-  const handleCreateComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedPost) return;
-
-    const success = await createComment({
-      postId: selectedPost,
-      authorId: user.id,
-      content: newComment,
-      parentCommentId: replyTo
-    });
-
-    if (success) {
-      setNewComment('');
-      setReplyTo(null);
-      await loadComments(selectedPost);
+  const handleAddTag = () => {
+    if (newTag.trim() !== '') {
+      setTags([...tags, newTag]);
+      setNewTag('');
     }
   };
 
-  const handleReaction = async (postId: string) => {
-    if (!user) return;
-    const success = await toggleReaction(postId, user.id, 'like');
-    if (success) await loadPosts();
-  };
-
-  const renderComment = (comment: CommentWithAuthor, depth = 0) => (
-    <div key={comment.id} className={`pl-${depth * 4}`}>
-      <div className="flex space-x-3">
-        {comment.author.avatarUrl ? (
-          <img
-            src={comment.author.avatarUrl}
-            alt={comment.author.name}
-            className="h-8 w-8 rounded-full"
-          />
-        ) : (
-          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-            {comment.author.name.charAt(0)}
-          </div>
-        )}
-        <div className="flex-1">
-          <div className="bg-gray-50 rounded-lg px-4 py-2">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-gray-900">{comment.author.name}</span>
-              <span className="text-sm text-gray-500">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-            <p className="mt-1 text-gray-700">{comment.content}</p>
-          </div>
-          <div className="mt-2 flex items-center space-x-4">
-            <button
-              onClick={() => setReplyTo(comment.id)}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Reply
-            </button>
-            <button className="text-sm text-gray-500 hover:text-gray-700">
-              {comment.likesCount} likes
-            </button>
-          </div>
+  const renderReplies = (replies: Reply[]) => {
+    return replies.map((reply: Reply) => (
+      <div key={reply.id} className="ml-8 border-l-2 border-gray-100 pl-4">
+        <p className="text-sm text-gray-800">{reply.content}</p>
+        <div className="flex items-center text-xs text-gray-500 mt-1">
+          <span>{reply.author}</span>
+          <span className="mx-1">•</span>
+          <span>{reply.createdAt}</span>
+          <span className="mx-1">•</span>
+          <span>{reply.likes} Likes</span>
         </div>
       </div>
-      {comment.replies && (
-        <div className="mt-4 space-y-4">
-          {comment.replies.map(reply => renderComment(reply, depth + 1))}
-        </div>
-      )}
-    </div>
-  );
+    ));
+  };
+
+  const renderAttachments = (attachments: string[]) => {
+    return attachments.map((url: string, index: number) => (
+      <a
+        key={index}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-sm"
+      >
+        Attachment {index + 1}
+      </a>
+    ));
+  };
+
+  const renderTags = (tags: string[]) => {
+    return tags.map((tag: string) => (
+      <span
+        key={tag}
+        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+      >
+        {tag}
+      </span>
+    ));
+  };
+
+  if (loading) return <div>Loading posts...</div>;
 
   return (
-    <div className="space-y-6">
-      {!isLocked && user && (
-        <form onSubmit={handleCreatePost} className="bg-white rounded-lg shadow p-6">
-          <div>
+    <div>
+      <form onSubmit={handleSubmit} className="mb-6">
+        <div className="mb-4">
+          <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">
+            Title
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={newPost.title}
+            onChange={handleInputChange}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter post title"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="content" className="block text-gray-700 text-sm font-bold mb-2">
+            Content
+          </label>
+          <textarea
+            id="content"
+            name="content"
+            value={newPost.content}
+            onChange={handleInputChange}
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter post content"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Attachments:
+          </label>
+          {attachments.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {renderAttachments(attachments)}
+            </div>
+          ) : (
+            <p className="text-gray-500">No attachments yet.</p>
+          )}
+          {!showAttachmentInput && (
+            <button
+              type="button"
+              onClick={() => setShowAttachmentInput(true)}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2"
+            >
+              Add Attachment
+            </button>
+          )}
+          {showAttachmentInput && (
+            <div className="mt-2">
+              <input
+                type="url"
+                placeholder="Enter attachment URL"
+                value={newAttachment}
+                onChange={(e) => setNewAttachment(e.target.value)}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              />
+              <button
+                type="button"
+                onClick={handleAddAttachment}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2"
+              >
+                Save Attachment
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Tags:
+          </label>
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {renderTags(tags)}
+            </div>
+          ) : (
+            <p className="text-gray-500">No tags yet.</p>
+          )}
+          <div className="mt-2">
             <input
               type="text"
-              value={newPost.title}
-              onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-              placeholder="Post title"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
+              placeholder="Enter tag"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
-          </div>
-          <div className="mt-4">
-            <textarea
-              value={newPost.content}
-              onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-              placeholder="What's on your mind?"
-              rows={4}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div className="mt-4 flex justify-between items-center">
-            <select
-              value={newPost.postType}
-              onChange={(e) => setNewPost({ ...newPost, postType: e.target.value as any })}
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="discussion">Discussion</option>
-              <option value="question">Question</option>
-              <option value="resource">Resource</option>
-              <option value="event">Event</option>
-              <option value="job">Job</option>
-            </select>
             <button
-              type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              type="button"
+              onClick={handleAddTag}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2"
             >
-              Post
+              Add Tag
             </button>
           </div>
-        </form>
-      )}
+        </div>
 
-      <div className="space-y-4">
-        {posts.map(post => (
-          <div key={post.id} className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="flex items-center space-x-3">
-                {post.author.avatarUrl ? (
-                  <img
-                    src={post.author.avatarUrl}
-                    alt={post.author.name}
-                    className="h-10 w-10 rounded-full"
-                  />
-                ) : (
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    {post.author.name.charAt(0)}
-                  </div>
-                )}
-                <div>
-                  <div className="font-medium text-gray-900">{post.author.name}</div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-              </div>
+        <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          Post
+        </button>
+      </form>
 
-              <h3 className="mt-4 text-lg font-medium text-gray-900">{post.title}</h3>
-              <p className="mt-2 text-gray-700">{post.content}</p>
-
-              {post.mediaUrls && post.mediaUrls.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  {post.mediaUrls.map((url, index) => (
-                    <img
-                      key={index}
-                      src={url}
-                      alt={`Post media ${index + 1}`}
-                      className="rounded-lg"
-                    />
-                  ))}
-                </div>
-              )}
-
-              {post.tags && post.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {post.tags.map(tag => (
-                    <span
-                      key={tag.id}
-                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      style={{
-                        backgroundColor: tag.color ? `${tag.color}20` : '#E5E7EB',
-                        color: tag.color || '#374151'
-                      }}
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-4 flex items-center space-x-4">
-                <button
-                  onClick={() => handleReaction(post.id)}
-                  className={`flex items-center space-x-1 text-sm ${
-                    post.hasLiked ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill={post.hasLiked ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                    />
-                  </svg>
-                  <span>{post.likesCount}</span>
-                </button>
-                <button
-                  onClick={() => setSelectedPost(selectedPost === post.id ? null : post.id)}
-                  className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                  </svg>
-                  <span>{post.commentsCount}</span>
-                </button>
-              </div>
-
-              {selectedPost === post.id && (
-                <div className="mt-6 space-y-4">
-                  <div className="border-t pt-4">
-                    {comments.map(comment => renderComment(comment))}
-                  </div>
-
-                  {!post.isLocked && user && (
-                    <form onSubmit={handleCreateComment} className="mt-4">
-                      <div className="flex space-x-3">
-                        {user.avatarUrl ? (
-                          <img
-                            src={user.avatarUrl}
-                            alt={user.name}
-                            className="h-8 w-8 rounded-full"
-                          />
-                        ) : (
-                          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                            {user.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <textarea
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder={replyTo ? 'Write a reply...' : 'Write a comment...'}
-                            rows={3}
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            required
-                          />
-                          <div className="mt-2 flex justify-end">
-                            {replyTo && (
-                              <button
-                                type="button"
-                                onClick={() => setReplyTo(null)}
-                                className="mr-2 text-sm text-gray-500 hover:text-gray-700"
-                              >
-                                Cancel Reply
-                              </button>
-                            )}
-                            <button
-                              type="submit"
-                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                              {replyTo ? 'Reply' : 'Comment'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
+      <div>
+        {posts.map((post) => (
+          <div key={post.id} className="bg-white shadow rounded-lg p-4 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">{post.title}</h3>
+            <p className="text-gray-800">{post.content}</p>
+            <div className="flex items-center text-sm text-gray-500 mt-2">
+              <span>{post.author}</span>
+              <span className="mx-1">•</span>
+              <span>{post.createdAt}</span>
+              <span className="mx-1">•</span>
+              <span>{post.likes} Likes</span>
+              <span className="mx-1">•</span>
+              <span>{post.comments} Comments</span>
             </div>
+            {post.replies && renderReplies(post.replies)}
+            {post.attachments && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {renderAttachments(post.attachments)}
+              </div>
+            )}
+            {post.tags && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {renderTags(post.tags)}
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useCompanyTeam } from '../hooks/useCompany';
-import type { CompanyTeamMember } from '../types/company';
+import React from 'react';
+import { useCompanyTeam } from '@/hooks/useCompany';
+import type { CompanyMember } from '@/types/company';
 
 interface CompanyTeamProps {
   companyId: string;
@@ -9,7 +9,7 @@ interface CompanyTeamProps {
 
 const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false }) => {
   const { getTeamMembers, addTeamMember, loading, error } = useCompanyTeam();
-  const [teamMembers, setTeamMembers] = useState<CompanyTeamMember[]>([]);
+  const [teamMembers, setTeamMembers] = useState<CompanyMember[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     userId: '',
@@ -47,13 +47,13 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
     }
   };
 
-  const groupByDepartment = (members: CompanyTeamMember[]) => {
+  const groupByDepartment = (members: CompanyMember[]) => {
     const grouped = members.reduce((acc, member) => {
       const dept = member.department || 'Other';
       if (!acc[dept]) acc[dept] = [];
       acc[dept].push(member);
       return acc;
-    }, {} as Record<string, CompanyTeamMember[]>);
+    }, {} as Record<string, CompanyMember[]>);
 
     return Object.entries(grouped).sort(([a], [b]) => 
       a === 'Other' ? 1 : b === 'Other' ? -1 : a.localeCompare(b)
@@ -164,7 +164,7 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
               {teamMembers
                 .filter(member => member.isFeatured)
                 .map(member => (
-                  <div key={member.id} className="bg-white rounded-lg shadow p-6">
+                  <div key={member.id} className="bg-white rounded-lg shadow p-4">
                     <div className="flex items-center">
                       <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
                         {member.userId.charAt(0).toUpperCase()}

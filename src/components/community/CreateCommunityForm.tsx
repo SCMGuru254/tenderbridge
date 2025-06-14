@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useCommunities } from '../hooks/useCommunity';
-import type { Community } from '../types/community';
+import { useCommunities } from '@/hooks/useCommunity';
+import type { Community } from '@/types/community';
 
 interface CreateCommunityFormProps {
   onSuccess: (community: Community) => void;

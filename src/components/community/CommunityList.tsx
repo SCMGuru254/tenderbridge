@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useCommunities, useCommunityMembership } from '../hooks/useCommunity';
-import type { CommunityWithMembership } from '../types/community';
-import { useAuth } from '../hooks/useAuth';
+import { useCommunities, useCommunityMembership } from '@/hooks/useCommunity';
+import type { CommunityWithMembership } from '@/types/community';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CommunityListProps {
   category?: string;

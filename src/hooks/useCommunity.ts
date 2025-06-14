@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export interface Community {
@@ -7,6 +8,13 @@ export interface Community {
   memberCount: number;
   isPrivate: boolean;
   createdAt: string;
+  category?: string;
+  bannerUrl?: string;
+  avatarUrl?: string;
+}
+
+export interface CommunityWithMembership extends Community {
+  currentUserRole?: string;
 }
 
 export interface Post {
@@ -31,41 +39,55 @@ export interface Reply {
 }
 
 export const useCommunities = () => {
-  const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadCommunities = async () => {
+  const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
     setLoading(true);
     try {
       // Mock implementation
-      setCommunities([
+      const communities: CommunityWithMembership[] = [
         {
           id: '1',
           name: 'Supply Chain Professionals',
           description: 'Connect with other supply chain professionals',
           memberCount: 1250,
           isPrivate: false,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          category: 'professional'
         }
-      ]);
+      ];
+      return communities;
     } catch (err) {
       setError('Failed to load communities');
+      return [];
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadCommunities();
-  }, []);
 
   const createCommunity = async (community: Omit<Community, 'id' | 'memberCount' | 'createdAt'>) => {
     console.log('Creating community:', community);
     // Mock implementation
   };
 
-  return { communities, loading, error, createCommunity, refetch: loadCommunities };
+  return { getCommunities, loading, error, createCommunity };
+};
+
+export const useCommunityMembership = () => {
+  const joinCommunity = async (communityId: string, userId: string): Promise<boolean> => {
+    console.log('Joining community:', communityId, 'user:', userId);
+    // Mock implementation
+    return true;
+  };
+
+  const leaveCommunity = async (communityId: string, userId: string): Promise<boolean> => {
+    console.log('Leaving community:', communityId, 'user:', userId);
+    // Mock implementation
+    return true;
+  };
+
+  return { joinCommunity, leaveCommunity };
 };
 
 export const useCommunityPosts = (communityId: string) => {

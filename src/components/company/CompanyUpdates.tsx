@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useCompanyUpdates } from '../hooks/useCompany';
-import type { CompanyUpdate } from '../types/company';
+import React, { useState } from 'react';
+import { useCompanyUpdates } from '@/hooks/useCompany';
+import type { CompanyUpdate } from '@/types/company';
 
 interface CompanyUpdatesProps {
   companyId: string;
@@ -76,6 +76,20 @@ const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = 
       default:
         return '📝';
     }
+  };
+
+  const renderAttachments = (attachments: string[]) => {
+    return attachments.map((url: string, index: number) => (
+      <a
+        key={index}
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline text-sm"
+      >
+        Attachment {index + 1}
+      </a>
+    ));
   };
 
   if (loading && !updates.length) return <div>Loading...</div>;

@@ -1,38 +1,65 @@
-import React from 'react';
-import { useEngagement } from '../../hooks/useEngagement';
-import { UserActivity } from '../../types/engagement';
-import { Card, ScrollArea } from '@/components/ui';
+import { useState, useEffect } from 'react';
+import { useEngagement } from '@/hooks/useEngagement';
+import { useAuth } from '@/hooks/useAuth';
+
+interface UserActivity {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+  metadata?: any;
+}
 
 export const ActivityFeed = () => {
-  const { activities } = useEngagement();
+  const { user } = useAuth();
+  const engagement = useEngagement();
+  const [activities, setActivities] = useState<UserActivity[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      // Mock activities data
+      setActivities([
+        {
+          id: '1',
+          type: 'job_application',
+          description: 'Applied to Software Engineer position',
+          timestamp: new Date().toISOString()
+        }
+      ]);
+    }
+  }, [user]);
 
   return (
-    <Card className="w-full max-w-2xl p-4">
-      <h2 className="text-xl font-semibold mb-4">Activity Feed</h2>
-      <ScrollArea className="h-[600px]">
-        {activities.map((activity: UserActivity) => (
-          <div key={activity.id} className="mb-4 p-3 border-b last:border-b-0">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white">
-                {activity.type.charAt(0).toUpperCase()}
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold">Activity Feed</h3>
+      </div>
+      <ul className="divide-y divide-gray-200">
+        {activities.map(activity => (
+          <li key={activity.id} className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                {/* You can replace this with an icon based on activity.type */}
+                <span className="text-gray-400">{activity.type}</span>
               </div>
-              <div className="flex-1">
-                <p className="font-medium">{activity.description}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-gray-500">
-                    {new Date(activity.timestamp).toLocaleDateString()}
-                  </span>
-                  {activity.metadata && (
-                    <span className="text-sm text-gray-600">
-                      • {activity.metadata}
-                    </span>
-                  )}
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {activity.description}
+                </p>
+                <div className="text-xs text-gray-500">
+                  {activity.timestamp}
                 </div>
+                {activity.metadata && (
+                  <div>
+                    {/* Render activity metadata if needed */}
+                    ActivityMetadata
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          </li>
         ))}
-      </ScrollArea>
-    </Card>
+      </ul>
+    </div>
   );
 };

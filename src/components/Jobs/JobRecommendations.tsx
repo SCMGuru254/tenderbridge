@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { jobService, type Job } from '@/services/jobService';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,8 +38,9 @@ export const JobRecommendations: React.FC<JobRecommendationsProps> = ({
   };
 
   const handleSaveJob = async (jobId: string) => {
+    if (!user) return;
     try {
-      await jobService.saveJob(jobId);
+      await jobService.saveJob(jobId, user.id);
       // Refresh recommendations to update saved status
       loadRecommendations();
     } catch (err) {

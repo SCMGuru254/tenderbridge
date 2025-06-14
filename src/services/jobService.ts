@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { JobAnalytics } from '@/types/jobAnalytics';
+import type { JobAnalytics, JobAlert, JobApplication } from '@/types/jobAnalytics';
 
 export interface Job {
   id: string;
@@ -86,7 +86,52 @@ class JobService {
     console.log('Sharing job:', jobId);
     // Mock implementation for sharing
   }
+
+  async getJobAlerts(userId: string): Promise<JobAlert[]> {
+    console.log('Getting job alerts for user:', userId);
+    // Mock implementation
+    return [
+      {
+        id: '1',
+        userId,
+        searchParams: {
+          category: 'Supply Chain',
+          location: 'Nairobi',
+          jobType: 'full-time'
+        },
+        isActive: true,
+        frequency: 'daily',
+        createdAt: new Date().toISOString()
+      }
+    ];
+  }
+
+  async updateJobAlert(alertId: string, updates: Partial<JobAlert>): Promise<void> {
+    console.log('Updating job alert:', alertId, updates);
+    // Mock implementation
+  }
+
+  async getJobApplications(userId: string): Promise<JobApplication[]> {
+    console.log('Getting job applications for user:', userId);
+    // Mock implementation
+    return [
+      {
+        id: '1',
+        jobId: 'job-1',
+        userId,
+        status: 'applied',
+        appliedAt: new Date().toISOString(),
+        notes: 'Applied via website'
+      }
+    ];
+  }
+
+  async updateJobApplication(applicationId: string, updates: Partial<JobApplication>): Promise<void> {
+    console.log('Updating job application:', applicationId, updates);
+    // Mock implementation
+  }
 }
 
 export const jobService = new JobService();
 export { JobService };
+export type { JobAnalytics, JobAlert, JobApplication };
