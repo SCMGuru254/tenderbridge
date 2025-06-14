@@ -1,5 +1,5 @@
 
-import React from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
@@ -43,13 +43,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  initializeApp();
-}
-
 function initializeApp() {
   console.log("[DEBUG] main.tsx - Initializing app");
   
@@ -61,7 +54,7 @@ function initializeApp() {
   const root = createRoot(rootElement);
 
   root.render(
-    <React.StrictMode>
+    <StrictMode>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <ThemeProvider
@@ -73,6 +66,13 @@ function initializeApp() {
           </ThemeProvider>
         </BrowserRouter>
       </QueryClientProvider>
-    </React.StrictMode>
+    </StrictMode>
   );
+}
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
 }
