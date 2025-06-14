@@ -1,7 +1,6 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
-// Mock query client for testing
 export const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -11,20 +10,14 @@ export const createTestQueryClient = () =>
         gcTime: 0,
       },
     },
-    logger: {
-      log: console.log,
-      warn: console.warn,
-      error: () => {}, // Suppress error logs in tests
-    },
   });
 
-// Mock data for testing
 export const mockJob = {
   id: '1',
   title: 'Supply Chain Manager',
   company: 'Test Company',
   location: 'Nairobi, Kenya',
-  job_type: '4Full-time' as const,
+  job_type: 'Full-time' as const,
   created_at: '2024-01-01T00:00:00Z',
   description: 'Test job description',
   posted_by: 'test-user-id',
@@ -42,22 +35,19 @@ export const mockScrapedJob = {
   updated_at: '2024-01-01T00:00:00Z'
 };
 
-// Test utilities
 export const waitFor = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const mockConsoleError = () => {
   const originalError = console.error;
-  console.error = jest.fn();
+  console.error = () => {};
   return () => {
     console.error = originalError;
   };
 };
 
-// Mock render function for components that need query client
 export const renderWithQueryClient = (ui: React.ReactElement) => {
   const testQueryClient = createTestQueryClient();
   
-  // Mock implementation without testing-library dependencies
   return {
     queryClient: testQueryClient,
     component: ui

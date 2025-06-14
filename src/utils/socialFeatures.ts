@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SocialShare {
@@ -549,6 +548,38 @@ class SocialFeaturesService {
       console.error('Error deleting user account:', error);
       throw error;
     }
+  }
+
+  async shareContent(content: { title: string; description: string; url: string }, platforms: string[]) {
+    const results = [];
+    
+    for (const platform of platforms) {
+      try {
+        let shareUrl = '';
+        
+        switch (platform) {
+          case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(content.title)}&url=${encodeURIComponent(content.url)}`;
+            break;
+          case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(content.url)}`;
+            break;
+          case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(content.url)}`;
+            break;
+          default:
+            console.warn(`Unknown platform: ${platform}`);
+            continue;
+        }
+        
+        results.push({ platform, success: true, url: shareUrl });
+      } catch (error) {
+        console.error(`Error sharing to ${platform}:`, error);
+        results.push({ platform, success: false, error: error });
+      }
+    }
+    
+    return results;
   }
 }
 

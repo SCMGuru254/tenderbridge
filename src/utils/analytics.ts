@@ -1,5 +1,4 @@
 
-// Analytics utility for tracking user interactions and application performance
 export interface AnalyticsEvent {
   event: string;
   data?: any;
@@ -37,8 +36,7 @@ class AnalyticsService {
     this.events.push(analyticsEvent);
     console.log('Analytics Event:', analyticsEvent);
     
-    // In production, send to analytics service
-    this.sendToAnalyticsService(analyticsEvent);
+    this.sendToAnalyticsService();
   }
 
   trackError(error: Error, context?: string, userId?: string) {
@@ -52,8 +50,7 @@ class AnalyticsService {
     this.errors.push(errorEvent);
     console.error('Analytics Error:', errorEvent);
     
-    // In production, send to error tracking service
-    this.sendToErrorTracking(errorEvent);
+    this.sendToErrorTracking();
   }
 
   trackUserAction(action: string, data?: any, userId?: string) {
@@ -67,22 +64,19 @@ class AnalyticsService {
     this.userActions.push(userAction);
     console.log('User Action:', userAction);
     
-    // In production, send to analytics service
-    this.sendUserActionToAnalytics(userAction);
+    this.sendUserActionToAnalytics();
   }
 
-  private sendToAnalyticsService(analyticsEvent: AnalyticsEvent) {
-    // Mock implementation - replace with actual analytics service
-    // e.g., Google Analytics, Mixpanel, etc.
+  private sendToAnalyticsService() {
+    // Mock implementation
   }
 
-  private sendToErrorTracking(errorEvent: ErrorEvent) {
-    // Mock implementation - replace with actual error tracking service
-    // e.g., Sentry, Bugsnag, etc.
+  private sendToErrorTracking() {
+    // Mock implementation
   }
 
-  private sendUserActionToAnalytics(userAction: UserAction) {
-    // Mock implementation - replace with actual analytics service
+  private sendUserActionToAnalytics() {
+    // Mock implementation
   }
 
   getEvents(): AnalyticsEvent[] {

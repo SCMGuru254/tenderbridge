@@ -14,7 +14,6 @@ export class AIAgentService {
   }
 
   private initializeAgents() {
-    // Initialize different agent types
     const roles: AgentRole[] = ['career_advisor', 'job_matcher', 'news_analyzer', 'social_media'];
     
     roles.forEach(role => {
@@ -34,7 +33,6 @@ export class AIAgentService {
 
   async activateAgent(agentRole: AgentRole): Promise<void> {
     try {
-      // Deactivate current agent
       if (this.activeAgent) {
         const currentAgent = this.agents.get(this.activeAgent);
         if (currentAgent) {
@@ -42,7 +40,6 @@ export class AIAgentService {
         }
       }
 
-      // Activate new agent
       const newAgent = this.agents.get(agentRole);
       if (newAgent) {
         newAgent.isActive = true;
@@ -50,8 +47,8 @@ export class AIAgentService {
         analytics.trackUserAction('agent-activated', agentRole);
       }
     } catch (error) {
-      const handledError = errorHandler.handleError(error);
-      throw handledError;
+      errorHandler.handleError(error);
+      throw error;
     }
   }
 
@@ -68,12 +65,10 @@ export class AIAgentService {
         throw new Error('Agent not found');
       }
 
-      // Build context for the AI
       const contextString = context ? JSON.stringify(context) : '';
       
-      // Process message with AI service based on agent role
       let content: string;
-      let confidence = 0.8;
+      const confidence = 0.8;
       
       switch (this.activeAgent) {
         case 'career_advisor':
@@ -104,7 +99,6 @@ export class AIAgentService {
           content = await aiService.generateChatResponse(message, contextString);
       }
 
-      // Update agent history
       const userMessage: AgentMessage = {
         id: Date.now().toString(),
         content: message,
@@ -126,10 +120,9 @@ export class AIAgentService {
       
       return response;
     } catch (error) {
-      const handledError = errorHandler.handleError(error);
+      errorHandler.handleError(error);
       analytics.trackError(error as Error);
       
-      // Return fallback response
       return {
         id: Date.now().toString(),
         content: 'I apologize, but I\'m experiencing technical difficulties. Please try again later.',
