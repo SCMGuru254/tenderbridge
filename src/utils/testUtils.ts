@@ -3,7 +3,6 @@ import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +17,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
       </BrowserRouter>
     </QueryClientProvider>
   );
@@ -83,26 +82,6 @@ export const waitForLoadingToFinish = async () => {
   if (loadingElement) {
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
-};
-
-export const mockIntersectionObserver = () => {
-  const mockIntersectionObserver = jest.fn();
-  mockIntersectionObserver.mockReturnValue({
-    observe: () => null,
-    unobserve: () => null,
-    disconnect: () => null
-  });
-  window.IntersectionObserver = mockIntersectionObserver;
-};
-
-export const mockResizeObserver = () => {
-  const mockResizeObserver = jest.fn();
-  mockResizeObserver.mockReturnValue({
-    observe: () => null,
-    unobserve: () => null,
-    disconnect: () => null
-  });
-  window.ResizeObserver = mockResizeObserver;
 };
 
 // Export everything
