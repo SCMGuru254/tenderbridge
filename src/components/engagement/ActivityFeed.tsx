@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from 'react';
-import { useEngagement } from '@/hooks/useEngagement';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface UserActivity {

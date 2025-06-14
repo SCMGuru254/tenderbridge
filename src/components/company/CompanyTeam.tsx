@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useCompanyTeam } from '@/hooks/useCompany';
 import type { CompanyMember } from '@/types/company';
 
@@ -8,8 +9,7 @@ interface CompanyTeamProps {
 }
 
 const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false }) => {
-  const { getTeamMembers, addTeamMember, loading, error } = useCompanyTeam();
-  const [teamMembers, setTeamMembers] = useState<CompanyMember[]>([]);
+  const { members, loading, addTeamMember, error } = useCompanyTeam(companyId);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     userId: '',
@@ -19,31 +19,26 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
     testimonial: ''
   });
 
-  useEffect(() => {
-    loadTeamMembers();
-  }, [companyId]);
-
-  const loadTeamMembers = async () => {
-    const data = await getTeamMembers(companyId);
-    setTeamMembers(data);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await addTeamMember({
-      ...formData,
-      companyId
-    });
-    if (success) {
-      setFormData({
-        userId: '',
-        role: '',
-        department: '',
-        isFeatured: false,
-        testimonial: ''
+    try {
+      const success = await addTeamMember({
+        ...formData,
+        companyId,
+        joinedAt: new Date().toISOString()
       });
-      setShowForm(false);
-      loadTeamMembers();
+      if (success) {
+        setFormData({
+          userId: '',
+          role: '',
+          department: '',
+          isFeatured: false,
+          testimonial: ''
+        });
+        setShowForm(false);
+      }
+    } catch (err) {
+      console.error('Error adding team member:', err);
     }
   };
 
@@ -60,7 +55,7 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
     );
   };
 
-  if (loading && !teamMembers.length) return <div>Loading...</div>;
+  if (loading && !members.length) return <div>Loading...</div>;
   if (error) return <div>Error loading team members</div>;
 
   return (
@@ -157,13 +152,13 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
 
       <div>
         {/* Featured Team Members */}
-        {teamMembers.some(m => m.isFeatured) && (
+        {members.some((m: CompanyMember) => m.isFeatured) && (
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Leadership Team</h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {teamMembers
-                .filter(member => member.isFeatured)
-                .map(member => (
+              {members
+                .filter((member: CompanyMember) => member.isFeatured)
+                .map((member: CompanyMember) => (
                   <div key={member.id} className="bg-white rounded-lg shadow p-4">
                     <div className="flex items-center">
                       <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
@@ -188,11 +183,11 @@ const CompanyTeam: React.FC<CompanyTeamProps> = ({ companyId, canEdit = false })
         )}
 
         {/* Team Members by Department */}
-        {groupByDepartment(teamMembers.filter(m => !m.isFeatured)).map(([department, members]) => (
+        {groupByDepartment(members.filter((m: CompanyMember) => !m.isFeatured)).map(([department, departmentMembers]) => (
           <div key={department} className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">{department}</h3>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {members.map(member => (
+              {departmentMembers.map((member: CompanyMember) => (
                 <div
                   key={member.id}
                   className="bg-white rounded-lg shadow-sm p-4 flex items-center"

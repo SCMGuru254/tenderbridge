@@ -1,16 +1,22 @@
-
 import { useState, useEffect } from 'react';
 import type { CompanyEvent, CompanyMember, CompanyUpdate } from '@/types/company';
 
-export const useCompanyEvents = () => {
+export const useCompanyEvents = (companyId: string) => {
+  const [events, setEvents] = useState<CompanyEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getEvents = async (companyId: string): Promise<CompanyEvent[]> => {
+  useEffect(() => {
+    if (companyId) {
+      loadEvents();
+    }
+  }, [companyId]);
+
+  const loadEvents = async () => {
     setLoading(true);
     try {
       // Mock implementation
-      return [
+      setEvents([
         {
           id: '1',
           title: 'Quarterly All-Hands Meeting',
@@ -27,10 +33,9 @@ export const useCompanyEvents = () => {
           companyId,
           createdAt: new Date().toISOString()
         }
-      ];
+      ]);
     } catch (err) {
       setError('Failed to load events');
-      return [];
     } finally {
       setLoading(false);
     }
@@ -48,7 +53,7 @@ export const useCompanyEvents = () => {
     return true;
   };
 
-  return { getEvents, createEvent, registerForEvent, loading, error };
+  return { events, loading, error, createEvent, registerForEvent };
 };
 
 export const useCompanyProfile = () => {
@@ -87,15 +92,22 @@ export const useCompanyProfile = () => {
   return { getProfile, updateProfile, loading, error };
 };
 
-export const useCompanyTeam = () => {
+export const useCompanyTeam = (companyId: string) => {
+  const [members, setMembers] = useState<CompanyMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getTeamMembers = async (companyId: string): Promise<CompanyMember[]> => {
+  useEffect(() => {
+    if (companyId) {
+      loadTeamMembers();
+    }
+  }, [companyId]);
+
+  const loadTeamMembers = async () => {
     setLoading(true);
     try {
       // Mock implementation
-      return [
+      setMembers([
         {
           id: '1',
           userId: 'user1',
@@ -106,10 +118,9 @@ export const useCompanyTeam = () => {
           companyId,
           joinedAt: '2020-01-01'
         }
-      ];
+      ]);
     } catch (err) {
       setError('Failed to load team members');
-      return [];
     } finally {
       setLoading(false);
     }
@@ -121,18 +132,25 @@ export const useCompanyTeam = () => {
     return true;
   };
 
-  return { getTeamMembers, addTeamMember, loading, error };
+  return { members, loading, error, addTeamMember };
 };
 
-export const useCompanyUpdates = () => {
+export const useCompanyUpdates = (companyId: string) => {
+  const [updates, setUpdates] = useState<CompanyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getUpdates = async (companyId: string): Promise<CompanyUpdate[]> => {
+  useEffect(() => {
+    if (companyId) {
+      loadUpdates();
+    }
+  }, [companyId]);
+
+  const loadUpdates = async () => {
     setLoading(true);
     try {
       // Mock implementation
-      return [
+      setUpdates([
         {
           id: '1',
           title: 'Company Expansion Update',
@@ -144,10 +162,9 @@ export const useCompanyUpdates = () => {
           companyId,
           createdAt: new Date().toISOString()
         }
-      ];
+      ]);
     } catch (err) {
       setError('Failed to load updates');
-      return [];
     } finally {
       setLoading(false);
     }
@@ -159,5 +176,5 @@ export const useCompanyUpdates = () => {
     return true;
   };
 
-  return { getUpdates, createUpdate, loading, error };
+  return { updates, loading, error, createUpdate };
 };

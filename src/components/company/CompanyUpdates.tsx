@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useCompanyUpdates } from '@/hooks/useCompany';
 import type { CompanyUpdate } from '@/types/company';
 
@@ -8,8 +9,7 @@ interface CompanyUpdatesProps {
 }
 
 const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = false }) => {
-  const { getUpdates, createUpdate, loading, error } = useCompanyUpdates();
-  const [updates, setUpdates] = useState<CompanyUpdate[]>([]);
+  const { updates, loading, createUpdate, error } = useCompanyUpdates(companyId);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -19,31 +19,28 @@ const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = 
     isFeatured: false
   });
 
-  useEffect(() => {
-    loadUpdates();
-  }, [companyId]);
-
-  const loadUpdates = async () => {
-    const data = await getUpdates(companyId);
-    setUpdates(data);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await createUpdate({
-      ...formData,
-      companyId
-    });
-    if (success) {
-      setFormData({
-        title: '',
-        content: '',
-        updateType: 'news',
-        mediaUrls: [],
-        isFeatured: false
+    try {
+      const success = await createUpdate({
+        ...formData,
+        companyId,
+        likesCount: 0,
+        commentsCount: 0,
+        createdAt: new Date().toISOString()
       });
-      setShowForm(false);
-      loadUpdates();
+      if (success) {
+        setFormData({
+          title: '',
+          content: '',
+          updateType: 'news',
+          mediaUrls: [],
+          isFeatured: false
+        });
+        setShowForm(false);
+      }
+    } catch (err) {
+      console.error('Error creating update:', err);
     }
   };
 
@@ -76,20 +73,6 @@ const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = 
       default:
         return '📝';
     }
-  };
-
-  const renderAttachments = (attachments: string[]) => {
-    return attachments.map((url: string, index: number) => (
-      <a
-        key={index}
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 hover:underline text-sm"
-      >
-        Attachment {index + 1}
-      </a>
-    ));
   };
 
   if (loading && !updates.length) return <div>Loading...</div>;
@@ -219,7 +202,7 @@ const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = 
 
                 {update.mediaUrls && update.mediaUrls.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 gap-4">
-                    {update.mediaUrls.map((url, index) => (
+                    {update.mediaUrls.map((url: string, index: number) => (
                       <img
                         key={index}
                         src={url}
@@ -232,31 +215,9 @@ const CompanyUpdates: React.FC<CompanyUpdatesProps> = ({ companyId, canCreate = 
 
                 <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
                   <div className="flex items-center">
-                    <svg
-                      className="h-5 w-5 text-gray-400 mr-1"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
-                    </svg>
                     <span>{update.likesCount}</span>
                   </div>
                   <div className="flex items-center">
-                    <svg
-                      className="h-5 w-5 text-gray-400 mr-1"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    </svg>
                     <span>{update.commentsCount}</span>
                   </div>
                   <span>

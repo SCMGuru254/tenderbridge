@@ -1,10 +1,9 @@
 
-import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AgentDashboard from "@/components/ai-agents/AgentDashboard";
-import AgentJobMatcher from "@/components/ai-agents/AgentJobMatcher";
-import AgentCareerAdvisor from "@/components/ai-agents/AgentCareerAdvisor";
-import AgentNewsAnalyzer from "@/components/ai-agents/AgentNewsAnalyzer";
+import { AgentJobMatcher } from "@/components/ai-agents/AgentJobMatcher";
+import { AgentCareerAdvisor } from "@/components/ai-agents/AgentCareerAdvisor";
+import { AgentNewsAnalyzer } from "@/components/ai-agents/AgentNewsAnalyzer";
 import { Bot, Briefcase, TrendingUp, Users } from "lucide-react";
 
 export default function AIAgents() {

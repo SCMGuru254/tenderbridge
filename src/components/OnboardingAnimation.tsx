@@ -1,78 +1,50 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
-
-interface OnboardingStep {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-}
 
 interface OnboardingAnimationProps {
-  steps: OnboardingStep[];
-  currentStep: number;
-  onNext: () => void;
-  onPrevious: () => void;
-  onComplete: () => void;
+  steps?: string[];
+  currentStep?: number;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  onComplete?: () => void;
 }
 
 const OnboardingAnimation: React.FC<OnboardingAnimationProps> = ({
-  steps,
-  currentStep,
+  steps = [],
+  currentStep = 0,
   onNext,
   onPrevious,
   onComplete
 }) => {
-  const isLastStep = currentStep === steps.length - 1;
-  const isFirstStep = currentStep === 0;
-
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <motion.div
-        key={currentStep}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -50 }}
-        transition={{ duration: 0.3 }}
-        className="text-center"
-      >
-        <div className="mb-4 flex justify-center">
-          {steps[currentStep]?.icon}
-        </div>
-        <h2 className="text-xl font-bold mb-2">
-          {steps[currentStep]?.title}
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {steps[currentStep]?.description}
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 flex items-center justify-center relative overflow-hidden">
+      <div className="text-center text-white z-10">
+        <h1 className="text-6xl font-bold mb-6 animate-fade-in">
+          Welcome to SupplyChain_KE
+        </h1>
+        <p className="text-xl mb-8 opacity-90 animate-fade-in-delay">
+          Your gateway to supply chain opportunities in Kenya
         </p>
-      </motion.div>
-
-      <div className="flex justify-between items-center">
-        <button
-          onClick={onPrevious}
-          disabled={isFirstStep}
-          className="px-4 py-2 text-gray-600 disabled:opacity-50"
-        >
-          Previous
-        </button>
         
-        <div className="flex space-x-2">
-          {steps.map((_, index) => (
+        {/* Animated Icons */}
+        <div className="flex justify-center space-x-8 mb-8">
+          {['🚛', '📦', '🏭', '🌍'].map((icon, index) => (
             <div
               key={index}
-              className={`w-2 h-2 rounded-full ${
-                index === currentStep ? 'bg-blue-500' : 'bg-gray-300'
-              }`}
-            />
+              className="text-4xl animate-bounce"
+              style={{ animationDelay: `${index * 0.2}s` }}
+            >
+              {icon}
+            </div>
           ))}
         </div>
-
-        <button
-          onClick={isLastStep ? onComplete : onNext}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          {isLastStep ? 'Complete' : 'Next'}
-        </button>
+      </div>
+      
+      {/* Background Animation */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
     </div>
   );

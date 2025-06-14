@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CompanyProfile from '../components/company/CompanyProfile';
@@ -12,18 +13,22 @@ const CompanySocial: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'updates' | 'events' | 'team'>('profile');
 
   // In a real app, you would check if the user has admin rights for this company
-  const isCompanyAdmin = user && user.id === companyId; // This is a simplified check
+  const isCompanyAdmin = user && companyId && user.id === companyId; // This is a simplified check
+
+  if (!companyId) {
+    return <div>Company not found</div>;
+  }
 
   const renderTab = () => {
     switch (activeTab) {
       case 'profile':
-        return <CompanyProfile companyId={companyId} isEditable={isCompanyAdmin} />;
+        return <CompanyProfile companyId={companyId} isEditable={Boolean(isCompanyAdmin)} />;
       case 'updates':
-        return <CompanyUpdates companyId={companyId} canCreate={isCompanyAdmin} />;
+        return <CompanyUpdates companyId={companyId} canCreate={Boolean(isCompanyAdmin)} />;
       case 'events':
-        return <CompanyEvents companyId={companyId} canCreate={isCompanyAdmin} />;
+        return <CompanyEvents companyId={companyId} canCreate={Boolean(isCompanyAdmin)} />;
       case 'team':
-        return <CompanyTeam companyId={companyId} canEdit={isCompanyAdmin} />;
+        return <CompanyTeam companyId={companyId} canEdit={Boolean(isCompanyAdmin)} />;
       default:
         return null;
     }

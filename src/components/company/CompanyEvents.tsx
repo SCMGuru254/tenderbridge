@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useCompanyEvents } from '@/hooks/useCompany';
 import { useAuth } from '@/hooks/useAuth';
 import type { CompanyEvent } from '@/types/company';
@@ -10,59 +11,51 @@ interface CompanyEventsProps {
 
 const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId, canCreate = false }) => {
   const { user } = useAuth();
-  const { getEvents, createEvent, registerForEvent, loading, error } = useCompanyEvents();
-  const [events, setEvents] = useState<CompanyEvent[]>([]);
+  const { events, loading, createEvent, registerForEvent, error } = useCompanyEvents(companyId);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    eventType: 'webinar' as CompanyEvent['eventType'],
+    eventType: 'webinar' as const,
     startTime: '',
     endTime: '',
     location: {
-      type: 'online' as const,
-      url: ''
+      type: 'online' as 'online' | 'hybrid' | 'physical',
+      url: '',
+      address: ''
     },
     maxAttendees: undefined as number | undefined
   });
 
-  useEffect(() => {
-    loadEvents();
-  }, [companyId]);
-
-  const loadEvents = async () => {
-    const data = await getEvents(companyId);
-    setEvents(data);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await createEvent({
-      ...formData,
-      companyId
-    });
-    if (success) {
-      setFormData({
-        title: '',
-        description: '',
-        eventType: 'webinar',
-        startTime: '',
-        endTime: '',
-        location: {
-          type: 'online',
-          url: ''
-        },
-        maxAttendees: undefined
+    try {
+      const success = await createEvent({
+        ...formData,
+        companyId,
+        attendeesCount: 0,
+        createdAt: new Date().toISOString()
       });
-      setShowForm(false);
-      loadEvents();
+      if (success) {
+        setFormData({
+          title: '',
+          description: '',
+          eventType: 'webinar',
+          startTime: '',
+          endTime: '',
+          location: { type: 'online', url: '', address: '' },
+          maxAttendees: undefined
+        });
+        setShowForm(false);
+      }
+    } catch (err) {
+      console.error('Error creating event:', err);
     }
   };
 
   const handleRegister = async (eventId: string) => {
     if (!user) return;
     await registerForEvent(eventId, user.id);
-    loadEvents();
   };
 
   const isEventFull = (event: CompanyEvent) => {
@@ -177,7 +170,7 @@ const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId, canCreate = fa
                   value={formData.location.type}
                   onChange={(e) => setFormData({
                     ...formData,
-                    location: { type: e.target.value as 'online' | 'hybrid' | 'physical', url: '' }
+                    location: { ...formData.location, type: e.target.value as 'online' | 'hybrid' | 'physical' }
                   })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
@@ -250,33 +243,10 @@ const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId, canCreate = fa
 
               <div className="mt-4 space-y-2">
                 <div className="flex items-center text-sm text-gray-500">
-                  <svg
-                    className="h-5 w-5 text-gray-400 mr-2"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
                   <span>{formatDateTime(event.startTime)}</span>
                 </div>
 
                 <div className="flex items-center text-sm text-gray-500">
-                  <svg
-                    className="h-5 w-5 text-gray-400 mr-2"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  </svg>
                   {event.location.type === 'online' ? (
                     <span>Online Event</span>
                   ) : (
@@ -286,17 +256,6 @@ const CompanyEvents: React.FC<CompanyEventsProps> = ({ companyId, canCreate = fa
 
                 {event.maxAttendees && (
                   <div className="flex items-center text-sm text-gray-500">
-                    <svg
-                      className="h-5 w-5 text-gray-400 mr-2"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
                     <span>
                       {event.attendeesCount} / {event.maxAttendees} attendees
                     </span>

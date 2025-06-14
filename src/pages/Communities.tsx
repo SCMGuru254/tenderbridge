@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CommunityList from '../components/community/CommunityList';
-import CreateCommunityForm from '../components/community/CreateCommunityForm';
+import { CreateCommunityForm } from '../components/community/CreateCommunityForm';
 import type { Community } from '../types/community';
 
 const Communities: React.FC = () => {

@@ -7,7 +7,13 @@ import { ArrowRight, Truck, FileText, Users, Briefcase } from "lucide-react";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <OnboardingAnimation />
+      <OnboardingAnimation 
+        steps={['Welcome', 'Features', 'Get Started']}
+        currentStep={0}
+        onNext={() => {}}
+        onPrevious={() => {}}
+        onComplete={() => {}}
+      />
       
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
