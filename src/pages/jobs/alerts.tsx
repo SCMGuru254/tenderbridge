@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,10 +41,7 @@ const JobAlertsPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <JobAlertForm 
-              onSuccess={handleSuccess}
-              onCancel={handleCancel}
-            />
+            <JobAlertForm />
           </CardContent>
         </Card>
       )}
