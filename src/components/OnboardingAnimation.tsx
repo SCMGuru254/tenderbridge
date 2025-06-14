@@ -1,4 +1,3 @@
-
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -6,8 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Briefcase, 
   Users, 
-  TrendingUp, 
-  MapPin, 
   ArrowRight, 
   ArrowLeft,
   CheckCircle,
@@ -26,7 +23,6 @@ interface OnboardingStep {
 }
 
 interface OnboardingAnimationProps {
-  steps: string[];
   currentStep: number;
   onNext: () => void;
   onPrevious: () => void;
@@ -34,7 +30,6 @@ interface OnboardingAnimationProps {
 }
 
 export const OnboardingAnimation = ({ 
-  steps, 
   currentStep, 
   onNext, 
   onPrevious, 

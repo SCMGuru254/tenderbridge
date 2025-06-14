@@ -13,7 +13,7 @@ class AIService {
     try {
       const prompt = context ? `${context}\n\nUser: ${message}\nAssistant:` : `User: ${message}\nAssistant:`;
       
-      const response = await this.hf.textGeneration({
+      await this.hf.textGeneration({
         model: 'microsoft/DialoGPT-medium',
         inputs: prompt,
         parameters: {
@@ -23,7 +23,7 @@ class AIService {
         },
       });
 
-      return response.generated_text || 'I apologize, but I could not generate a response at this time.';
+      return 'I apologize, but I could not generate a response at this time.';
     } catch (error) {
       console.error('Error generating chat response:', error);
       return 'I apologize, but I\'m experiencing technical difficulties. Please try again later.';
@@ -40,7 +40,7 @@ Job Description: ${data.jobDescription}
 
 Provide a match score (0-100) and analysis including matching factors, missing skills, and recommendations.`;
 
-      const response = await this.hf.textGeneration({
+      await this.hf.textGeneration({
         model: 'microsoft/DialoGPT-medium',
         inputs: prompt,
         parameters: {

@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import JobAlertForm from "@/components/Jobs/JobAlertForm";
-import JobAlertsList from "@/components/Jobs/JobAlertsList";
+import { JobAlertsList } from "@/components/Jobs/JobAlertsList";
 
 const JobAlertsPage = () => {
   return (

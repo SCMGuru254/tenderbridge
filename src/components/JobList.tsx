@@ -1,6 +1,7 @@
+
 import { Loader2 } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
-import { SwipeableJobCard } from "@/components/SwipeableJobCard";
+import SwipeableJobCard from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline } from "@/utils/jobUtils";
