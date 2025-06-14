@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUser } from "@/hooks/useUser";
@@ -27,6 +27,9 @@ export const AppDebugger = () => {
         NODE_ENV: process.env.NODE_ENV,
         location: window.location.href,
         userAgent: navigator.userAgent.substring(0, 50)
+      },
+      react: {
+        version: typeof React !== 'undefined' ? React.version : 'React not accessible'
       }
     };
     
@@ -56,6 +59,9 @@ export const AppDebugger = () => {
             <strong>Errors:</strong> {JSON.stringify(debugInfo.jobs.errors)}
           </div>
         )}
+        <div>
+          <strong>React:</strong> {debugInfo.react?.version}
+        </div>
         <div>
           <strong>Location:</strong> {debugInfo.environment?.location}
         </div>
