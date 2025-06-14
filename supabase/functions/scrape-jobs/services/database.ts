@@ -40,10 +40,7 @@ export async function insertJob(supabaseUrl: string, supabaseKey: string, job: J
         description: cleanJob.description || '',
         job_url: cleanJob.job_url,
         application_url: cleanJob.application_url || cleanJob.job_url,
-        date_posted: cleanJob.date_posted || new Date().toISOString().split('T')[0],
-        tags: cleanJob.tags || [],
-        experience_level: cleanJob.experience_level,
-        is_remote: cleanJob.is_remote || false,
+        // Remove date_posted - it doesn't exist in the schema
         application_deadline: cleanJob.application_deadline,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

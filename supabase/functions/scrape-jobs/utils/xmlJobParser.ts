@@ -1,176 +1,99 @@
 
-import { Job } from '../types/job.ts';
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
 import { JobSite } from '../types/jobSite.ts';
+import { Job } from '../types/job.ts';
 
-export default async function parseXmlJobs(xmlText: string, jobSite: JobSite): Promise<Job[]> {
-  const jobs: Job[] = [];
+export default async function parseXmlJobs(xmlContent: string, jobSite: JobSite): Promise<Job[]> {
+  console.log(`Parsing XML for ${jobSite.source}, content length: ${xmlContent.length}`);
   
   try {
-    console.log(`Parsing XML for ${jobSite.source}, content length: ${xmlText.length}`);
-    
-    // Clean up the XML text
-    const cleanXml = xmlText
-      .replace(/&(?![a-zA-Z0-9#]{1,6};)/g, '&amp;') // Escape unescaped ampersands
-      .replace(/<!\[CDATA\[(.*?)\]\]>/gs, (match, content) => {
-        // Clean CDATA content
-        return content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      });
-    
-    // Parse XML using DOMParser
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(cleanXml, 'text/xml');
+    const doc = parser.parseFromString(xmlContent, 'text/xml');
     
-    // Check for parsing errors
-    const parseError = xmlDoc.querySelector('parsererror');
-    if (parseError) {
-      console.error(`XML parsing error for ${jobSite.source}:`, parseError.textContent);
+    if (!doc) {
+      console.error(`Failed to parse XML for ${jobSite.source}`);
       return [];
     }
     
-    // Find job items - try different RSS/XML structures
-    let items = xmlDoc.querySelectorAll('item');
-    if (items.length === 0) {
-      items = xmlDoc.querySelectorAll('job');
-    }
-    if (items.length === 0) {
-      items = xmlDoc.querySelectorAll('entry');
-    }
+    const items = doc.querySelectorAll('item');
+    console.log(`Found ${items.length} job items in XML`);
     
-    console.log(`Found ${items.length} items in XML for ${jobSite.source}`);
+    const jobs: Job[] = [];
     
     items.forEach((item, index) => {
       try {
-        // Extract title
-        let title = getXmlText(item, 'title') || getXmlText(item, 'job_title') || '';
-        title = cleanHtmlTags(title).trim();
+        const title = item.querySelector('title')?.textContent?.trim() || '';
+        const link = item.querySelector('link')?.textContent?.trim() || '';
+        const description = item.querySelector('description')?.textContent?.trim() || '';
+        const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
         
-        // Extract company - try multiple approaches
-        let company = getXmlText(item, 'company') || 
-                     getXmlText(item, 'job_company') || 
-                     getXmlText(item, 'author') || '';
+        // Extract company from description or use a default
+        let company = 'Company not specified';
+        const descriptionLower = description.toLowerCase();
         
-        // If no company field, try to extract from description
-        if (!company) {
-          const description = getXmlText(item, 'description') || getXmlText(item, 'content') || '';
-          const companyMatch = description.match(/company[:\s]+([^<\n,]+)/i);
+        // Try to extract company from common patterns in job descriptions
+        if (description.includes('Company:')) {
+          const companyMatch = description.match(/Company:\s*([^\n\r]+)/i);
           if (companyMatch) {
             company = companyMatch[1].trim();
           }
         }
         
-        company = cleanHtmlTags(company).trim() || 'Company not specified';
+        // Skip if no meaningful title
+        if (!title || title.length < 3 || title.toLowerCase() === 'null') {
+          console.log(`Skipping job with invalid title: "${title}"`);
+          return;
+        }
         
-        // Extract location
-        let location = getXmlText(item, 'location') || 
-                      getXmlText(item, 'job_location') || 
-                      getXmlText(item, 'region') || '';
-        
-        if (!location) {
-          const description = getXmlText(item, 'description') || '';
-          const locationMatch = description.match(/location[:\s]+([^<\n,]+)/i) ||
-                               description.match(/(nairobi|mombasa|kisumu|nakuru|eldoret|kenya)/i);
-          if (locationMatch) {
-            location = locationMatch[1].trim();
+        // Filter by keywords if specified
+        if (jobSite.keywords && jobSite.keywords.length > 0) {
+          const titleLower = title.toLowerCase();
+          const hasKeyword = jobSite.keywords.some(keyword => 
+            titleLower.includes(keyword.toLowerCase()) ||
+            descriptionLower.includes(keyword.toLowerCase())
+          );
+          
+          if (!hasKeyword) {
+            return;
           }
         }
         
-        location = cleanHtmlTags(location).trim() || 'Kenya';
+        const job: Job = {
+          title: title.slice(0, 255), // Ensure title fits in database
+          company: company.slice(0, 255),
+          location: 'Kenya', // Default location for Kenyan job sites
+          source: jobSite.source,
+          job_url: link || undefined,
+          application_url: link || undefined,
+          description: description.slice(0, 5000), // Limit description length
+          job_type: 'full_time',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
         
-        // Extract job URL
-        let jobUrl = getXmlText(item, 'link') || 
-                    getXmlText(item, 'url') || 
-                    getXmlText(item, 'guid') || '';
-        
-        // Validate and clean URL
-        if (jobUrl && !jobUrl.startsWith('http')) {
+        // Parse publication date if available
+        if (pubDate) {
           try {
-            const baseUrl = new URL(jobSite.url).origin;
-            jobUrl = new URL(jobUrl, baseUrl).href;
+            const parsedDate = new Date(pubDate);
+            if (!isNaN(parsedDate.getTime())) {
+              job.created_at = parsedDate.toISOString();
+            }
           } catch (e) {
-            jobUrl = '';
+            // Use current date if parsing fails
           }
         }
         
-        // Only include jobs with valid title and basic info
-        if (title && title.length > 3 && title.toLowerCase() !== 'null') {
-          // Filter by keywords if specified
-          if (jobSite.keywords && jobSite.keywords.length > 0) {
-            const titleLower = title.toLowerCase();
-            const companyLower = company.toLowerCase();
-            const locationLower = location.toLowerCase();
-            
-            const hasKeyword = jobSite.keywords.some(keyword => 
-              titleLower.includes(keyword.toLowerCase()) ||
-              companyLower.includes(keyword.toLowerCase()) ||
-              locationLower.includes(keyword.toLowerCase())
-            );
-            
-            if (!hasKeyword) {
-              return; // Skip this job if it doesn't match keywords
-            }
-          }
-          
-          const job: Job = {
-            title: title,
-            company: company,
-            location: location,
-            source: jobSite.source,
-            job_url: jobUrl || undefined,
-            application_url: jobUrl || undefined,
-            description: '', // Could be enhanced later
-            job_type: 'full_time', // Default
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          
-          // Try to extract job type
-          const jobType = getXmlText(item, 'job_type') || getXmlText(item, 'employment_type');
-          if (jobType) {
-            job.job_type = cleanHtmlTags(jobType).trim();
-          }
-          
-          // Try to extract deadline
-          const deadline = getXmlText(item, 'deadline') || 
-                          getXmlText(item, 'expiry_date') || 
-                          getXmlText(item, 'application_deadline');
-          if (deadline) {
-            try {
-              job.application_deadline = new Date(deadline).toISOString();
-            } catch (e) {
-              // Invalid date format, skip
-            }
-          }
-          
-          jobs.push(job);
-          console.log(`Parsed XML job: "${title}" at "${company}" from ${jobSite.source}`);
-        }
+        jobs.push(job);
+        console.log(`✅ Parsed XML job: "${job.title}" at "${job.company}"`);
       } catch (error) {
-        console.error(`Error parsing XML job item ${index} from ${jobSite.source}:`, error);
+        console.error(`Error parsing job item ${index}:`, error);
       }
     });
     
-    console.log(`Successfully parsed ${jobs.length} jobs from XML for ${jobSite.source}`);
+    console.log(`Successfully parsed ${jobs.length} jobs from XML`);
     return jobs;
   } catch (error) {
     console.error(`Error parsing XML for ${jobSite.source}:`, error);
     return [];
   }
-}
-
-function getXmlText(element: Element, tagName: string): string {
-  const child = element.querySelector(tagName);
-  return child ? child.textContent || '' : '';
-}
-
-function cleanHtmlTags(text: string): string {
-  return text
-    .replace(/<[^>]*>/g, '') // Remove HTML tags
-    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
-    .replace(/&amp;/g, '&') // Replace &amp; with &
-    .replace(/&lt;/g, '<') // Replace &lt; with <
-    .replace(/&gt;/g, '>') // Replace &gt; with >
-    .replace(/&quot;/g, '"') // Replace &quot; with "
-    .replace(/&#39;/g, "'") // Replace &#39; with '
-    .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
-    .trim();
 }
