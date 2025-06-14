@@ -9,18 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { PostgrestError } from "@supabase/supabase-js";
 
 interface JobListProps {
   jobs: (PostedJob | ScrapedJob)[] | undefined;
   isLoading: boolean;
+  error?: PostgrestError | null;
 }
 
-export const JobList = ({ jobs, isLoading }: JobListProps) => {
+export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   const isMobile = useIsMobile();
   
   console.log("JobList - jobs received:", jobs);
   console.log("JobList - isLoading:", isLoading);
   console.log("JobList - jobs length:", jobs?.length);
+  console.log("JobList - error:", error);
   
   if (isLoading) {
     console.log("JobList - Showing loading state");
@@ -28,6 +31,21 @@ export const JobList = ({ jobs, isLoading }: JobListProps) => {
       <div className="flex justify-center items-center h-64">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
+    );
+  }
+
+  if (error) {
+    console.log("JobList - Showing error state");
+    return (
+      <Card className="mt-8 text-center">
+        <CardHeader>
+          <CardTitle className="text-destructive">Error Loading Jobs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>We couldn't fetch the job listings at this time.</p>
+          <p className="text-sm text-muted-foreground mt-2">Please try refreshing, or check back later.</p>
+        </CardContent>
+      </Card>
     );
   }
 

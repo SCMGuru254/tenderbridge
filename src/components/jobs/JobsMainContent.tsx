@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useJobData } from "@/hooks/useJobData";
@@ -8,7 +7,7 @@ import { MobileJobFilters } from "@/components/MobileJobFilters";
 import { JobList } from "@/components/JobList";
 import { JobRefreshButton } from "@/components/JobRefreshButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 interface JobsMainContentProps {
   onRefreshComplete: () => void;
@@ -23,11 +22,13 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
     allJobs, 
     isLoading, 
     activeTab, 
-    setActiveTab
+    setActiveTab,
+    errors
   } = useJobData();
 
   // Filter jobs based on search term and category
   const filteredJobs = filterJobs(allJobs, { searchTerm, category });
+  const jobFetchError = errors.postedJobsError || errors.scrapedJobsError;
 
   return (
     <div className="space-y-6">
@@ -62,7 +63,7 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
         />
       )}
       
-      <JobList jobs={filteredJobs} isLoading={isLoading} />
+      <JobList jobs={filteredJobs} isLoading={isLoading} error={jobFetchError} />
     </div>
   );
 };

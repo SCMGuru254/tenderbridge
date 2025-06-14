@@ -4,7 +4,6 @@ import { corsHeaders } from "./utils/cors.ts";
 import { scrapeJobSites } from "./services/scraper.ts";
 import { clearExistingJobs, insertJob } from "./services/database.ts";
 import { getJobSites } from "./config/jobSites.ts";
-import { getFallbackJobs } from "./data/fallbackJobs.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -49,9 +48,20 @@ serve(async (req) => {
     
     // Get job sites configuration - filter by requested sources if specified
     const allJobSites = getJobSites();
+    
+    if (!Array.isArray(allJobSites)) {
+      console.error('getJobSites() did not return an array. Bailing out.');
+      throw new Error('Configuration error: Job sites could not be loaded.');
+    }
+
     const jobSites = sources.length > 0
       ? allJobSites.filter(site => sources.includes(site.source))
       : allJobSites;
+
+    if (!Array.isArray(jobSites)) {
+        console.error('Filtered jobSites is not an array!', jobSites);
+        throw new Error('Filtering error: jobSites is not an array after filtering.');
+    }
     
     console.log(`Will scrape ${jobSites.length} job sources: ${jobSites.map(site => site.source).join(', ')}`);
     
