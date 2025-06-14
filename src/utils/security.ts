@@ -1,44 +1,39 @@
-import { Response } from '@supabase/supabase-js'
 
-export const securityHeaders = {
-  'Content-Security-Policy': 
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.paypal.com; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "img-src 'self' data: https: blob:; " +
-    "font-src 'self' https://fonts.gstatic.com; " +
-    "connect-src 'self' https://*.supabase.co https://api.openai.com https://apis.google.com https://*.paypal.com; " +
-    "frame-src 'self' https://*.paypal.com https://*.stripe.com; " +
-    "object-src 'none';",
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'X-XSS-Protection': '1; mode=block',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+import { supabase } from '@/integrations/supabase/client';
+
+export interface SecurityResponse {
+  success: boolean;
+  message?: string;
+  data?: any;
 }
 
-// Middleware to add security headers
-export function addSecurityHeaders(response: Response) {
-  Object.entries(securityHeaders).forEach(([header, value]) => {
-    response.headers.set(header, value)
-  })
-  return response
-}
+export const validateInput = (input: string, maxLength: number = 1000): boolean => {
+  return input.length <= maxLength && !/<script|javascript:|data:/i.test(input);
+};
 
-// XSS Prevention utilities
-export function sanitizeInput(input: string): string {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;')
-}
+export const sanitizeInput = (input: string): string => {
+  return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+};
 
-// CSRF Token generation
-export function generateCSRFToken(): string {
-  return crypto.getRandomValues(new Uint8Array(32))
-    .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '')
-}
+export const checkRateLimit = async (userId: string, action: string): Promise<boolean> => {
+  // Simple rate limiting check - in production, use Redis or similar
+  const key = `${userId}_${action}`;
+  const lastAction = localStorage.getItem(key);
+  const now = Date.now();
+  
+  if (lastAction && (now - parseInt(lastAction)) < 1000) {
+    return false; // Rate limited
+  }
+  
+  localStorage.setItem(key, now.toString());
+  return true;
+};
+
+export const validateSession = async (): Promise<boolean> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
+  } catch {
+    return false;
+  }
+};

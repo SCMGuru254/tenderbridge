@@ -1,28 +1,10 @@
-export interface SocialCredentialsRow {
+
+export interface SocialPost {
   id: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
+  content: string;
+  author: string;
   platform: string;
-  credentials: {
-    twitter?: {
-      appKey: string;
-      appSecret: string;
-      accessToken: string;
-      accessSecret: string;
-    };
-    linkedin?: {
-      clientId: string;
-      clientSecret: string;
-      accessToken: string;
-    };
-    facebook?: {
-      accessToken: string;
-      pageId: string;
-    };
-    instagram?: {
-      accessToken: string;
-      businessAccountId: string;
-    };
-  };
+  createdAt: string;
+  likes: number;
+  shares: number;
 }

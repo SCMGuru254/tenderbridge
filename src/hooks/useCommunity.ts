@@ -64,9 +64,11 @@ export const useCommunity = () => {
 };
 
 export const useCommunities = () => {
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const getCommunities = async (category?: string): Promise<CommunityWithMembership[]> => {
+    setLoading(true);
     setError(null);
     try {
       let query = supabase
@@ -93,10 +95,12 @@ export const useCommunities = () => {
     } catch (err) {
       setError('Failed to fetch communities');
       return [];
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { getCommunities, error };
+  return { getCommunities, loading, error };
 };
 
 export const useCommunityMembership = () => {
@@ -133,11 +137,10 @@ export const useCommunityMembership = () => {
 
 export const useCommunityPosts = (communityId: string) => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
   const createPost = async (postData: Partial<CommunityPost>) => {
     try {
-      // Simulated post creation - would connect to actual database
       const newPost: CommunityPost = {
         id: Math.random().toString(),
         title: postData.title || '',
