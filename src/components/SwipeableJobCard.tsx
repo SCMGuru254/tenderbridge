@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,12 +58,7 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
       
       setCurrentX(0);
       performanceMonitor.endMeasure('job-card-swipe');
-    } // Fixed imports
-    import { errorHandler, ErrorType } from "@/utils/errorHandling";
-    import { performanceMonitor } from "@/utils/performanceMonitor";
-    
-    // Fixed error handling
-    catch (error) {
+    } catch (error) {
       errorHandler.handleError(error, ErrorType.UNKNOWN);
     }
   };
@@ -112,8 +108,9 @@ export function SwipeableJobCard({ job, onSave, onShare }: SwipeableJobCardProps
                 target="_blank" 
                 rel="noopener noreferrer"
                 onClick={() => analytics.trackUserAction('job-apply-click', job.id)}
+                className="flex items-center gap-1 text-primary hover:text-primary/80"
               >
-                <ExternalLink className="ml-1 h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
                 Apply
               </a>
             </div>
