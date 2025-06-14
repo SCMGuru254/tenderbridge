@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -15,11 +14,29 @@ export const usePostedJobs = () => {
     queryKey: ['posted-jobs'],
     queryFn: async () => {
       console.log("🔍 usePostedJobs - Starting fetch...");
+      console.log("🔍 usePostedJobs - Supabase client config:", { 
+        url: supabase.supabaseUrl, 
+        key: supabase.supabaseKey?.substring(0, 20) + '...' 
+      });
       trackNetworkRequest();
       
       try {
-        console.log("🔍 usePostedJobs - Making Supabase query...");
-        const { data, error } = await supabase
+        console.log("🔍 usePostedJobs - Making Supabase query to 'jobs' table...");
+        
+        // First, let's check if we can connect to Supabase at all
+        const { data: testConnection, error: connectionError } = await supabase
+          .from('jobs')
+          .select('count(*)', { count: 'exact', head: true });
+        
+        console.log("🔍 usePostedJobs - Connection test result:", { testConnection, connectionError });
+        
+        if (connectionError) {
+          console.error("❌ usePostedJobs - Connection error:", connectionError);
+          throw connectionError;
+        }
+        
+        // Now do the actual query
+        const { data, error, count } = await supabase
           .from('jobs')
           .select(`
             *,
@@ -29,12 +46,31 @@ export const usePostedJobs = () => {
               website,
               description
             )
-          `)
+          `, { count: 'exact' })
           .eq('is_active', true)
           .order('created_at', { ascending: false })
-          .limit(1000); // Limit for performance
+          .limit(1000);
 
-        console.log("🔍 usePostedJobs - Supabase response:", { data: data?.length || 0, error });
+        console.log("🔍 usePostedJobs - Detailed query result:", { 
+          dataLength: data?.length || 0, 
+          totalCount: count,
+          error,
+          firstJob: data?.[0] ? {
+            id: data[0].id,
+            title: data[0].title,
+            is_active: data[0].is_active
+          } : null
+        });
+        
+        // Let's also check without the is_active filter
+        const { data: allData, error: allError, count: allCount } = await supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true });
+          
+        console.log("🔍 usePostedJobs - Total jobs in table (including inactive):", { 
+          totalCount: allCount, 
+          error: allError 
+        });
 
         if (error) {
           console.error("❌ usePostedJobs - Error fetching posted jobs:", error);
@@ -51,11 +87,8 @@ export const usePostedJobs = () => {
       }
     },
     ...CACHE_CONFIG.JOBS,
-    // Enable background refetching
     refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
-    // Keep previous data while refetching
     placeholderData: (previousData) => previousData,
-    // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in usePostedJobs:", error);
@@ -73,10 +106,49 @@ export const useScrapedJobs = (limit: number = 1000) => {
     queryKey: ['scraped-jobs', limit],
     queryFn: async () => {
       console.log("🔍 useScrapedJobs - Starting fetch...");
+      console.log("🔍 useScrapedJobs - Supabase client config:", { 
+        url: supabase.supabaseUrl, 
+        key: supabase.supabaseKey?.substring(0, 20) + '...' 
+      });
       trackNetworkRequest();
       
       try {
-        console.log("🔍 useScrapedJobs - Making Supabase query...");
+        console.log("🔍 useScrapedJobs - Making Supabase query to 'scraped_jobs' table...");
+        
+        // First, let's check the total count in scraped_jobs
+        const { data: testConnection, error: connectionError, count: totalCount } = await supabase
+          .from('scraped_jobs')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log("🔍 useScrapedJobs - Total scraped jobs in table:", { 
+          totalCount, 
+          connectionError 
+        });
+        
+        if (connectionError) {
+          console.error("❌ useScrapedJobs - Connection error:", connectionError);
+          throw connectionError;
+        }
+        
+        // Check jobs with various filters to see what's happening
+        const { data: allJobs, error: allError } = await supabase
+          .from('scraped_jobs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+          
+        console.log("🔍 useScrapedJobs - Sample of all jobs:", { 
+          count: allJobs?.length || 0,
+          error: allError,
+          sampleJobs: allJobs?.slice(0, 3).map(job => ({
+            id: job.id,
+            title: job.title,
+            company: job.company,
+            hasTitle: !!job.title,
+            hasCompany: !!job.company
+          }))
+        });
+
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
@@ -85,7 +157,15 @@ export const useScrapedJobs = (limit: number = 1000) => {
           .not('title', 'is', null)
           .not('company', 'is', null);
 
-        console.log("🔍 useScrapedJobs - Supabase response:", { data: data?.length || 0, error });
+        console.log("🔍 useScrapedJobs - Filtered query result:", { 
+          dataLength: data?.length || 0, 
+          error,
+          firstJob: data?.[0] ? {
+            id: data[0].id,
+            title: data[0].title,
+            company: data[0].company
+          } : null
+        });
 
         if (error) {
           console.error("❌ useScrapedJobs - Error fetching scraped jobs:", error);
@@ -107,11 +187,8 @@ export const useScrapedJobs = (limit: number = 1000) => {
       }
     },
     ...CACHE_CONFIG.JOBS,
-    // Enable background refetching
     refetchInterval: CACHE_CONFIG.JOBS.refetchInterval,
-    // Keep previous data while refetching
     placeholderData: (previousData) => previousData,
-    // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in useScrapedJobs:", error);
@@ -153,7 +230,6 @@ export const useCompanies = () => {
       }
     },
     ...CACHE_CONFIG.STATIC,
-    // Log errors in the query observer
     meta: {
       errorHandler: (error: PostgrestError) => {
         console.error("Query error in useCompanies:", error);
