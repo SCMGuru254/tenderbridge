@@ -1,9 +1,9 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from "./utils/cors.ts";
 import { scrapeJobSites } from "./services/scraper.ts";
 import { clearExistingJobs, insertJob } from "./services/database.ts";
 import { getJobSites } from "./config/jobSites.ts";
+import { getFallbackJobs } from "./data/fallbackJobs.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -133,9 +133,29 @@ serve(async (req) => {
     console.log(`Job scraping completed. Total jobs added: ${totalJobsScraped}`);
     console.log('Source results:', JSON.stringify(sourceResults));
     
-    // Only add fallback jobs if no real jobs were scraped, not in test mode, and user specifically requests it
+    // Only add fallback jobs if no real jobs were scraped, not in test mode, and doing a full refresh
     if (totalJobsScraped === 0 && !testMode && refreshAll) {
-      console.log('No jobs scraped from any source. Check your scraping configuration.');
+      console.log('No jobs scraped from any source. Adding fallback jobs as a temporary measure.');
+      const fallbackJobs = getFallbackJobs();
+      let fallbackJobsInserted = 0;
+
+      for (const job of fallbackJobs) {
+        const insertResult = await insertJob(supabaseUrl, supabaseKey, job);
+        if (insertResult.error) {
+          console.error(`Error inserting fallback job:`, insertResult.error);
+        } else {
+          fallbackJobsInserted++;
+        }
+      }
+      console.log(`Inserted ${fallbackJobsInserted} fallback jobs.`);
+      totalJobsScraped += fallbackJobsInserted;
+
+      sourceResults['Fallback Jobs'] = {
+        success: true,
+        jobsFound: fallbackJobs.length,
+        jobsInserted: fallbackJobsInserted,
+        message: `Added ${fallbackJobsInserted} fallback jobs since no live jobs were found.`
+      };
     }
 
     return new Response(JSON.stringify({ 
