@@ -105,15 +105,6 @@ export const mockResizeObserver = () => {
   window.ResizeObserver = mockResizeObserver;
 };
 
-// Custom matchers
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeWithinRange(floor: number, ceiling: number): R;
-    }
-  }
-}
-
 // Export everything
 export * from '@testing-library/react';
 export { customRender as render };

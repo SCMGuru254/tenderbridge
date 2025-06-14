@@ -46,3 +46,22 @@ export const careersService = {
     return data || [];
   }
 };
+
+// Add the missing submitCareerApplication function
+export const submitCareerApplication = async (
+  applicantName: string,
+  applicantEmail: string,
+  proposalText: string,
+  userId?: string
+): Promise<CareerApplication | null> => {
+  const applicationData = {
+    applicant_name: applicantName,
+    applicant_email: applicantEmail,
+    proposal_text: proposalText,
+    user_id: userId,
+    votes_count: 0,
+    submitted_at: new Date().toISOString()
+  };
+
+  return await careersService.createApplication(applicationData);
+};
