@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, MessageCircle, ExternalLink } from "lucide-react";
+import { UserPlus, MessageCircle, ExternalLink, Briefcase } from "lucide-react";
 import { Profile } from "@/types/profiles";
 
 interface EnhancedProfileCardProps {
@@ -36,9 +36,18 @@ export const EnhancedProfileCard = ({
             </Avatar>
             <div className="flex-1">
               <h3 className="text-lg font-semibold">{profile?.full_name || 'Unknown User'}</h3>
+              {profile?.tagline && (
+                <p className="text-sm text-blue-600 font-medium">{profile.tagline}</p>
+              )}
               <p className="text-sm text-muted-foreground">{profile?.position || 'Professional'}</p>
               {profile?.company && (
                 <p className="text-sm text-muted-foreground">at {profile.company}</p>
+              )}
+              {profile?.previous_job && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Briefcase className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Previously: {profile.previous_job}</p>
+                </div>
               )}
             </div>
           </div>

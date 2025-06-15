@@ -8,6 +8,7 @@ import { EnhancedProfileCard } from './EnhancedProfileCard';
 import { Profile } from '@/types/profiles';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { followUser, unfollowUser, getFollowing, getFollowers, isFollowing } from '@/services/followService';
 import { toast } from 'sonner';
 
 export const CandidateFollowList = () => {
@@ -21,8 +22,8 @@ export const CandidateFollowList = () => {
   useEffect(() => {
     if (user) {
       fetchProfiles();
-      fetchFollowing();
-      fetchFollowers();
+      fetchFollowingData();
+      fetchFollowersData();
     }
   }, [user]);
 
@@ -44,25 +45,33 @@ export const CandidateFollowList = () => {
     }
   };
 
-  const fetchFollowing = async () => {
+  const fetchFollowingData = async () => {
     if (!user) return;
     
     try {
-      // This would be implemented with a proper follows table
-      // For now, we'll use a mock implementation
-      setFollowing([]);
+      const followingData = await getFollowing(user.id);
+      setFollowing(followingData.map(f => f.following_id));
     } catch (error) {
       console.error('Error fetching following:', error);
     }
   };
 
-  const fetchFollowers = async () => {
+  const fetchFollowersData = async () => {
     if (!user) return;
     
     try {
-      // This would be implemented with a proper follows table
-      // For now, we'll use a mock implementation
-      setFollowers([]);
+      const followersData = await getFollowers(user.id);
+      const followerIds = followersData.map(f => f.follower_id);
+      
+      if (followerIds.length > 0) {
+        const { data: followerProfiles, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', followerIds);
+
+        if (error) throw error;
+        setFollowers(followerProfiles || []);
+      }
     } catch (error) {
       console.error('Error fetching followers:', error);
     }
@@ -72,12 +81,14 @@ export const CandidateFollowList = () => {
     if (!user) return;
 
     try {
-      // This would insert into a follows table
-      // For now, we'll just update the local state
-      if (following.includes(profileId)) {
+      const isCurrentlyFollowing = following.includes(profileId);
+      
+      if (isCurrentlyFollowing) {
+        await unfollowUser(profileId);
         setFollowing(following.filter(id => id !== profileId));
         toast.success('Unfollowed successfully');
       } else {
+        await followUser(profileId);
         setFollowing([...following, profileId]);
         toast.success('Following successfully');
       }
@@ -94,7 +105,8 @@ export const CandidateFollowList = () => {
   const filteredProfiles = profiles.filter(profile =>
     profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     profile.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.position?.toLowerCase().includes(searchTerm.toLowerCase())
+    profile.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    profile.tagline?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
