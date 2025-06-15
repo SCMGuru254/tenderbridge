@@ -1,3 +1,4 @@
+
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -79,7 +80,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
 
   console.log("JobList - Filtered jobs count:", filteredJobs.length);
   console.log("JobList - Original jobs count:", jobs.length);
-  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: cleanJobTitle(j.title), company: getCompanyName(j), source: getJobSource(j), posted: getTimeSincePosted(j) })));
+  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: cleanJobTitle(j.title || ''), company: getCompanyName(j), source: getJobSource(j), posted: getTimeSincePosted(j) })));
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -137,7 +138,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const location = getLocation(job);
           const timeSincePosted = getTimeSincePosted(job);
           
-          // Clean the job data before displaying
+          // Clean the job data before displaying - ENSURE job.title is always a string
           const cleanedTitle = cleanJobTitle(job.title || '');
           const cleanedCompany = cleanCompanyName(company);
           
