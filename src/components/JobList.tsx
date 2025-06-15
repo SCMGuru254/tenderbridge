@@ -244,9 +244,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Convert to proper types for JobCard - Fixed type error
-          const deadlineValue: string | undefined = deadline || undefined;
-          const jobUrlValue: string | undefined = jobUrl || undefined;
+          // Fixed type error: Convert undefined to null for JobCard compatibility
+          const deadlineValue: string | null = deadline || null;
+          const jobUrlValue: string | null = jobUrl || null;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,
