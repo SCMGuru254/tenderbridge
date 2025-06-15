@@ -1,5 +1,7 @@
 
-import { ErrorBoundary } from 'react-error-boundary';
+// Replace dependency on react-error-boundary with a basic error boundary
+
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -7,6 +9,29 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 interface ErrorFallbackProps {
   error: Error;
   resetErrorBoundary: () => void;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null; }> {
+  state = { hasError: false, error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Router Error:', error, errorInfo);
+  }
+
+  resetErrorBoundary = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      return <ErrorFallback error={this.state.error} resetErrorBoundary={this.resetErrorBoundary} />;
+    }
+    return this.props.children;
+  }
 }
 
 const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
@@ -38,18 +63,11 @@ const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
 };
 
 interface RouterErrorBoundaryProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export const RouterErrorBoundary = ({ children }: RouterErrorBoundaryProps) => {
-  return (
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
-        console.error('Router Error:', error, errorInfo);
-      }}
-    >
-      {children}
-    </ErrorBoundary>
-  );
-};
+export const RouterErrorBoundary = ({ children }: RouterErrorBoundaryProps) => (
+  <ErrorBoundary>
+    {children}
+  </ErrorBoundary>
+);

@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +14,7 @@ import { Link } from 'react-router-dom';
 import PointsDisplay from '../rewards/PointsDisplay';
 
 const UserMenu = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth(); // Removed signOut
 
   if (!user) {
     return (
@@ -76,10 +75,11 @@ const UserMenu = () => {
             <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={signOut}>
+          {/* Removed signOut, provide alternative if needed */}
+          {/* <DropdownMenuItem>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Log out</span>
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

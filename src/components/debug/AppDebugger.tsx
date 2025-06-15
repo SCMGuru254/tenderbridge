@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,7 @@ import { useJobData } from "@/hooks/useJobData";
 export const AppDebugger = () => {
   const [debugInfo, setDebugInfo] = useState<any>({});
   const { user, loading: userLoading } = useUser();
-  const { allJobs, isLoading: jobsLoading, errors } = useJobData();
+  const { postedJobs, scrapedJobs } = useJobData();
 
   useEffect(() => {
     const info = {
@@ -19,9 +18,9 @@ export const AppDebugger = () => {
         id: user?.id || 'none'
       },
       jobs: {
-        count: allJobs?.length || 0,
-        loading: jobsLoading,
-        errors: errors
+        postedCount: postedJobs?.length || 0,
+        scrapedCount: scrapedJobs?.length || 0,
+        loading: userLoading // only basic info
       },
       environment: {
         NODE_ENV: process.env.NODE_ENV,
@@ -35,7 +34,7 @@ export const AppDebugger = () => {
     
     setDebugInfo(info);
     console.log('App Debug Info:', info);
-  }, [user, userLoading, allJobs, jobsLoading, errors]);
+  }, [user, userLoading, postedJobs, scrapedJobs]);
 
   return (
     <Card className="m-4 border-orange-200">
@@ -51,14 +50,11 @@ export const AppDebugger = () => {
           {debugInfo.user?.loading && ' (Loading...)'}
         </div>
         <div>
-          <strong>Jobs:</strong> {debugInfo.jobs?.count} loaded 
-          {debugInfo.jobs?.loading && ' (Loading...)'}
+          <strong>Posted Jobs:</strong> {debugInfo.jobs?.postedCount} loaded
         </div>
-        {debugInfo.jobs?.errors && (
-          <div className="text-red-600">
-            <strong>Errors:</strong> {JSON.stringify(debugInfo.jobs.errors)}
-          </div>
-        )}
+        <div>
+          <strong>Scraped Jobs:</strong> {debugInfo.jobs?.scrapedCount} loaded
+        </div>
         <div>
           <strong>React:</strong> {debugInfo.react?.version}
         </div>

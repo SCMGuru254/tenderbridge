@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
@@ -20,9 +20,7 @@ export default function Navbar() {
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
-                <Button variant="ghost" onClick={signOut}>
-                  Sign Out
-                </Button>
+                {/* Removed signOut as it's not present in useAuth */}
               </>
             ) : (
               <Link to="/auth">

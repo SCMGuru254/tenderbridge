@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,13 +14,14 @@ export const FeaturedClientForm = () => {
     company_website: '',
     contact_person: '',
     phone_number: '',
-    intent_type: '',
+    intent_type: '' as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement' | '',
     budget_range: '',
-    subscription_type: 'monthly'
+    subscription_type: 'monthly' as 'monthly' | 'yearly'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.intent_type) return;
     await submitFeaturedClientApplication(formData);
   };
 
@@ -65,7 +65,10 @@ export const FeaturedClientForm = () => {
 
           <div>
             <Label htmlFor="intent_type">Service Type</Label>
-            <Select onValueChange={(value) => setFormData({...formData, intent_type: value})}>
+            <Select
+              value={formData.intent_type}
+              onValueChange={(value) => setFormData({...formData, intent_type: value as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement'})}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select service type" />
               </SelectTrigger>
