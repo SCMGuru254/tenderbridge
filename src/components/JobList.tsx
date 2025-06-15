@@ -1,3 +1,4 @@
+
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -65,10 +66,15 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const filteredJobsBySourceTime = (jobs || []).filter(job => {
     if ('source_posted_at' in job && job.source_posted_at) {
-      const posted = new Date(job.source_posted_at);
-      return posted >= twentyFourHoursAgo && posted <= now;
+      try {
+        const posted = new Date(job.source_posted_at);
+        return posted >= twentyFourHoursAgo && posted <= now;
+      } catch (error) {
+        console.error('Error parsing source_posted_at:', job.source_posted_at, error);
+        return false;
+      }
     }
-    // Legacy fallback
+    // Legacy fallback for jobs without source_posted_at
     return false;
   });
 
@@ -168,9 +174,11 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // Sort by creation date (most recent first)
+  // Sort by source posting date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    const aDate = 'source_posted_at' in a && a.source_posted_at ? new Date(a.source_posted_at) : new Date(a.created_at);
+    const bDate = 'source_posted_at' in b && b.source_posted_at ? new Date(b.source_posted_at) : new Date(b.created_at);
+    return bDate.getTime() - aDate.getTime();
   });
 
   // Get job sources information

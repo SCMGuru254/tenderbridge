@@ -1,3 +1,4 @@
+
 import type { PostedJob, ScrapedJob } from '@/types/jobs';
 
 export const formatSalary = (job: PostedJob | ScrapedJob): string | null => {
@@ -84,11 +85,21 @@ export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
 // Function to check if a job was posted within the last 24 hours
 export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean => {
   try {
-    const jobCreatedAt = new Date(job.created_at);
+    // Use source_posted_at if available, otherwise fallback to created_at
+    const dateToCheck = 'source_posted_at' in job && job.source_posted_at 
+      ? job.source_posted_at 
+      : job.created_at;
+    
+    if (!dateToCheck) {
+      console.log('🚫 No valid date found for job:', job.title);
+      return false;
+    }
+    
+    const jobCreatedAt = new Date(dateToCheck);
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
     
-    console.log(`🔍 Job "${job.title}" created at:`, jobCreatedAt.toISOString(), 
+    console.log(`🔍 Job "${job.title}" posted at:`, jobCreatedAt.toISOString(), 
                 'vs 24h ago:', twentyFourHoursAgo.toISOString(), 
                 'is recent:', jobCreatedAt >= twentyFourHoursAgo);
     
@@ -102,8 +113,16 @@ export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean =
 // Function to get human-readable time since posting
 export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
   try {
-    // Use source_posted_at if available, otherwise fallback
-    const baseDate = 'source_posted_at' in job && job.source_posted_at ? new Date(job.source_posted_at) : new Date(job.created_at);
+    // Use source_posted_at if available, otherwise fallback to created_at
+    const dateToUse = 'source_posted_at' in job && job.source_posted_at 
+      ? job.source_posted_at 
+      : job.created_at;
+    
+    if (!dateToUse) {
+      return 'Recently posted';
+    }
+    
+    const baseDate = new Date(dateToUse);
     const now = new Date();
     const diffInMs = now.getTime() - baseDate.getTime();
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));

@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -108,80 +109,101 @@ export function JobCard({ job }: JobCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow w-full max-w-[500px] md:max-w-none mx-auto md:mx-0">
-      <CardHeader>
-        <div className="flex justify-between">
-          <div>
-            <CardTitle className="text-xl mb-1">{cleanJobTitle(title)}</CardTitle>
-            <div className="flex items-center text-muted-foreground">
-              <Building2 className="h-4 w-4 mr-1" />
-              <span>{company || "Company not specified"}</span>
+    <Card className="hover:shadow-md transition-shadow w-full max-w-none mx-auto touch-manipulation">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg md:text-xl mb-1 line-clamp-2">{cleanJobTitle(title)}</CardTitle>
+            <div className="flex items-center text-muted-foreground text-sm">
+              <Building2 className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{company || "Company not specified"}</span>
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {location && (
-              <div className="flex items-center text-sm">
-                <MapPin className="h-4 w-4 mr-1 text-muted-foreground" />
-                <span>{location}</span>
-              </div>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2 text-sm">
+          {location && (
+            <div className="flex items-center">
+              <MapPin className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+              <span className="truncate">{location}</span>
+            </div>
+          )}
+          {job_type && (
+            <div className="flex items-center">
+              <BriefcaseIcon className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+              <span>{job_type}</span>
+            </div>
+          )}
+          {remainingTime && (
+            <div className="flex items-center">
+              <Clock className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+              <span>{remainingTime}</span>
+            </div>
+          )}
+        </div>
+        
+        {category && <Badge variant="outline" className="text-xs">{category}</Badge>}
+        
+        {/* Primary action button - full width on mobile */}
+        <div className="flex flex-col sm:flex-row items-stretch justify-between pt-2 gap-2 w-full">
+          <Button 
+            onClick={handleViewDetails} 
+            className="w-full sm:flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
+          >
+            {job_url ? (
+              <>
+                Apply Now
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </>
+            ) : (
+              "View Details"
             )}
-            {job_type && (
-              <div className="flex items-center text-sm">
-                <BriefcaseIcon className="h-4 w-4 mr-1 text-muted-foreground" />
-                <span>{job_type}</span>
-              </div>
-            )}
-            {remainingTime && (
-              <div className="flex items-center text-sm">
-                <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                <span>{remainingTime}</span>
-              </div>
-            )}
-          </div>
+          </Button>
           
-          {category && <Badge variant="outline">{category}</Badge>}
-          
-          <div className="flex flex-col md:flex-row items-stretch justify-between pt-2 gap-2 w-full">
-            <Button onClick={handleViewDetails} className="flex-1 w-full">
-              {job_url ? (
-                <>
-                  Apply
-                  <ExternalLink className="ml-1 h-4 w-4" />
-                </>
-              ) : (
-                "View Details"
-              )}
-            </Button>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={handleShare} disabled={isSharing} className="flex-1 h-10 w-10 md:w-auto">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Share job</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={handleShare} 
+                  disabled={isSharing} 
+                  className="w-12 h-12 sm:w-10 sm:h-10 touch-manipulation"
+                >
+                  <Share2 className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Share job</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
-          <div className="flex flex-col md:flex-row gap-2">
-            <Button onClick={handleSaveJob} variant={jobStatus.saved ? "default" : "outline"} className="flex-1 min-w-[120px]">
-              {jobStatus.saved ? "Unsave" : "Save"}
-            </Button>
-            <Button onClick={handleMarkAsApplied} variant={jobStatus.applied ? "default" : "outline"} className="flex-1 min-w-[120px]">
-              {jobStatus.applied ? "Undo Applied" : "Mark as Applied"}
-            </Button>
-            <Button onClick={handleRemindLater} variant={jobStatus.remindLater ? "default" : "outline"} className="flex-1 min-w-[120px]">
-              {jobStatus.remindLater ? "Remove Reminder" : "Remind Me Later"}
-            </Button>
-          </div>
+        {/* Action buttons - stack on mobile */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            onClick={handleSaveJob} 
+            variant={jobStatus.saved ? "default" : "outline"} 
+            className="flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
+          >
+            {jobStatus.saved ? "Unsave" : "Save"}
+          </Button>
+          <Button 
+            onClick={handleMarkAsApplied} 
+            variant={jobStatus.applied ? "default" : "outline"} 
+            className="flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
+          >
+            {jobStatus.applied ? "Undo Applied" : "Mark as Applied"}
+          </Button>
+          <Button 
+            onClick={handleRemindLater} 
+            variant={jobStatus.remindLater ? "default" : "outline"} 
+            className="flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
+          >
+            {jobStatus.remindLater ? "Remove Reminder" : "Remind Me Later"}
+          </Button>
         </div>
       </CardContent>
     </Card>

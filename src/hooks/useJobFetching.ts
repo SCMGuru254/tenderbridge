@@ -1,8 +1,8 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
 import { PostedJob, ScrapedJob } from '@/types/jobs';
-import { isJobExpired } from '@/utils/jobUtils';
 import { CACHE_CONFIG } from './useAdvancedCaching';
 import { usePerformanceMonitoring } from './usePerformanceMonitoring';
 
@@ -165,9 +165,9 @@ export const useScrapedJobs = (limit: number = 1000) => {
         
         console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs from last 24 hours");
         
-        // Filter out expired jobs
+        // Filter out jobs without valid source_posted_at
         const validJobs = (data || []).filter(job => !!job.source_posted_at);
-        console.log(`✅ useScrapedJobs - After filtering expired: ${validJobs.length} jobs (removed ${(data || []).length - validJobs.length} expired)`);
+        console.log(`✅ useScrapedJobs - After filtering: ${validJobs.length} jobs (removed ${(data || []).length - validJobs.length} without source_posted_at)`);
         
         return validJobs as ScrapedJob[];
       } catch (error) {
