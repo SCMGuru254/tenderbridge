@@ -1,10 +1,13 @@
-
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navigation from "./components/Navigation";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Navigation } from "@/components/Navigation";
+
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import Auth from "./pages/Auth";
@@ -17,11 +20,13 @@ import Networking from "./pages/Networking";
 import Rewards from "./pages/Rewards";
 import Affiliate from "./pages/Affiliate";
 import FeaturedClients from "./pages/FeaturedClients";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 5 * 60 * 1000,
       retry: 1,
     },
   },
@@ -30,32 +35,39 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <TooltipProvider>
           <Toaster />
+          <Sonner />
           <BrowserRouter>
-            <div className="min-h-screen bg-background">
-              <Navigation />
-              <main className="container mx-auto px-4 py-8">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/jobs" element={<Jobs />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/interview-prep" element={<InterviewPrep />} />
-                  <Route path="/ai-agents" element={<AIAgents />} />
-                  <Route path="/discussions" element={<Discussions />} />
-                  <Route path="/networking" element={<Networking />} />
-                  <Route path="/rewards" element={<Rewards />} />
-                  <Route path="/affiliate" element={<Affiliate />} />
-                  <Route path="/featured-clients" element={<FeaturedClients />} />
-                </Routes>
-              </main>
-            </div>
+            <AuthProvider>
+              <ErrorBoundary>
+                <div className="min-h-screen bg-background">
+                  <Navigation />
+                  <main className="container mx-auto px-4 py-8">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/jobs" element={<Jobs />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/interview-prep" element={<InterviewPrep />} />
+                      <Route path="/ai-agents" element={<AIAgents />} />
+                      <Route path="/discussions" element={<Discussions />} />
+                      <Route path="/networking" element={<Networking />} />
+                      <Route path="/rewards" element={<Rewards />} />
+                      <Route path="/affiliate" element={<Affiliate />} />
+                      <Route path="/featured-clients" element={<FeaturedClients />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/payment-cancel" element={<PaymentCancel />} />
+                    </Routes>
+                  </main>
+                </div>
+              </ErrorBoundary>
+            </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
