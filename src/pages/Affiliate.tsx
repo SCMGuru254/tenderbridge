@@ -1,11 +1,10 @@
 
-import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AffiliateSignup } from '@/components/affiliate/AffiliateSignup';
 import { AffiliateDashboard } from '@/components/affiliate/AffiliateDashboard';
 import { useAffiliate } from '@/hooks/useAffiliate';
 import { useUser } from '@/hooks/useUser';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Affiliate = () => {
   const { user, loading: userLoading } = useUser();

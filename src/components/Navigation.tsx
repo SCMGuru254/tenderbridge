@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -10,7 +9,9 @@ import {
   Users, 
   Award,
   DollarSign,
-  Star
+  Star,
+  Bot,
+  GraduationCap
 } from 'lucide-react';
 
 const Navigation = () => {
@@ -19,7 +20,8 @@ const Navigation = () => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/jobs', label: 'Jobs', icon: Briefcase },
-    { href: '/documents', label: 'Documents', icon: FileText },
+    { href: '/interview-prep', label: 'Interview Prep', icon: GraduationCap },
+    { href: '/ai-agents', label: 'AI Agents', icon: Bot },
     { href: '/discussions', label: 'Discussions', icon: MessageSquare },
     { href: '/networking', label: 'Networking', icon: Users },
     { href: '/rewards', label: 'Rewards', icon: Award },

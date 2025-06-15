@@ -1,62 +1,55 @@
 
-import React, { Component, ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { ErrorBoundary } from 'react-error-boundary';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
-interface Props {
-  children: ReactNode;
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
 }
 
-interface State {
-  hasError: boolean;
-  error?: Error;
+const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
+  return (
+    <div className="container mx-auto px-4 py-12">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            Something went wrong
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            We encountered an unexpected error. Please try refreshing the page.
+          </p>
+          <details className="bg-muted p-3 rounded text-sm">
+            <summary className="cursor-pointer font-medium">Error details</summary>
+            <pre className="mt-2 whitespace-pre-wrap">{error.message}</pre>
+          </details>
+          <Button onClick={resetErrorBoundary} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Try again
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+interface RouterErrorBoundaryProps {
+  children: React.ReactNode;
 }
 
-export class RouterErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Router Error Boundary caught an error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />
-                Navigation Error
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                There was an error with the page navigation. This might be due to a routing issue.
-              </p>
-              <Button 
-                onClick={() => {
-                  this.setState({ hasError: false });
-                  window.location.reload();
-                }}
-                className="w-full"
-              >
-                Reload Page
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
+export const RouterErrorBoundary = ({ children }: RouterErrorBoundaryProps) => {
+  return (
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={(error, errorInfo) => {
+        console.error('Router Error:', error, errorInfo);
+      }}
+    >
+      {children}
+    </ErrorBoundary>
+  );
+};

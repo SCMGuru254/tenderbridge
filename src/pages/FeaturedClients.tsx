@@ -1,10 +1,9 @@
 
-import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FeaturedClientForm } from '@/components/featured-clients/FeaturedClientForm';
 import { FeaturedClientsList } from '@/components/featured-clients/FeaturedClientsList';
 import { useUser } from '@/hooks/useUser';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const FeaturedClients = () => {
   const { user, loading } = useUser();
