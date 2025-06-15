@@ -5,6 +5,7 @@ import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, ScrapedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getTimeSincePosted } from "@/utils/jobUtils";
+import { cleanJobTitle, cleanCompanyName } from "@/utils/cleanJobTitle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -64,8 +65,11 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   const filteredJobs = jobs.filter(job => {
     console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
-    // Only skip jobs that are completely unusable
-    if (!job.title || job.title.trim() === '' || job.title.toLowerCase() === 'null') {
+    // Clean the title first
+    const cleanedTitle = cleanJobTitle(job.title);
+    
+    // Only skip jobs that are completely unusable even after cleaning
+    if (!cleanedTitle || cleanedTitle === 'Job Title Not Available') {
       console.log("JobList - Filtering out job without valid title:", job);
       return false;
     }
@@ -76,7 +80,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
 
   console.log("JobList - Filtered jobs count:", filteredJobs.length);
   console.log("JobList - Original jobs count:", jobs.length);
-  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: j.title, company: getCompanyName(j), source: getJobSource(j), posted: getTimeSincePosted(j) })));
+  console.log("JobList - Sample filtered jobs:", filteredJobs.slice(0, 3).map(j => ({ title: cleanJobTitle(j.title), company: getCompanyName(j), source: getJobSource(j), posted: getTimeSincePosted(j) })));
 
   // Sort by creation date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
@@ -134,13 +138,17 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const location = getLocation(job);
           const timeSincePosted = getTimeSincePosted(job);
           
+          // Clean the job data before displaying
+          const cleanedTitle = cleanJobTitle(job.title);
+          const cleanedCompany = cleanCompanyName(company);
+          
           // Convert null to undefined to match expected type
           const deadlineValue: string | undefined = deadline ?? undefined;
           const jobUrlValue: string | undefined = jobUrl ?? undefined;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
-            title: job.title,
-            company,
+            title: cleanedTitle,
+            company: cleanedCompany,
             location,
             source: getJobSource(job),
             deadline: deadlineValue,
@@ -152,8 +160,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
               key={job.id}
               job={{
                 id: job.id,
-                title: job.title,
-                company: company || "Company not specified",
+                title: cleanedTitle,
+                company: cleanedCompany || "Company not specified",
                 location: location || "Location not specified",
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
@@ -177,8 +185,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 </Badge>
               </div>
               <JobCard
-                title={job.title}
-                company={company}
+                title={cleanedTitle}
+                company={cleanedCompany}
                 location={location}
                 job_type={job.job_type || null}
                 category={getJobSource(job)}

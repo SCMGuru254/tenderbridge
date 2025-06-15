@@ -15,6 +15,17 @@ export const cleanJobTitle = (title: string): string => {
   // Remove any remaining brackets or special characters that might be artifacts
   cleaned = cleaned.replace(/[\[\]<>]/g, '');
   
+  // Check if the result is just asterisks or placeholder text
+  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
+    return 'Job Title Not Available';
+  }
+  
+  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
+  const asteriskCount = (cleaned.match(/\*/g) || []).length;
+  if (asteriskCount > cleaned.length * 0.5) {
+    return 'Job Title Not Available';
+  }
+  
   return cleaned;
 };
 
@@ -47,16 +58,38 @@ export const cleanJobDescription = (description: string): string => {
   cleaned = cleaned.replace(/[ \t]+/g, ' '); // Normalize spaces and tabs
   cleaned = cleaned.trim();
   
+  // Check if the result is just asterisks or placeholder text
+  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
+    return 'Job description not available';
+  }
+  
+  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
+  const asteriskCount = (cleaned.match(/\*/g) || []).length;
+  if (asteriskCount > cleaned.length * 0.5) {
+    return 'Job description not available';
+  }
+  
   return cleaned;
 };
 
 // Clean company names
 export const cleanCompanyName = (company: string): string => {
-  if (!company) return '';
+  if (!company) return 'Company Not Specified';
   
   let cleaned = company.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
   cleaned = cleaned.replace(/<[^>]*>/g, '');
   cleaned = cleaned.trim().replace(/\s+/g, ' ');
+  
+  // Check if the result is just asterisks or placeholder text
+  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
+    return 'Company Not Specified';
+  }
+  
+  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
+  const asteriskCount = (cleaned.match(/\*/g) || []).length;
+  if (asteriskCount > cleaned.length * 0.5) {
+    return 'Company Not Specified';
+  }
   
   return cleaned;
 };

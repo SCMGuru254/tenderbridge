@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { JobCardHeader } from "./JobCardHeader";
 import { JobCardActions } from "./JobCardActions";
 import JobMetadata from "./JobMetadata";
+import { cleanJobTitle, cleanCompanyName } from "@/utils/cleanJobTitle";
 
 export interface JobCardProps {
   title: string;
@@ -26,14 +27,18 @@ const JobCard = ({
   application_deadline,
   social_shares 
 }: JobCardProps) => {
+  // Clean the job data before displaying
+  const cleanedTitle = cleanJobTitle(title);
+  const cleanedCompany = cleanCompanyName(company || '');
+  
   // Create a mock job object that matches our types
   const mockJob = {
     id: '1',
-    title,
+    title: cleanedTitle,
     job_type,
     created_at: new Date().toISOString(),
     location,
-    company,
+    company: cleanedCompany,
     application_deadline,
     social_shares
   };
@@ -42,8 +47,8 @@ const JobCard = ({
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <JobCardHeader 
-          title={title} 
-          company={company || "Company"} 
+          title={cleanedTitle} 
+          company={cleanedCompany} 
         />
       </CardHeader>
       <CardContent className="space-y-4">
