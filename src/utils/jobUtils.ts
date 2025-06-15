@@ -1,4 +1,3 @@
-
 import type { PostedJob, ScrapedJob } from '@/types/jobs';
 
 export const formatSalary = (job: PostedJob | ScrapedJob): string | null => {
@@ -103,9 +102,10 @@ export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean =
 // Function to get human-readable time since posting
 export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
   try {
-    const jobCreatedAt = new Date(job.created_at);
+    // Use source_posted_at if available, otherwise fallback
+    const baseDate = 'source_posted_at' in job && job.source_posted_at ? new Date(job.source_posted_at) : new Date(job.created_at);
     const now = new Date();
-    const diffInMs = now.getTime() - jobCreatedAt.getTime();
+    const diffInMs = now.getTime() - baseDate.getTime();
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     

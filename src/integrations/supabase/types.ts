@@ -1150,6 +1150,7 @@ export type Database = {
           skills: string[] | null
           social_shares: Json | null
           source: string | null
+          source_posted_at: string | null
           title: string
           updated_at: string
         }
@@ -1172,6 +1173,7 @@ export type Database = {
           skills?: string[] | null
           social_shares?: Json | null
           source?: string | null
+          source_posted_at?: string | null
           title: string
           updated_at?: string
         }
@@ -1194,6 +1196,7 @@ export type Database = {
           skills?: string[] | null
           social_shares?: Json | null
           source?: string | null
+          source_posted_at?: string | null
           title?: string
           updated_at?: string
         }

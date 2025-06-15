@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -109,7 +108,7 @@ export function JobCard({ job }: JobCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow w-full max-w-[500px] md:max-w-none mx-auto md:mx-0">
       <CardHeader>
         <div className="flex justify-between">
           <div>
@@ -146,8 +145,8 @@ export function JobCard({ job }: JobCardProps) {
           
           {category && <Badge variant="outline">{category}</Badge>}
           
-          <div className="flex items-center justify-between pt-2">
-            <Button onClick={handleViewDetails}>
+          <div className="flex flex-col md:flex-row items-stretch justify-between pt-2 gap-2 w-full">
+            <Button onClick={handleViewDetails} className="flex-1 w-full">
               {job_url ? (
                 <>
                   Apply
@@ -161,7 +160,7 @@ export function JobCard({ job }: JobCardProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={handleShare} disabled={isSharing}>
+                  <Button variant="ghost" size="icon" onClick={handleShare} disabled={isSharing} className="flex-1 h-10 w-10 md:w-auto">
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -172,14 +171,14 @@ export function JobCard({ job }: JobCardProps) {
             </TooltipProvider>
           </div>
 
-          <div className="flex gap-2">
-            <Button onClick={handleSaveJob} variant={jobStatus.saved ? "default" : "outline"}>
+          <div className="flex flex-col md:flex-row gap-2">
+            <Button onClick={handleSaveJob} variant={jobStatus.saved ? "default" : "outline"} className="flex-1 min-w-[120px]">
               {jobStatus.saved ? "Unsave" : "Save"}
             </Button>
-            <Button onClick={handleMarkAsApplied} variant={jobStatus.applied ? "default" : "outline"}>
+            <Button onClick={handleMarkAsApplied} variant={jobStatus.applied ? "default" : "outline"} className="flex-1 min-w-[120px]">
               {jobStatus.applied ? "Undo Applied" : "Mark as Applied"}
             </Button>
-            <Button onClick={handleRemindLater} variant={jobStatus.remindLater ? "default" : "outline"}>
+            <Button onClick={handleRemindLater} variant={jobStatus.remindLater ? "default" : "outline"} className="flex-1 min-w-[120px]">
               {jobStatus.remindLater ? "Remove Reminder" : "Remind Me Later"}
             </Button>
           </div>

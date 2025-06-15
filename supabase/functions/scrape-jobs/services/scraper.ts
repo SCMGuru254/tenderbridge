@@ -1,4 +1,3 @@
-
 import { load } from 'https://esm.sh/cheerio@1.0.0';
 import { JobSite } from '../types/jobSite.ts';
 import { Job } from '../types/job.ts';
@@ -218,6 +217,32 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
         jobUrl = extractJobUrl($element, jobSite.selectors.jobLink, jobSite.url);
       }
       
+      // Enhanced posting date extraction
+      let sourcePostedAt: string | undefined = undefined;
+      if (jobSite.selectors.postedAt) {
+        const postedAtText = extractTextWithFallbacks($element, jobSite.selectors.postedAt, $);
+        if (postedAtText && postedAtText.length > 0) {
+          const parsedDate = new Date(postedAtText);
+          if (!isNaN(parsedDate.getTime())) {
+            sourcePostedAt = parsedDate.toISOString();
+          }
+        }
+      }
+      // Fallback: look for <time> tags
+      if (!sourcePostedAt) {
+        const timeTag = $element.find('time[datetime]').attr('datetime');
+        if (timeTag) {
+          const parsedDate = new Date(timeTag);
+          if (!isNaN(parsedDate.getTime())) {
+            sourcePostedAt = parsedDate.toISOString();
+          }
+        }
+      }
+      // Ultimate fallback: now
+      if (!sourcePostedAt) {
+        sourcePostedAt = new Date().toISOString();
+      }
+      
       // STRICT VALIDATION: Only proceed with jobs that have valid data
       if (isValidJobData(title, company, location, jobSite.source)) {
         // Extract description if available
@@ -237,7 +262,8 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
           description: description,
           job_type: 'full_time',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          source_posted_at: sourcePostedAt
         };
         
         // Extract additional fields if available

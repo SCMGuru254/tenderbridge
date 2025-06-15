@@ -1,4 +1,3 @@
-
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -61,8 +60,20 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // ENHANCED FILTERING: Strict validation against placeholder/mock data
-  const filteredJobs = jobs.filter(job => {
+  // ENHANCED FILTERING: Only jobs with source_posted_at in 24h
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const filteredJobsBySourceTime = (jobs || []).filter(job => {
+    if ('source_posted_at' in job && job.source_posted_at) {
+      const posted = new Date(job.source_posted_at);
+      return posted >= twentyFourHoursAgo && posted <= now;
+    }
+    // Legacy fallback
+    return false;
+  });
+
+  // All other filtering as before, but use filteredJobsBySourceTime instead of jobs
+  const filteredJobs = filteredJobsBySourceTime.filter(job => {
     console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
     // Clean the title first and validate it's not empty

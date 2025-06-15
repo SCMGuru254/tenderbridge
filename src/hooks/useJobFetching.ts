@@ -1,4 +1,3 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -139,8 +138,8 @@ export const useScrapedJobs = (limit: number = 1000) => {
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
-          .gte('created_at', twentyFourHoursAgoISO)
-          .order('created_at', { ascending: false })
+          .gte('source_posted_at', twentyFourHoursAgoISO)
+          .order('source_posted_at', { ascending: false })
           .limit(Math.min(limit, 500))
           .not('title', 'is', null)
           .not('company', 'is', null);
@@ -167,10 +166,10 @@ export const useScrapedJobs = (limit: number = 1000) => {
         console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs from last 24 hours");
         
         // Filter out expired jobs
-        const nonExpiredJobs = (data || []).filter(job => !isJobExpired(job));
-        console.log(`✅ useScrapedJobs - After filtering expired: ${nonExpiredJobs.length} jobs (removed ${(data || []).length - nonExpiredJobs.length} expired)`);
+        const validJobs = (data || []).filter(job => !!job.source_posted_at);
+        console.log(`✅ useScrapedJobs - After filtering expired: ${validJobs.length} jobs (removed ${(data || []).length - validJobs.length} expired)`);
         
-        return nonExpiredJobs as ScrapedJob[];
+        return validJobs as ScrapedJob[];
       } catch (error) {
         console.error("💥 useScrapedJobs - Failed to fetch scraped jobs:", error);
         trackError(error as Error);

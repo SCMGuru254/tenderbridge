@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -31,13 +30,13 @@ const Navigation = () => {
 
   return (
     <nav className="bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-2 md:px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-4 md:space-x-8">
             <Link to="/" className="text-xl font-bold text-primary">
               SupplyChain Jobs
             </Link>
-            <div className="hidden md:flex space-x-4">
+            <div className="hidden md:flex space-x-2 md:space-x-4">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -52,6 +51,27 @@ const Navigation = () => {
                     )}
                   >
                     <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            {/* Mobile nav: show horizontal scrollable list */}
+            <div className="flex md:hidden overflow-x-auto space-x-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      "flex flex-col items-center justify-center min-w-[64px] px-2 py-1 rounded text-xs font-semibold transition-colors",
+                      location.pathname === item.href
+                        ? "bg-primary text-primary-foreground"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 mb-0.5" />
                     <span>{item.label}</span>
                   </Link>
                 );
