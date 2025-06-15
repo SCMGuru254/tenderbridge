@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, DollarSign } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePayPal } from "@/hooks/usePayPal";
@@ -36,6 +37,7 @@ export const PayPalSubscriptions = () => {
     name: "",
     description: "",
     price: "",
+    currency: "USD",
     interval: "MONTH"
   });
   const { createSubscriptionPlan, loading: paypalLoading } = usePayPal();
@@ -96,7 +98,7 @@ export const PayPalSubscriptions = () => {
           pricing_scheme: {
             fixed_price: {
               value: newPlan.price,
-              currency_code: "USD"
+              currency_code: newPlan.currency
             }
           }
         }
@@ -111,7 +113,7 @@ export const PayPalSubscriptions = () => {
     const result = await createSubscriptionPlan(planData);
     if (result) {
       toast.success("Subscription plan created successfully!");
-      setNewPlan({ name: "", description: "", price: "", interval: "MONTH" });
+      setNewPlan({ name: "", description: "", price: "", currency: "USD", interval: "MONTH" });
       fetchPlans();
     }
   };
@@ -125,6 +127,13 @@ export const PayPalSubscriptions = () => {
     }
   };
 
+  const formatCurrency = (amount: string, currency: string) => {
+    if (currency === 'KSH') {
+      return `KSH ${amount}`;
+    }
+    return `$${amount}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Create New Plan Form */}
@@ -133,7 +142,7 @@ export const PayPalSubscriptions = () => {
           <CardTitle>Create Subscription Plan</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div>
               <Label htmlFor="planName">Plan Name</Label>
               <Input
@@ -153,7 +162,7 @@ export const PayPalSubscriptions = () => {
               />
             </div>
             <div>
-              <Label htmlFor="price">Price (USD)</Label>
+              <Label htmlFor="price">Price</Label>
               <Input
                 id="price"
                 type="number"
@@ -163,6 +172,18 @@ export const PayPalSubscriptions = () => {
                 min="0"
                 step="0.01"
               />
+            </div>
+            <div>
+              <Label htmlFor="currency">Currency</Label>
+              <select
+                id="currency"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                value={newPlan.currency}
+                onChange={(e) => setNewPlan({...newPlan, currency: e.target.value})}
+              >
+                <option value="USD">USD ($)</option>
+                <option value="KSH">KSH (Kenyan Shilling)</option>
+              </select>
             </div>
             <div>
               <Label htmlFor="interval">Billing Interval</Label>
@@ -209,25 +230,30 @@ export const PayPalSubscriptions = () => {
             </div>
           ) : plans.length > 0 ? (
             <div className="space-y-4">
-              {plans.map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h3 className="font-semibold">{plan.name}</h3>
-                    <p className="text-sm text-muted-foreground">{plan.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Created: {new Date(plan.created_at).toLocaleDateString()}
-                    </p>
+              {plans.map((plan) => {
+                const price = plan.plan_data?.billing_cycles?.[0]?.pricing_scheme?.fixed_price?.value || '0.00';
+                const currency = plan.plan_data?.billing_cycles?.[0]?.pricing_scheme?.fixed_price?.currency_code || 'USD';
+                
+                return (
+                  <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">{plan.name}</h3>
+                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Created: {new Date(plan.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        {formatCurrency(price, currency)}
+                      </p>
+                      <Badge className={getStatusColor(plan.status)}>
+                        {plan.status}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      ${plan.plan_data?.billing_cycles?.[0]?.pricing_scheme?.fixed_price?.value || '0.00'}
-                    </p>
-                    <Badge className={getStatusColor(plan.status)}>
-                      {plan.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-8">
