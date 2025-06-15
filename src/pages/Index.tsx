@@ -11,11 +11,13 @@ import { PostgrestError } from "@supabase/supabase-js";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedJobType, setSelectedJobType] = useState<string>("");
 
   console.log("Index page - Rendering with filters:", {
+    search: searchTerm,
     category: selectedCategory,
     location: selectedLocation,
     jobType: selectedJobType
@@ -27,9 +29,10 @@ const Index = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["scraped_jobs", selectedCategory, selectedLocation, selectedJobType],
+    queryKey: ["scraped_jobs", searchTerm, selectedCategory, selectedLocation, selectedJobType],
     queryFn: async () => {
       console.log("Index - Fetching scraped jobs with filters:", {
+        search: searchTerm,
         category: selectedCategory,
         location: selectedLocation,
         jobType: selectedJobType
@@ -39,6 +42,11 @@ const Index = () => {
         .from("scraped_jobs")
         .select("*")
         .order("created_at", { ascending: false });
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,company.ilike.%${searchTerm}%`);
+      }
 
       // Apply filters if they are selected
       if (selectedCategory) {
@@ -75,6 +83,7 @@ const Index = () => {
   };
 
   const clearFilters = () => {
+    setSearchTerm("");
     setSelectedCategory("");
     setSelectedLocation("");
     setSelectedJobType("");
@@ -97,15 +106,20 @@ const Index = () => {
           <div className="lg:w-1/4">
             {isMobile ? (
               <MobileJobFilters
-                searchTerm=""
-                setSearchTerm={() => {}}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
                 category={selectedCategory || null}
                 setCategory={setSelectedCategory}
+                location={selectedLocation || null}
+                setLocation={setSelectedLocation}
+                jobType={selectedJobType || null}
+                setJobType={setSelectedJobType}
+                onClearFilters={clearFilters}
               />
             ) : (
               <JobFilters
-                searchTerm=""
-                setSearchTerm={() => {}}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
                 category={selectedCategory || null}
                 setCategory={setSelectedCategory}
                 location={selectedLocation || null}

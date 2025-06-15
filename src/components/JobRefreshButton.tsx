@@ -7,10 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface JobRefreshButtonProps {
-  onRefreshComplete: () => void;
+  onClick: () => void;
 }
 
-export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) => {
+export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string>("all");
@@ -94,8 +94,8 @@ export const JobRefreshButton = ({ onRefreshComplete }: JobRefreshButtonProps) =
           });
         }
         
-        // Refetch the jobs to show the newly scraped ones
-        onRefreshComplete();
+        // Call the onClick callback to refetch jobs
+        onClick();
       }
     } catch (error) {
       console.error('Exception when scraping jobs:', error);
