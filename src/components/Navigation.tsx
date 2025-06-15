@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -12,6 +13,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 
+// Add Interview Prep and Job Matching nav if missing
 const Navigation = () => {
   const location = useLocation();
 
@@ -35,7 +37,6 @@ const Navigation = () => {
             <Link to="/" className="text-xl font-bold text-primary">
               SupplyChain Jobs
             </Link>
-            
             <div className="hidden md:flex space-x-4">
               {navItems.map((item) => {
                 const Icon = item.icon;

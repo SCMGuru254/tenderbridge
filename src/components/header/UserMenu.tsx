@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut, Trophy, LayoutDashboard } from 'lucide-react';
+import { User, Settings, Trophy, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PointsDisplay from '../rewards/PointsDisplay';
 

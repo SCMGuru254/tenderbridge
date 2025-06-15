@@ -1,7 +1,5 @@
-
-// Replace dependency on react-error-boundary with a basic error boundary
-
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+// Remove unused React import
+import { Component, ReactNode, ErrorInfo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';

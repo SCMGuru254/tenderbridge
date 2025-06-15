@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +9,14 @@ import { useFeaturedClients } from '@/hooks/useFeaturedClients';
 
 export const FeaturedClientForm = () => {
   const { submitFeaturedClientApplication, loading } = useFeaturedClients();
+  // Use undefined instead of empty string for intent_type
   const [formData, setFormData] = useState({
     company_name: '',
     company_email: '',
     company_website: '',
     contact_person: '',
     phone_number: '',
-    intent_type: '' as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement' | '',
+    intent_type: undefined as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement' | undefined,
     budget_range: '',
     subscription_type: 'monthly' as 'monthly' | 'yearly'
   });
@@ -41,7 +43,6 @@ export const FeaturedClientForm = () => {
               required
             />
           </div>
-
           <div>
             <Label htmlFor="company_email">Company Email</Label>
             <Input
@@ -52,7 +53,6 @@ export const FeaturedClientForm = () => {
               required
             />
           </div>
-
           <div>
             <Label htmlFor="contact_person">Contact Person</Label>
             <Input
@@ -62,12 +62,14 @@ export const FeaturedClientForm = () => {
               required
             />
           </div>
-
           <div>
             <Label htmlFor="intent_type">Service Type</Label>
             <Select
               value={formData.intent_type}
-              onValueChange={(value) => setFormData({...formData, intent_type: value as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement'})}
+              onValueChange={(value) => setFormData({
+                ...formData,
+                intent_type: value as 'featured_listing' | 'sponsor' | 'advertisement' | 'premium_placement'
+              })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select service type" />
@@ -80,7 +82,6 @@ export const FeaturedClientForm = () => {
               </SelectContent>
             </Select>
           </div>
-
           <div>
             <Label htmlFor="budget_range">Budget Range</Label>
             <Select onValueChange={(value) => setFormData({...formData, budget_range: value})}>
@@ -95,7 +96,6 @@ export const FeaturedClientForm = () => {
               </SelectContent>
             </Select>
           </div>
-
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Submitting...' : 'Submit Application'}
           </Button>
