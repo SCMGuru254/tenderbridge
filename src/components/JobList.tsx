@@ -1,4 +1,3 @@
-
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -295,6 +294,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 job_url={jobUrlValue}
                 application_deadline={deadlineValue}
                 social_shares={job.social_shares || {}}
+                jobId={job.id}
               />
             </div>
           );

@@ -1,95 +1,141 @@
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkIcon, BriefcaseIcon, UserIcon, TrendingUpIcon, Sparkles, Share2, Users } from "lucide-react";
-import { Link, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { AIJobRecommendations } from "@/components/ai/AIJobRecommendations";
-import { SocialShareHub } from "@/components/social/SocialShareHub";
-import { SocialNetworking } from "@/components/social/SocialNetworking";
 
-interface SavedJob {
-  id: string;
-  job_id: string;
-  status: string;
-  notes: string;
-  created_at: string;
-  scraped_jobs?: {
-    title: string;
-    company: string;
-    location: string;
-    job_type: string;
-    description: string;
-    application_url: string;
-    created_at: string;
-  };
-}
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Briefcase, 
+  Heart, 
+  Eye, 
+  TrendingUp, 
+  Clock,
+  Star,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Navigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
-  const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
-  const [profile, setProfile] = useState<any>(null);
-  const [loadingSavedJobs, setLoadingSavedJobs] = useState(true);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState([]);
+  const [profileViews, setProfileViews] = useState(0);
+  const [dashboardStats, setDashboardStats] = useState({
+    totalSavedJobs: 0,
+    totalApplications: 0,
+    recentActivity: [],
+    jobAlerts: []
+  });
 
   useEffect(() => {
     if (user) {
-      fetchSavedJobs();
-      fetchProfile();
+      fetchUserData();
     }
   }, [user]);
 
-  const fetchSavedJobs = async () => {
+  const fetchUserData = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch saved jobs
+      const { data: saved, error: savedError } = await supabase
         .from('saved_jobs')
         .select(`
           *,
           scraped_jobs (
+            id,
             title,
             company,
             location,
             job_type,
-            description,
-            application_url,
-            created_at
+            created_at,
+            job_url
           )
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setSavedJobs(data || []);
+      if (savedError) throw savedError;
+      setSavedJobs(saved || []);
+
+      // Fetch job applications
+      const { data: applications, error: appError } = await supabase
+        .from('job_applications')
+        .select(`
+          *,
+          jobs (
+            id,
+            title,
+            location,
+            company_id
+          )
+        `)
+        .eq('applicant_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (appError) throw appError;
+      setAppliedJobs(applications || []);
+
+      // Fetch profile views
+      const { data: views, error: viewsError } = await supabase
+        .from('profile_views')
+        .select('id')
+        .eq('profile_id', user?.id);
+
+      if (viewsError) throw viewsError;
+      setProfileViews(views?.length || 0);
+
+      // Update dashboard stats
+      setDashboardStats({
+        totalSavedJobs: saved?.length || 0,
+        totalApplications: applications?.length || 0,
+        recentActivity: [
+          ...(saved?.slice(0, 3).map(job => ({
+            type: 'saved',
+            action: 'Saved job',
+            details: job.scraped_jobs?.title || 'Unknown Job',
+            timestamp: job.created_at
+          })) || []),
+          ...(applications?.slice(0, 3).map(app => ({
+            type: 'applied',
+            action: 'Applied to job',
+            details: app.jobs?.title || 'Unknown Job',
+            timestamp: app.created_at
+          })) || [])
+        ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5),
+        jobAlerts: []
+      });
+
     } catch (error) {
-      console.error('Error fetching saved jobs:', error);
-      toast.error('Failed to load saved jobs');
-    } finally {
-      setLoadingSavedJobs(false);
+      console.error('Error fetching user data:', error);
+      toast.error('Failed to load dashboard data');
     }
   };
 
-  const fetchProfile = async () => {
+  const removeJob = async (jobId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
+      const { error } = await supabase
+        .from('saved_jobs')
+        .delete()
+        .eq('id', jobId)
+        .eq('user_id', user?.id);
 
-      if (error && error.code !== 'PGRST116') throw error;
-      setProfile(data);
+      if (error) throw error;
+
+      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+      toast.success('Job removed from saved list');
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error removing job:', error);
+      toast.error('Failed to remove job');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -98,188 +144,204 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const stats = [
-    {
-      title: "Saved Jobs",
-      value: savedJobs.length,
-      icon: BookmarkIcon,
-      color: "bg-blue-500",
-    },
-    {
-      title: "Applications",
-      value: "0", // TODO: Implement job applications
-      icon: BriefcaseIcon,
-      color: "bg-green-500",
-    },
-    {
-      title: "Profile Views",
-      value: "0", // TODO: Implement profile views
-      icon: UserIcon,
-      color: "bg-purple-500",
-    },
-    {
-      title: "Success Rate",
-      value: "0%", // TODO: Calculate based on applications
-      icon: TrendingUpIcon,
-      color: "bg-orange-500",
-    },
-  ];
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || user.email}</h1>
-        <p className="text-muted-foreground">Here's your enhanced job search dashboard with AI and social features</p>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, {user.user_metadata?.full_name || user.email}</p>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <div className={`p-2 rounded-md ${stat.color}`}>
-                <stat.icon className="h-4 w-4 text-white" />
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Saved Jobs</p>
+                <p className="text-2xl font-bold">{dashboardStats.totalSavedJobs}</p>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+              <Heart className="h-8 w-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Applications</p>
+                <p className="text-2xl font-bold">{dashboardStats.totalApplications}</p>
+              </div>
+              <Briefcase className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Profile Views</p>
+                <p className="text-2xl font-bold">{profileViews}</p>
+              </div>
+              <Eye className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
+                <p className="text-2xl font-bold">85%</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Main Content Tabs */}
       <Tabs defaultValue="saved-jobs" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList>
           <TabsTrigger value="saved-jobs">Saved Jobs</TabsTrigger>
-          <TabsTrigger value="ai-recommendations">
-            <Sparkles className="h-4 w-4 mr-1" />
-            AI Jobs
-          </TabsTrigger>
-          <TabsTrigger value="social-network">
-            <Users className="h-4 w-4 mr-1" />
-            Network
-          </TabsTrigger>
-          <TabsTrigger value="social-share">
-            <Share2 className="h-4 w-4 mr-1" />
-            Share
-          </TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="applications">Applications</TabsTrigger>
+          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="saved-jobs" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Saved Jobs</h2>
-            <Button asChild>
-              <Link to="/jobs">Browse Jobs</Link>
-            </Button>
-          </div>
-
-          {loadingSavedJobs ? (
-            <div className="text-center py-8">Loading saved jobs...</div>
-          ) : savedJobs.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <BookmarkIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No saved jobs yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start saving jobs you're interested in to keep track of them
-                </p>
-                <Button asChild>
-                  <Link to="/jobs">Browse Jobs</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {savedJobs.map((savedJob) => (
-                <Card key={savedJob.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">
-                          {savedJob.scraped_jobs?.title || 'Job Title Not Available'}
-                        </h3>
-                        <p className="text-muted-foreground">
-                          {savedJob.scraped_jobs?.company || 'Company Not Available'}
-                        </p>
-                        <div className="flex gap-2 mt-2">
-                          <Badge variant="outline">
-                            {savedJob.scraped_jobs?.location || 'Location N/A'}
-                          </Badge>
-                          <Badge variant="outline">
-                            {savedJob.scraped_jobs?.job_type || 'Type N/A'}
-                          </Badge>
-                          <Badge variant="secondary">{savedJob.status}</Badge>
-                        </div>
-                        {savedJob.notes && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Notes: {savedJob.notes}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Saved {new Date(savedJob.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="ai-recommendations" className="space-y-4">
-          <AIJobRecommendations />
-        </TabsContent>
-
-        <TabsContent value="social-network" className="space-y-4">
-          <SocialNetworking />
-        </TabsContent>
-
-        <TabsContent value="social-share" className="space-y-4">
-          <SocialShareHub />
-        </TabsContent>
-
-        <TabsContent value="profile" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>Your Saved Jobs</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <p className="text-muted-foreground">{user.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Full Name</label>
-                <p className="text-muted-foreground">
-                  {profile?.full_name || 'Not set'}
+            <CardContent>
+              {savedJobs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No saved jobs yet. Start browsing jobs to save them for later!
                 </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Role</label>
-                <p className="text-muted-foreground">
-                  {profile?.role || 'job_seeker'}
+              ) : (
+                <div className="space-y-4">
+                  {savedJobs.map((savedJob) => (
+                    <div key={savedJob.id} className="border rounded-lg p-4 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{savedJob.scraped_jobs?.title}</h3>
+                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.company}</p>
+                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.location}</p>
+                          {savedJob.scraped_jobs?.job_type && (
+                            <Badge variant="outline" className="mt-2">
+                              {savedJob.scraped_jobs.job_type}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {savedJob.scraped_jobs?.job_url && (
+                            <Button asChild size="sm">
+                              <a href={savedJob.scraped_jobs.job_url} target="_blank" rel="noopener noreferrer">
+                                Apply
+                              </a>
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => removeJob(savedJob.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                      {savedJob.notes && (
+                        <div className="mt-2">
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Notes:</strong> {savedJob.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="applications" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Job Applications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {appliedJobs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No applications yet. Start applying to jobs through our platform!
                 </p>
-              </div>
-              <Button asChild>
-                <Link to="/profile">Edit Profile</Link>
-              </Button>
+              ) : (
+                <div className="space-y-4">
+                  {appliedJobs.map((application) => (
+                    <div key={application.id} className="border rounded-lg p-4 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{application.jobs?.title}</h3>
+                          <p className="text-sm text-muted-foreground">{application.jobs?.location}</p>
+                          <div className="flex items-center space-x-2 mt-2">
+                            <Badge variant={
+                              application.status === 'accepted' ? 'default' :
+                              application.status === 'rejected' ? 'destructive' :
+                              'secondary'
+                            }>
+                              {application.status}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              Applied {new Date(application.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          {application.status === 'accepted' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                          {application.status === 'rejected' && <AlertCircle className="h-5 w-5 text-red-500" />}
+                          {application.status === 'pending' && <Clock className="h-5 w-5 text-yellow-500" />}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-4">
           <Card>
-            <CardContent className="py-8 text-center">
-              <TrendingUpIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Activity Timeline</h3>
-              <p className="text-muted-foreground">
-                View your job search activity (Coming Soon)
-              </p>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {dashboardStats.recentActivity.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No recent activity. Start exploring jobs to see your activity here!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {dashboardStats.recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <div className="flex-shrink-0">
+                        {activity.type === 'saved' && <Heart className="h-5 w-5 text-red-500" />}
+                        {activity.type === 'applied' && <Briefcase className="h-5 w-5 text-blue-500" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{activity.action}</p>
+                        <p className="text-sm text-muted-foreground">{activity.details}</p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(activity.timestamp).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
