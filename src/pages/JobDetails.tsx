@@ -8,14 +8,14 @@ import { ArrowLeft, MapPin, Calendar, Briefcase, ExternalLink, Flag, Share2 } fr
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "@/hooks/useUser";
-import type { PostedJob, ScrapedJob } from "@/types/jobs";
+import type { PostedJob, AggregatedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource } from "@/utils/jobUtils";
 
 const JobDetails = () => {
-  const { id, type } = useParams<{ id: string; type: 'posted' | 'scraped' }>();
+  const { id, type } = useParams<{ id: string; type: 'posted' | 'aggregated' }>();
   const navigate = useNavigate();
   const { user } = useUser();
-  const [job, setJob] = useState<PostedJob | ScrapedJob | null>(null);
+  const [job, setJob] = useState<PostedJob | AggregatedJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
@@ -213,11 +213,11 @@ const JobDetails = () => {
                 </div>
               )}
 
-              {type === 'scraped' && (job as ScrapedJob).skills && (
+              {type === 'aggregated' && (job as AggregatedJob).skills && (
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Required Skills</h3>
                   <div className="flex flex-wrap gap-2">
-                    {(job as ScrapedJob).skills?.map((skill, index) => (
+                    {(job as AggregatedJob).skills?.map((skill: string, index: number) => (
                       <Badge key={index} variant="outline">{skill}</Badge>
                     ))}
                   </div>

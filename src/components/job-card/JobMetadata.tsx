@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Building } from 'lucide-react';
-import type { PostedJob, ScrapedJob } from '@/types/jobs';
+import type { PostedJob, AggregatedJob } from '@/types/jobs';
 
 export interface JobMetadataProps {
-  job: PostedJob | ScrapedJob;
+  job: PostedJob | AggregatedJob;
   socialShares?: Record<string, any>;
 }
 
@@ -31,7 +30,7 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
   };
 
   // Type-safe property access
-  const getCompany = (job: PostedJob | ScrapedJob): string => {
+  const getCompany = (job: PostedJob | AggregatedJob): string => {
     if ('company' in job && job.company) {
       return typeof job.company === 'string' ? job.company : 'Company not specified';
     }
@@ -39,17 +38,17 @@ const JobMetadata: React.FC<JobMetadataProps> = ({ job, socialShares }) => {
     return 'Company not specified';
   };
 
-  const getPostedAt = (job: PostedJob | ScrapedJob): string | null => {
+  const getPostedAt = (job: PostedJob | AggregatedJob): string | null => {
     if ('created_at' in job && job.created_at) return job.created_at;
     return null;
   };
 
-  const getDeadline = (job: PostedJob | ScrapedJob): string | null => {
+  const getDeadline = (job: PostedJob | AggregatedJob): string | null => {
     if ('application_deadline' in job) return job.application_deadline || null;
     return null;
   };
 
-  const getTags = (job: PostedJob | ScrapedJob): string[] => {
+  const getTags = (job: PostedJob | AggregatedJob): string[] => {
     if ('skills' in job && job.skills && Array.isArray(job.skills)) return job.skills;
     return [];
   };

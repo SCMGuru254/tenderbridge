@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,7 @@ import { useJobData } from "@/hooks/useJobData";
 export const AppDebugger = () => {
   const [debugInfo, setDebugInfo] = useState<any>({});
   const { user, loading: userLoading } = useUser();
-  const { postedJobs, scrapedJobs } = useJobData();
+  const { postedJobs, aggregatedJobs } = useJobData();
 
   useEffect(() => {
     const info = {
@@ -19,7 +20,7 @@ export const AppDebugger = () => {
       },
       jobs: {
         postedCount: postedJobs?.length || 0,
-        scrapedCount: scrapedJobs?.length || 0,
+        aggregatedCount: aggregatedJobs?.length || 0,
         loading: userLoading // only basic info
       },
       environment: {
@@ -34,7 +35,7 @@ export const AppDebugger = () => {
     
     setDebugInfo(info);
     console.log('App Debug Info:', info);
-  }, [user, userLoading, postedJobs, scrapedJobs]);
+  }, [user, userLoading, postedJobs, aggregatedJobs]);
 
   return (
     <Card className="m-4 border-orange-200">
@@ -53,7 +54,7 @@ export const AppDebugger = () => {
           <strong>Posted Jobs:</strong> {debugInfo.jobs?.postedCount} loaded
         </div>
         <div>
-          <strong>Scraped Jobs:</strong> {debugInfo.jobs?.scrapedCount} loaded
+          <strong>Aggregated Jobs:</strong> {debugInfo.jobs?.aggregatedCount} loaded
         </div>
         <div>
           <strong>React:</strong> {debugInfo.react?.version}

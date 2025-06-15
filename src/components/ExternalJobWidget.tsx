@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ export const ExternalJobWidget = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [importSuccess, setImportSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { refetchScrapedJobs } = useJobData();
+  const { refetchAggregatedJobs } = useJobData();
   
   const hideLoader = () => {
     setIsLoading(false);
@@ -51,7 +50,7 @@ export const ExternalJobWidget = () => {
       } else {
         console.log('Supply chain jobs imported successfully:', data);
         // Refetch jobs to show the newly scraped ones
-        refetchScrapedJobs();
+        refetchAggregatedJobs();
         setImportSuccess(true);
         toast.success('Supply chain jobs imported successfully');
       }
