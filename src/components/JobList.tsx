@@ -1,3 +1,4 @@
+
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -242,9 +243,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Fixed type error: Convert to string | undefined instead of string | null
-          const deadlineValue: string | undefined = deadline || undefined;
-          const jobUrlValue: string | undefined = jobUrl || undefined;
+          // Fixed type error: Convert to string | null instead of string | undefined
+          const deadlineValue: string | null = deadline || null;
+          const jobUrlValue: string | null = jobUrl || null;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,
