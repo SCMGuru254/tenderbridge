@@ -140,7 +140,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           
           // Clean the job data before displaying - ENSURE job.title is always a string
           const cleanedTitle = cleanJobTitle(job.title || '');
-          const cleanedCompany = cleanCompanyName(company);
+          const cleanedCompany = cleanCompanyName(company || '');
           
           // Convert null to undefined to match expected type
           const deadlineValue: string | undefined = deadline ?? undefined;
