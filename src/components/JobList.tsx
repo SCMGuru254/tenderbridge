@@ -245,8 +245,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
           // Convert to proper types for JobCard - Fixed type error
-          const deadlineValue: string | null = deadline || null;
-          const jobUrlValue: string | null = jobUrl || null;
+          const deadlineValue: string | undefined = deadline || undefined;
+          const jobUrlValue: string | undefined = jobUrl || undefined;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,

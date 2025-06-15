@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,7 @@ const InterviewPrep = () => {
   const [selectedQuestionType, setSelectedQuestionType] = useState<'behavioral' | 'technical' | 'situational'>('behavioral');
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [mockInterviews, setMockInterviews] = useState<MockInterview[]>([
+  const [mockInterviews] = useState<MockInterview[]>([
     { id: '1', type: 'Technical Interview', duration: 45, completed: true, score: 85 },
     { id: '2', type: 'Behavioral Interview', duration: 30, completed: false },
     { id: '3', type: 'Leadership Interview', duration: 60, completed: true, score: 92 }
