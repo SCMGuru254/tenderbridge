@@ -35,14 +35,12 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <ErrorBoundary>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+            <TooltipProvider>
+              <AuthProvider>
                 <div className="min-h-screen bg-background">
                   <Navigation />
                   <main className="container mx-auto px-4 py-8">
@@ -64,12 +62,14 @@ function App() {
                     </Routes>
                   </main>
                 </div>
-              </ErrorBoundary>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+                <Toaster />
+                <Sonner />
+              </AuthProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
