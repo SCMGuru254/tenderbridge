@@ -1,51 +1,41 @@
-
-import { Routes, Route } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import Index from "@/pages/Index";
-import Jobs from "@/pages/Jobs";
-import Profile from "@/pages/Profile";
-import PostJob from "@/pages/PostJob";
-import Auth from "@/pages/Auth";
-import Dashboard from "@/pages/Dashboard";
-import Companies from "@/pages/Companies";
-import Discussions from "@/pages/Discussions";
-import PayPalPortal from "@/pages/PayPalPortal";
-import Careers from "@/pages/Careers";
-import AIAgents from "@/pages/AIAgents";
-import SocialHub from "@/pages/SocialHub";
-import { AppDebugger } from "@/components/debug/AppDebugger";
-import { RouterErrorBoundary } from "@/components/RouterErrorBoundary";
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient } from 'react-query';
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
+import { RouterErrorBoundary } from '@/components/RouterErrorBoundary';
+import Home from '@/pages/Home';
+import Jobs from '@/pages/Jobs';
+import Documents from '@/pages/Documents';
+import Discussions from '@/pages/Discussions';
+import Networking from '@/pages/Networking';
+import Rewards from '@/pages/Rewards';
+import Affiliate from '@/pages/Affiliate';
+import FeaturedClients from '@/pages/FeaturedClients';
 
 function App() {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  console.log('App rendering...', { isDevelopment });
-
   return (
-    <RouterErrorBoundary>
-      <div className="min-h-screen flex flex-col">
-        {isDevelopment && <AppDebugger />}
-        <Header />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/post-job" element={<PostJob />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/discussions" element={<Discussions />} />
-            <Route path="/paypal-portal" element={<PayPalPortal />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/ai-agents" element={<AIAgents />} />
-            <Route path="/social-hub" element={<SocialHub />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </RouterErrorBoundary>
+    <QueryClient>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <Toaster />
+        <div className="min-h-screen bg-background">
+          <BrowserRouter>
+            <RouterErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/discussions" element={<Discussions />} />
+                <Route path="/networking" element={<Networking />} />
+                <Route path="/rewards" element={<Rewards />} />
+                <Route path="/affiliate" element={<Affiliate />} />
+                <Route path="/featured-clients" element={<FeaturedClients />} />
+              </Routes>
+            </RouterErrorBoundary>
+          </BrowserRouter>
+        </div>
+      </ThemeProvider>
+    </QueryClient>
   );
 }
 

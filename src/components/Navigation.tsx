@@ -1,67 +1,66 @@
 
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { 
   Home, 
   Briefcase, 
+  FileText, 
+  MessageSquare, 
   Users, 
-  MessageCircle, 
-  CreditCard,
-  Building2,
-  FileText,
+  Award,
+  DollarSign,
   Star
-} from "lucide-react";
+} from 'lucide-react';
 
-export const Navigation = () => {
+const Navigation = () => {
   const location = useLocation();
 
-  const isActivePath = (path: string) => {
-    return location.pathname === path;
-  };
-
   const navItems = [
-    { path: "/", icon: Home, label: "Home" },
-    { path: "/jobs", icon: Briefcase, label: "Jobs" },
-    { path: "/companies", icon: Building2, label: "Companies" },
-    { path: "/discussions", icon: MessageCircle, label: "Discussions" },
-    { path: "/paypal-portal", icon: CreditCard, label: "PayPal Portal" },
-    { path: "/profile", icon: Users, label: "Profile" },
-    { path: "/document-generator", icon: FileText, label: "Documents" },
-    { path: "/careers", icon: Star, label: "Careers" },
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/jobs', label: 'Jobs', icon: Briefcase },
+    { href: '/documents', label: 'Documents', icon: FileText },
+    { href: '/discussions', label: 'Discussions', icon: MessageSquare },
+    { href: '/networking', label: 'Networking', icon: Users },
+    { href: '/rewards', label: 'Rewards', icon: Award },
+    { href: '/affiliate', label: 'Affiliate', icon: DollarSign },
+    { href: '/featured-clients', label: 'Featured Services', icon: Star },
   ];
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <Link to="/" className="text-xl font-bold text-primary">
-            Supply Chain Hub
-          </Link>
-          
-          <div className="hidden md:flex space-x-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link key={item.path} to={item.path}>
-                  <Button
-                    variant={isActivePath(item.path) ? "default" : "ghost"}
-                    className="flex items-center gap-2"
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="text-xl font-bold text-primary">
+              SupplyChain Jobs
+            </Link>
+            
+            <div className="hidden md:flex space-x-4">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      location.pathname === item.href
+                        ? "bg-primary text-primary-foreground"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    )}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="md:hidden">
-            <Button variant="ghost" size="sm">
-              Menu
-            </Button>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
     </nav>
   );
 };
+
+export default Navigation;

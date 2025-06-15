@@ -9,6 +9,139 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      affiliate_payouts: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          id: string
+          notes: string | null
+          payout_details: Json | null
+          payout_method: string
+          processed_at: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount: number
+          id?: string
+          notes?: string | null
+          payout_details?: Json | null
+          payout_method?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          id?: string
+          notes?: string | null
+          payout_details?: Json | null
+          payout_method?: string
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_payouts_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_programs: {
+        Row: {
+          affiliate_code: string
+          commission_rate: number
+          created_at: string
+          id: string
+          pending_payouts: number
+          referral_link: string
+          status: string
+          total_earnings: number
+          total_paid_out: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliate_code: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          pending_payouts?: number
+          referral_link: string
+          status?: string
+          total_earnings?: number
+          total_paid_out?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliate_code?: string
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          pending_payouts?: number
+          referral_link?: string
+          status?: string
+          total_earnings?: number
+          total_paid_out?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      affiliate_referrals: {
+        Row: {
+          affiliate_id: string
+          commission_earned: number | null
+          conversion_amount: number | null
+          converted_at: string | null
+          created_at: string
+          id: string
+          paid_at: string | null
+          referral_type: string
+          referred_user_id: string | null
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          commission_earned?: number | null
+          conversion_amount?: number | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          referral_type: string
+          referred_user_id?: string | null
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          commission_earned?: number | null
+          conversion_amount?: number | null
+          converted_at?: string | null
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          referral_type?: string
+          referred_user_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       application_notifications: {
         Row: {
           applicant_id: string | null
@@ -221,6 +354,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      featured_clients: {
+        Row: {
+          ad_views_purchased: number | null
+          ad_views_used: number | null
+          budget_range: string
+          company_email: string
+          company_name: string
+          company_website: string | null
+          contact_person: string
+          created_at: string
+          end_date: string | null
+          id: string
+          intent_type: string
+          monthly_fee: number | null
+          notes: string | null
+          phone_number: string | null
+          start_date: string | null
+          status: string
+          subscription_type: string | null
+          updated_at: string
+          user_id: string
+          yearly_fee: number | null
+        }
+        Insert: {
+          ad_views_purchased?: number | null
+          ad_views_used?: number | null
+          budget_range: string
+          company_email: string
+          company_name: string
+          company_website?: string | null
+          contact_person: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          intent_type: string
+          monthly_fee?: number | null
+          notes?: string | null
+          phone_number?: string | null
+          start_date?: string | null
+          status?: string
+          subscription_type?: string | null
+          updated_at?: string
+          user_id: string
+          yearly_fee?: number | null
+        }
+        Update: {
+          ad_views_purchased?: number | null
+          ad_views_used?: number | null
+          budget_range?: string
+          company_email?: string
+          company_name?: string
+          company_website?: string | null
+          contact_person?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          intent_type?: string
+          monthly_fee?: number | null
+          notes?: string | null
+          phone_number?: string | null
+          start_date?: string | null
+          status?: string
+          subscription_type?: string | null
+          updated_at?: string
+          user_id?: string
+          yearly_fee?: number | null
+        }
+        Relationships: []
       }
       hiring_decisions: {
         Row: {
@@ -575,6 +777,42 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_plans: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string
+          features: Json
+          id: string
+          is_active: boolean
+          plan_name: string
+          plan_type: string
+          price_amount: number
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string | null
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          plan_name: string
+          plan_type: string
+          price_amount: number
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string | null
+          created_at?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          plan_name?: string
+          plan_type?: string
+          price_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile_views: {
         Row: {
           id: string
@@ -708,6 +946,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      review_responses: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          id: string
+          payment_date: string | null
+          payment_status: string
+          payment_type: string
+          provider_id: string
+          response_text: string
+          review_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          payment_status?: string
+          payment_type: string
+          provider_id: string
+          response_text: string
+          review_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          payment_status?: string
+          payment_type?: string
+          provider_id?: string
+          response_text?: string
+          review_id?: string
+        }
+        Relationships: []
       }
       rewards_catalog: {
         Row: {
