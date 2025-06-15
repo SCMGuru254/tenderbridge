@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Poll, PollOption, PollVote } from "@/types/profiles";
+import { Poll, PollOption } from "@/types/profiles";
 
 export const createPoll = async (discussionId: string, question: string, options: string[], expiresInDays?: number): Promise<void> => {
   const { data: { user } } = await supabase.auth.getUser();

@@ -8,7 +8,7 @@ import { EnhancedProfileCard } from './EnhancedProfileCard';
 import { Profile } from '@/types/profiles';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { followUser, unfollowUser, getFollowing, getFollowers, isFollowing } from '@/services/followService';
+import { followUser, unfollowUser, getFollowing, getFollowers } from '@/services/followService';
 import { toast } from 'sonner';
 
 export const CandidateFollowList = () => {

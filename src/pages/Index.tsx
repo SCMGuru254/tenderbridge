@@ -82,6 +82,7 @@ const Index = () => {
 
   // Convert error to PostgrestError type to match expected interface
   const postgrestError: PostgrestError | null = error ? {
+    name: 'PostgrestError',
     message: error.message,
     details: (error as any).details || '',
     hint: (error as any).hint || '',
@@ -96,22 +97,21 @@ const Index = () => {
           <div className="lg:w-1/4">
             {isMobile ? (
               <MobileJobFilters
-                selectedCategory={selectedCategory}
-                selectedLocation={selectedLocation}
-                selectedJobType={selectedJobType}
-                onCategoryChange={setSelectedCategory}
-                onLocationChange={setSelectedLocation}
-                onJobTypeChange={setSelectedJobType}
-                onClearFilters={clearFilters}
+                searchTerm=""
+                setSearchTerm={() => {}}
+                category={selectedCategory || null}
+                setCategory={setSelectedCategory}
               />
             ) : (
               <JobFilters
-                selectedCategory={selectedCategory}
-                selectedLocation={selectedLocation}
-                selectedJobType={selectedJobType}
-                onCategoryChange={setSelectedCategory}
-                onLocationChange={setSelectedLocation}
-                onJobTypeChange={setSelectedJobType}
+                searchTerm=""
+                setSearchTerm={() => {}}
+                category={selectedCategory || null}
+                setCategory={setSelectedCategory}
+                location={selectedLocation || null}
+                setLocation={setSelectedLocation}
+                jobType={selectedJobType || null}
+                setJobType={setSelectedJobType}
                 onClearFilters={clearFilters}
               />
             )}
@@ -123,7 +123,7 @@ const Index = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 Latest Supply Chain Jobs
               </h1>
-              <JobRefreshButton onRefresh={handleRefresh} />
+              <JobRefreshButton onClick={handleRefresh} />
             </div>
 
             <JobList 

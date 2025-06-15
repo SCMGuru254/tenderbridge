@@ -20,8 +20,8 @@ export const ProfileViewsTab = ({ profileViews }: ProfileViewsTabProps) => {
               {profileViews.map((view) => (
                 <div key={view.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <p className="font-medium">{view.viewer.full_name}</p>
-                    <p className="text-sm text-muted-foreground">{view.viewer.email}</p>
+                    <p className="font-medium">{view.viewer.full_name || 'Anonymous'}</p>
+                    <p className="text-sm text-muted-foreground">{view.viewer.company || 'Company not specified'}</p>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {new Date(view.viewed_at).toLocaleDateString()}

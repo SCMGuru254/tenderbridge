@@ -243,9 +243,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Convert to string | undefined instead of string | null
-          const deadlineValue: string | undefined = deadline || undefined;
-          const jobUrlValue: string | undefined = jobUrl || undefined;
+          // Convert to string | null instead of string | undefined for JobCard compatibility
+          const deadlineValue: string | null = deadline || null;
+          const jobUrlValue: string | null = jobUrl || null;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,
@@ -267,7 +267,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 job_type: job.job_type || "Type not specified",
                 category: getJobSource(job),
                 job_url: jobUrlValue || undefined,
-                application_deadline: deadlineValue,
+                application_deadline: deadlineValue || undefined,
                 social_shares: job.social_shares || {}
               }}
               onSave={() => {
