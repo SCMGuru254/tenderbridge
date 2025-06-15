@@ -65,7 +65,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   const now = new Date();
   const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const filteredJobsBySourceTime = (jobs || []).filter(job => {
-    if ('source_posted_at' in job && job.source_posted_at) {
+    if ('source_posted_at' in job && job.source_posted_at && typeof job.source_posted_at === 'string') {
       try {
         const posted = new Date(job.source_posted_at);
         return posted >= twentyFourHoursAgo && posted <= now;
@@ -176,8 +176,15 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
 
   // Sort by source posting date (most recent first)
   const sortedJobs = [...filteredJobs].sort((a, b) => {
-    const aDate = 'source_posted_at' in a && a.source_posted_at ? new Date(a.source_posted_at) : new Date(a.created_at);
-    const bDate = 'source_posted_at' in b && b.source_posted_at ? new Date(b.source_posted_at) : new Date(b.created_at);
+    const getValidDate = (job: PostedJob | ScrapedJob) => {
+      const dateToUse = 'source_posted_at' in job && job.source_posted_at && typeof job.source_posted_at === 'string'
+        ? job.source_posted_at 
+        : job.created_at;
+      return typeof dateToUse === 'string' ? new Date(dateToUse) : new Date();
+    };
+    
+    const aDate = getValidDate(a);
+    const bDate = getValidDate(b);
     return bDate.getTime() - aDate.getTime();
   });
 

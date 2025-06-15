@@ -90,7 +90,7 @@ export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean =
       ? job.source_posted_at 
       : job.created_at;
     
-    if (!dateToCheck) {
+    if (!dateToCheck || typeof dateToCheck !== 'string') {
       console.log('🚫 No valid date found for job:', job.title);
       return false;
     }
@@ -118,7 +118,7 @@ export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
       ? job.source_posted_at 
       : job.created_at;
     
-    if (!dateToUse) {
+    if (!dateToUse || typeof dateToUse !== 'string') {
       return 'Recently posted';
     }
     
