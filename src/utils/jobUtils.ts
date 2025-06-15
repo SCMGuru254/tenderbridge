@@ -1,14 +1,13 @@
+import type { PostedJob, AggregatedJob } from '@/types/jobs';
 
-import type { PostedJob, ScrapedJob } from '@/types/jobs';
-
-export const formatSalary = (job: PostedJob | ScrapedJob): string | null => {
+export const formatSalary = (job: PostedJob | AggregatedJob): string | null => {
   if ('salary_range' in job && job.salary_range) {
     return job.salary_range;
   }
   return null;
 };
 
-export const getJobCompany = (job: PostedJob | ScrapedJob): string | null => {
+export const getJobCompany = (job: PostedJob | AggregatedJob): string | null => {
   if ('company' in job && job.company && job.company.trim() !== '') {
     return job.company.trim();
   }
@@ -21,7 +20,7 @@ export const getJobCompany = (job: PostedJob | ScrapedJob): string | null => {
 // Alias for backward compatibility
 export const getCompanyName = getJobCompany;
 
-export const getJobLocation = (job: PostedJob | ScrapedJob): string | null => {
+export const getJobLocation = (job: PostedJob | AggregatedJob): string | null => {
   if (job.location && job.location.trim() !== '') {
     return job.location.trim();
   }
@@ -31,7 +30,7 @@ export const getJobLocation = (job: PostedJob | ScrapedJob): string | null => {
 // Alias for backward compatibility
 export const getLocation = getJobLocation;
 
-export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
+export const getJobUrl = (job: PostedJob | AggregatedJob): string | null => {
   if ('job_url' in job && job.job_url && job.job_url.trim() !== '') {
     return job.job_url.trim();
   }
@@ -41,16 +40,19 @@ export const getJobUrl = (job: PostedJob | ScrapedJob): string | null => {
   return null;
 };
 
-export const isScrapedJob = (job: PostedJob | ScrapedJob): job is ScrapedJob => {
+export const isAggregatedJob = (job: PostedJob | AggregatedJob): job is AggregatedJob => {
   return 'source' in job;
 };
+
+// Keep old function for backwards compatibility
+export const isScrapedJob = isAggregatedJob;
 
 export const formatJobType = (jobType: string | undefined): string => {
   if (!jobType || jobType.trim() === '') return 'Not specified';
   return jobType.charAt(0).toUpperCase() + jobType.slice(1);
 };
 
-export const getJobDeadline = (job: PostedJob | ScrapedJob): string | null => {
+export const getJobDeadline = (job: PostedJob | AggregatedJob): string | null => {
   if ('application_deadline' in job && job.application_deadline) {
     return job.application_deadline;
   }
@@ -60,8 +62,8 @@ export const getJobDeadline = (job: PostedJob | ScrapedJob): string | null => {
 // Alias for backward compatibility
 export const getDeadline = getJobDeadline;
 
-export const getJobSource = (job: PostedJob | ScrapedJob): string => {
-  if (isScrapedJob(job) && job.source && job.source.trim() !== '') {
+export const getJobSource = (job: PostedJob | AggregatedJob): string => {
+  if (isAggregatedJob(job) && job.source && job.source.trim() !== '') {
     return job.source.trim();
   }
   if ('posted_by' in job) {
@@ -70,7 +72,7 @@ export const getJobSource = (job: PostedJob | ScrapedJob): string => {
   return 'Unknown Source';
 };
 
-export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
+export const isJobExpired = (job: PostedJob | AggregatedJob): boolean => {
   const deadline = getJobDeadline(job);
   if (!deadline) return false;
   
@@ -82,8 +84,8 @@ export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
   }
 };
 
-// Function to check if a job was posted within the last 24 hours
-export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean => {
+// Function to check if a job was posted within the last 7 days (more permissive)
+export const isJobPostedWithinWeek = (job: PostedJob | AggregatedJob): boolean => {
   try {
     // Use source_posted_at if available, otherwise fallback to created_at
     const dateToCheck = 'source_posted_at' in job && job.source_posted_at 
@@ -92,26 +94,32 @@ export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean =
     
     if (!dateToCheck || typeof dateToCheck !== 'string') {
       console.log('🚫 No valid date found for job:', job.title);
-      return false;
+      return true; // Include jobs without dates rather than exclude them
     }
     
     const jobCreatedAt = new Date(dateToCheck);
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
+    const isRecent = jobCreatedAt >= sevenDaysAgo;
     console.log(`🔍 Job "${job.title}" posted at:`, jobCreatedAt.toISOString(), 
-                'vs 24h ago:', twentyFourHoursAgo.toISOString(), 
-                'is recent:', jobCreatedAt >= twentyFourHoursAgo);
+                'vs 7 days ago:', sevenDaysAgo.toISOString(), 
+                'is recent:', isRecent);
     
-    return jobCreatedAt >= twentyFourHoursAgo;
+    return isRecent;
   } catch (error) {
-    console.error('Error checking if job is within 24 hours:', error);
-    return false;
+    console.error('Error checking if job is within 7 days:', error);
+    return true; // Include jobs with errors rather than exclude them
   }
 };
 
+// Keep old function for backwards compatibility but make it more permissive
+export const isJobPostedWithin24Hours = (job: PostedJob | AggregatedJob): boolean => {
+  return isJobPostedWithinWeek(job);
+};
+
 // Function to get human-readable time since posting
-export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
+export const getTimeSincePosted = (job: PostedJob | AggregatedJob): string => {
   try {
     // Use source_posted_at if available, otherwise fallback to created_at
     const dateToUse = 'source_posted_at' in job && job.source_posted_at 
@@ -143,9 +151,9 @@ export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
 };
 
 export const filterJobs = (
-  jobs: (PostedJob | ScrapedJob)[] | undefined,
+  jobs: (PostedJob | AggregatedJob)[] | undefined,
   filters: { searchTerm?: string; category?: string | null; onlyRecent?: boolean }
-): (PostedJob | ScrapedJob)[] => {
+): (PostedJob | AggregatedJob)[] => {
   if (!jobs) {
     console.log("filterJobs - No jobs provided");
     return [];
@@ -155,8 +163,8 @@ export const filterJobs = (
   console.log("filterJobs - Filters:", filters);
   
   const filtered = jobs.filter(job => {
-    // Filter for jobs posted within 24 hours if onlyRecent is true
-    if (filters.onlyRecent && !isJobPostedWithin24Hours(job)) {
+    // Filter for jobs posted within a week if onlyRecent is true
+    if (filters.onlyRecent && !isJobPostedWithinWeek(job)) {
       return false;
     }
     

@@ -24,7 +24,7 @@ export interface PostedJob extends BaseJob {
   hiring_timeline?: string;
 }
 
-export interface ScrapedJob extends BaseJob {
+export interface AggregatedJob extends BaseJob {
   company?: string;
   location?: string;
   description?: string;
@@ -40,12 +40,13 @@ export interface ScrapedJob extends BaseJob {
   is_scam?: boolean;
   scam_reports?: number;
   updated_at: string;
+  source_posted_at?: string;
 }
 
-export type Job = PostedJob | ScrapedJob;
+export type Job = PostedJob | AggregatedJob;
 
 // Add the missing JobType for compatibility
-export type JobType = PostedJob | ScrapedJob;
+export type JobType = PostedJob | AggregatedJob;
 
 export interface JobFilterParams {
   searchTerm?: string;

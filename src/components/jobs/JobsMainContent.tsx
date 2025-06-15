@@ -9,10 +9,10 @@ interface JobsMainContentProps {
 }
 
 export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => {
-  const { postedJobs, scrapedJobs, refetchPostedJobs, refetchScrapedJobs } = useJobData();
+  const { postedJobs, aggregatedJobs, refetchPostedJobs, refetchAggregatedJobs } = useJobData();
 
   const handleRefresh = async () => {
-    await Promise.all([refetchPostedJobs(), refetchScrapedJobs()]);
+    await Promise.all([refetchPostedJobs(), refetchAggregatedJobs()]);
     onRefreshComplete?.();
   };
 
@@ -49,12 +49,12 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
 
         <Card>
           <CardHeader>
-            <CardTitle>Scraped Jobs ({scrapedJobs.length})</CardTitle>
+            <CardTitle>Aggregated Jobs ({aggregatedJobs.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            {scrapedJobs.length > 0 ? (
+            {aggregatedJobs.length > 0 ? (
               <div className="space-y-2">
-                {scrapedJobs.slice(0, 5).map((job: any) => (
+                {aggregatedJobs.slice(0, 5).map((job: any) => (
                   <div key={job.id} className="p-3 border rounded-lg">
                     <h3 className="font-semibold">{job.title}</h3>
                     <p className="text-sm text-muted-foreground">{job.company} • {job.location}</p>
@@ -62,7 +62,7 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">No scraped jobs found</p>
+              <p className="text-muted-foreground">No aggregated jobs found</p>
             )}
           </CardContent>
         </Card>

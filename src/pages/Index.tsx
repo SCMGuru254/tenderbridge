@@ -29,9 +29,9 @@ const Index = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["scraped_jobs", searchTerm, selectedCategory, selectedLocation, selectedJobType],
+    queryKey: ["aggregated_jobs", searchTerm, selectedCategory, selectedLocation, selectedJobType],
     queryFn: async () => {
-      console.log("Index - Fetching scraped jobs with filters:", {
+      console.log("Index - Fetching aggregated jobs with filters:", {
         search: searchTerm,
         category: selectedCategory,
         location: selectedLocation,
@@ -68,7 +68,7 @@ const Index = () => {
         throw error;
       }
 
-      console.log("Index - Raw scraped jobs data:", data);
+      console.log("Index - Raw aggregated jobs data:", data);
       console.log("Index - Number of jobs fetched:", data?.length || 0);
 
       return data || [];

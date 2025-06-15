@@ -1,11 +1,10 @@
-
 import { useMemo } from 'react';
-import type { PostedJob, ScrapedJob } from '@/types/jobs';
+import type { PostedJob, AggregatedJob } from '@/types/jobs';
 
-export const useJobDeduplication = (jobs: (PostedJob | ScrapedJob)[]) => {
+export const useJobDeduplication = (jobs: (PostedJob | AggregatedJob)[]) => {
   const deduplicatedJobs = useMemo(() => {
     const seen = new Set<string>();
-    const uniqueJobs: (PostedJob | ScrapedJob)[] = [];
+    const uniqueJobs: (PostedJob | AggregatedJob)[] = [];
 
     for (const job of jobs) {
       // Safely get company name with type checking
@@ -27,15 +26,15 @@ export const useJobDeduplication = (jobs: (PostedJob | ScrapedJob)[]) => {
 // Export additional utility functions that are used in useJobData
 export const combineAndDeduplicateJobs = (
   postedJobs?: PostedJob[], 
-  scrapedJobs?: ScrapedJob[]
-): (PostedJob | ScrapedJob)[] => {
-  const allJobs: (PostedJob | ScrapedJob)[] = [];
+  aggregatedJobs?: AggregatedJob[]
+): (PostedJob | AggregatedJob)[] => {
+  const allJobs: (PostedJob | AggregatedJob)[] = [];
   
   if (postedJobs) allJobs.push(...postedJobs);
-  if (scrapedJobs) allJobs.push(...scrapedJobs);
+  if (aggregatedJobs) allJobs.push(...aggregatedJobs);
   
   const seen = new Set<string>();
-  const uniqueJobs: (PostedJob | ScrapedJob)[] = [];
+  const uniqueJobs: (PostedJob | AggregatedJob)[] = [];
 
   for (const job of allJobs) {
     const company = 'company' in job && job.company ? job.company : 'unknown';
@@ -50,9 +49,9 @@ export const combineAndDeduplicateJobs = (
   return uniqueJobs;
 };
 
-export const deduplicateScrapedJobs = (jobs: ScrapedJob[]): ScrapedJob[] => {
+export const deduplicateAggregatedJobs = (jobs: AggregatedJob[]): AggregatedJob[] => {
   const seen = new Set<string>();
-  const uniqueJobs: ScrapedJob[] = [];
+  const uniqueJobs: AggregatedJob[] = [];
 
   for (const job of jobs) {
     const company = job.company || 'unknown';
@@ -66,3 +65,6 @@ export const deduplicateScrapedJobs = (jobs: ScrapedJob[]): ScrapedJob[] => {
 
   return uniqueJobs;
 };
+
+// Keep old export for backwards compatibility
+export const deduplicateScrapedJobs = deduplicateAggregatedJobs;

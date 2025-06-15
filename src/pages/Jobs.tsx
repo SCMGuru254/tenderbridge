@@ -66,12 +66,12 @@ const DatabaseErrorFallback = () => {
 
 const Jobs = () => {
   const [mainTab, setMainTab] = useState("jobs");
-  const { refetchPostedJobs, refetchScrapedJobs } = useJobData();
+  const { refetchPostedJobs, refetchAggregatedJobs } = useJobData();
 
   const handleRefreshComplete = () => {
-    // Refresh both posted and scraped jobs to ensure we have the latest data
+    // Refresh both posted and aggregated jobs to ensure we have the latest data
     refetchPostedJobs();
-    refetchScrapedJobs();
+    refetchAggregatedJobs();
   };
 
   return (

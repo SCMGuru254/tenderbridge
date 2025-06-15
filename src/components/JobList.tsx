@@ -3,7 +3,7 @@ import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
 import { ExternalJobWidget } from "@/components/ExternalJobWidget";
-import { PostedJob, ScrapedJob } from "@/types/jobs";
+import { PostedJob, AggregatedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getTimeSincePosted } from "@/utils/jobUtils";
 import { cleanJobTitle, cleanCompanyName, cleanLocation } from "@/utils/cleanJobTitle";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface JobListProps {
-  jobs: (PostedJob | ScrapedJob)[] | undefined;
+  jobs: (PostedJob | AggregatedJob)[] | undefined;
   isLoading: boolean;
   error?: PostgrestError | null;
 }
@@ -60,25 +60,47 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // ENHANCED FILTERING: Only jobs with source_posted_at in 24h
+  // IMPROVED FILTERING: Use multiple date sources and be more permissive
   const now = new Date();
-  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const filteredJobsBySourceTime = (jobs || []).filter(job => {
-    if ('source_posted_at' in job && job.source_posted_at && typeof job.source_posted_at === 'string') {
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
+  const filteredJobsByTime = (jobs || []).filter(job => {
+    // Use source_posted_at if available, otherwise use created_at
+    let dateToCheck: string | null = null;
+    
+    if ('source_posted_at' in job && job.source_posted_at) {
+      dateToCheck = job.source_posted_at;
+    } else {
+      dateToCheck = job.created_at;
+    }
+    
+    if (dateToCheck) {
       try {
-        const posted = new Date(job.source_posted_at);
-        return posted >= twentyFourHoursAgo && posted <= now;
+        const jobDate = new Date(dateToCheck);
+        const isRecent = jobDate >= sevenDaysAgo && jobDate <= now;
+        console.log(`Job "${job.title}" date check:`, {
+          dateUsed: dateToCheck,
+          parsed: jobDate.toISOString(),
+          isRecent,
+          daysAgo: Math.floor((now.getTime() - jobDate.getTime()) / (24 * 60 * 60 * 1000))
+        });
+        return isRecent;
       } catch (error) {
-        console.error('Error parsing source_posted_at:', job.source_posted_at, error);
-        return false;
+        console.error('Error parsing job date:', dateToCheck, error);
+        // Include jobs with unparseable dates rather than excluding them
+        return true;
       }
     }
-    // Legacy fallback for jobs without source_posted_at
-    return false;
+    
+    // Include jobs without dates rather than excluding them
+    console.log(`Job "${job.title}" has no valid date, including it`);
+    return true;
   });
 
-  // All other filtering as before, but use filteredJobsBySourceTime instead of jobs
-  const filteredJobs = filteredJobsBySourceTime.filter(job => {
+  console.log("JobList - After time filtering:", filteredJobsByTime.length, "jobs remain from", jobs.length, "total");
+
+  // All other filtering as before, but use filteredJobsByTime instead of jobs
+  const filteredJobs = filteredJobsByTime.filter(job => {
     console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
     // Clean the title first and validate it's not empty
@@ -149,7 +171,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     return true;
   });
 
-  console.log("JobList - Filtered jobs count:", filteredJobs.length);
+  console.log("JobList - Final filtered jobs count:", filteredJobs.length);
   console.log("JobList - Original jobs count:", jobs.length);
   console.log("JobList - Filtered out:", jobs.length - filteredJobs.length, "invalid jobs");
   
@@ -173,10 +195,10 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // Sort by source posting date (most recent first)
-  const sortedJobs = [...filteredJobsBySourceTime].sort((a, b) => {
-    const getValidDate = (job: PostedJob | ScrapedJob) => {
-      const dateToUse = 'source_posted_at' in job && job.source_posted_at && typeof job.source_posted_at === 'string'
+  // Sort by the most appropriate date (source_posted_at preferred, then created_at)
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    const getValidDate = (job: PostedJob | AggregatedJob) => {
+      const dateToUse = ('source_posted_at' in job && job.source_posted_at) 
         ? job.source_posted_at 
         : job.created_at;
       return typeof dateToUse === 'string' ? new Date(dateToUse) : new Date();
@@ -195,7 +217,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     }
     acc[source].push(job);
     return acc;
-  }, {} as Record<string, (PostedJob | ScrapedJob)[]>);
+  }, {} as Record<string, (PostedJob | AggregatedJob)[]>);
 
   // Display sources to help with debugging
   console.log("JobList - Valid job sources:", 

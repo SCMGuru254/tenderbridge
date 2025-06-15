@@ -1,8 +1,7 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
-import { PostedJob, ScrapedJob } from '@/types/jobs';
+import { PostedJob, AggregatedJob } from '@/types/jobs';
 import { CACHE_CONFIG } from './useAdvancedCaching';
 import { usePerformanceMonitoring } from './usePerformanceMonitoring';
 
@@ -89,65 +88,61 @@ export const usePostedJobs = () => {
   });
 };
 
-// Optimized scraped jobs fetching with pagination and filtering
-export const useScrapedJobs = (limit: number = 1000) => {
+// Optimized aggregated jobs fetching with pagination and filtering
+export const useAggregatedJobs = (limit: number = 1000) => {
   const { trackNetworkRequest, trackError } = usePerformanceMonitoring();
   
-  return useQuery<ScrapedJob[], PostgrestError>({
-    queryKey: ['scraped-jobs', limit],
+  return useQuery<AggregatedJob[], PostgrestError>({
+    queryKey: ['aggregated-jobs', limit],
     queryFn: async () => {
-      console.log("🔍 useScrapedJobs - Starting fetch...");
+      console.log("🔍 useAggregatedJobs - Starting fetch...");
       trackNetworkRequest();
       
       try {
-        console.log("🔍 useScrapedJobs - Testing basic connection to scraped_jobs table...");
-        
-        // Calculate 24 hours ago
-        const twentyFourHoursAgo = new Date();
-        twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-        const twentyFourHoursAgoISO = twentyFourHoursAgo.toISOString();
-        
-        console.log("🔍 useScrapedJobs - Filtering for jobs posted after:", twentyFourHoursAgoISO);
+        console.log("🔍 useAggregatedJobs - Testing basic connection to scraped_jobs table...");
         
         // Test basic connection first
         const { error: tablesError } = await supabase
           .from('scraped_jobs')
           .select('id', { count: 'exact', head: true });
         
-        console.log("🔍 useScrapedJobs - Table exists check:", { 
+        console.log("🔍 useAggregatedJobs - Table exists check:", { 
           tablesError: tablesError?.message || 'No error',
           canAccessTable: !tablesError 
         });
         
         if (tablesError) {
-          console.error("❌ useScrapedJobs - Cannot access scraped_jobs table:", tablesError);
+          console.error("❌ useAggregatedJobs - Cannot access scraped_jobs table:", tablesError);
           throw tablesError;
         }
         
-        // Check total count of all scraped jobs
+        // Check total count of all aggregated jobs
         const { error: countError, count: totalCount } = await supabase
           .from('scraped_jobs')
           .select('*', { count: 'exact', head: true });
         
-        console.log("🔍 useScrapedJobs - Total scraped jobs in table:", { 
+        console.log("🔍 useAggregatedJobs - Total aggregated jobs in table:", { 
           totalCount, 
           countError: countError?.message || 'No error' 
         });
         
-        // Try the filtered query with date filtering for last 24 hours
+        // Fetch all recent jobs (last 7 days to be more inclusive)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoISO = sevenDaysAgo.toISOString();
+        
         const { data, error } = await supabase
           .from('scraped_jobs')
           .select('*')
-          .gte('source_posted_at', twentyFourHoursAgoISO)
-          .order('source_posted_at', { ascending: false })
+          .gte('created_at', sevenDaysAgoISO)
+          .order('created_at', { ascending: false })
           .limit(Math.min(limit, 500))
-          .not('title', 'is', null)
-          .not('company', 'is', null);
+          .not('title', 'is', null);
 
-        console.log("🔍 useScrapedJobs - Filtered query result:", { 
+        console.log("🔍 useAggregatedJobs - Query result:", { 
           dataLength: data?.length || 0, 
           error: error?.message || 'No error',
-          dateFilter: twentyFourHoursAgoISO,
+          dateFilter: sevenDaysAgoISO,
           firstJob: data?.[0] ? {
             id: data[0].id,
             title: data[0].title,
@@ -158,22 +153,17 @@ export const useScrapedJobs = (limit: number = 1000) => {
         });
 
         if (error) {
-          console.error("❌ useScrapedJobs - Error fetching scraped jobs:", error);
+          console.error("❌ useAggregatedJobs - Error fetching aggregated jobs:", error);
           trackError(new Error(error.message));
           throw error;
         }
         
-        console.log("✅ useScrapedJobs - Raw data fetched:", data?.length || 0, "jobs from last 24 hours");
-        
-        // Filter out jobs without valid source_posted_at
-        const validJobs = (data || []).filter(job => !!job.source_posted_at);
-        console.log(`✅ useScrapedJobs - After filtering: ${validJobs.length} jobs (removed ${(data || []).length - validJobs.length} without source_posted_at)`);
-        
-        return validJobs as ScrapedJob[];
+        console.log("✅ useAggregatedJobs - Successfully fetched:", data?.length || 0, "aggregated jobs from last 7 days");
+        return (data || []) as AggregatedJob[];
       } catch (error) {
-        console.error("💥 useScrapedJobs - Failed to fetch scraped jobs:", error);
+        console.error("💥 useAggregatedJobs - Failed to fetch aggregated jobs:", error);
         trackError(error as Error);
-        return [] as ScrapedJob[];
+        return [] as AggregatedJob[];
       }
     },
     ...CACHE_CONFIG.JOBS,
@@ -181,12 +171,15 @@ export const useScrapedJobs = (limit: number = 1000) => {
     placeholderData: (previousData) => previousData,
     meta: {
       errorHandler: (error: PostgrestError) => {
-        console.error("Query error in useScrapedJobs:", error);
+        console.error("Query error in useAggregatedJobs:", error);
         trackError(new Error(error.message));
       }
     }
   });
 };
+
+// Keep the old export for backwards compatibility
+export const useScrapedJobs = useAggregatedJobs;
 
 // Optimized companies fetching
 export const useCompanies = () => {

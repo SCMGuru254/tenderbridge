@@ -16,8 +16,8 @@ export const useJobData = () => {
     }
   });
 
-  const { data: scrapedJobs, refetch: refetchScrapedJobs } = useQuery({
-    queryKey: ['scraped-jobs'],
+  const { data: aggregatedJobs, refetch: refetchAggregatedJobs } = useQuery({
+    queryKey: ['aggregated-jobs'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('scraped_jobs')
@@ -31,8 +31,8 @@ export const useJobData = () => {
 
   return {
     postedJobs: postedJobs || [],
-    scrapedJobs: scrapedJobs || [],
+    aggregatedJobs: aggregatedJobs || [],
     refetchPostedJobs,
-    refetchScrapedJobs
+    refetchAggregatedJobs
   };
 };
