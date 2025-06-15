@@ -244,7 +244,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Convert null to undefined to match expected type - Fixed type error
+          // Convert to proper types for JobCard - Fixed type error
           const deadlineValue: string | null = deadline || null;
           const jobUrlValue: string | null = jobUrl || null;
           
@@ -294,7 +294,6 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 category={getJobSource(job)}
                 job_url={jobUrlValue}
                 application_deadline={deadlineValue}
-                social_shares={job.social_shares || {}}
                 jobId={job.id}
               />
             </div>

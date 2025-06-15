@@ -6,9 +6,27 @@ import { Sparkles, Users, Share2, Brain, TrendingUp } from "lucide-react";
 import { AIJobRecommendations } from "@/components/ai/AIJobRecommendations";
 import { SocialShareHub } from "@/components/social/SocialShareHub";
 import { SocialNetworking } from "@/components/social/SocialNetworking";
+import { SocialJobSharing } from "@/components/social/SocialJobSharing";
 import AgentSocialMedia from "@/components/ai-agents/AgentSocialMedia";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SocialHub() {
+  // Fetch recent jobs for social sharing
+  const { data: jobs } = useQuery({
+    queryKey: ['recent-jobs-for-sharing'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('scraped_jobs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -35,8 +53,12 @@ export default function SocialHub() {
           </div>
         </div>
         
-        <Tabs defaultValue="ai-recommendations" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="job-sharing" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="job-sharing" className="flex items-center gap-2">
+              <Share2 className="h-4 w-4" />
+              Job Sharing
+            </TabsTrigger>
             <TabsTrigger value="ai-recommendations" className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
               AI Jobs
@@ -54,6 +76,23 @@ export default function SocialHub() {
               AI Agents
             </TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="job-sharing" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Share2 className="h-5 w-5" />
+                  Automated Job Sharing
+                </CardTitle>
+                <CardDescription>
+                  Share supply chain jobs automatically to Twitter/X and Telegram using your configured API keys
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SocialJobSharing jobs={jobs || []} />
+              </CardContent>
+            </Card>
+          </TabsContent>
           
           <TabsContent value="ai-recommendations" className="space-y-6">
             <Card>
