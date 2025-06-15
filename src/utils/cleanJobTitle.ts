@@ -1,7 +1,7 @@
 
-// Utility to clean job titles by removing CDATA tags and other unwanted elements
+// Enhanced utility to clean job titles and remove ALL placeholder/mock data
 export const cleanJobTitle = (title: string): string => {
-  if (!title) return '';
+  if (!title || typeof title !== 'string') return '';
   
   // Remove CDATA tags and their content markers
   let cleaned = title.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
@@ -15,23 +15,129 @@ export const cleanJobTitle = (title: string): string => {
   // Remove any remaining brackets or special characters that might be artifacts
   cleaned = cleaned.replace(/[\[\]<>]/g, '');
   
-  // Check if the result is just asterisks or placeholder text
-  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
-    return 'Job Title Not Available';
+  // STRICT RULES: Reject any placeholder or mock data
+  const invalidPatterns = [
+    /^\*+$/,                          // Only asterisks
+    /^\*+\s*\*+$/,                    // Multiple asterisk groups
+    /\*{3,}/,                         // 3 or more consecutive asterisks
+    /^[\*\-\s]+$/,                    // Only asterisks, dashes, and spaces
+    /^\s*[\*\-]+\s*[\(\)]*\s*$/,     // Asterisks/dashes with optional parentheses
+    /^null$/i,                        // literal "null"
+    /^undefined$/i,                   // literal "undefined"
+    /^[\s\-\(\)]*$/,                  // Only spaces, dashes, parentheses
+    /^[\*]{2,}/,                      // Two or more asterisks anywhere
+    /\*+.*\*+/,                       // Asterisks at beginning and end
+  ];
+  
+  // Check against invalid patterns
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(cleaned)) {
+      console.log(`🚫 Rejected invalid title: "${title}" -> "${cleaned}"`);
+      return '';
+    }
   }
   
-  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
-  const asteriskCount = (cleaned.match(/\*/g) || []).length;
-  if (asteriskCount > cleaned.length * 0.5) {
-    return 'Job Title Not Available';
+  // Additional validation: must have actual letters
+  if (!/[a-zA-Z]{3,}/.test(cleaned)) {
+    console.log(`🚫 Rejected title without sufficient letters: "${cleaned}"`);
+    return '';
+  }
+  
+  // Must be at least 3 characters and contain meaningful content
+  if (cleaned.length < 3) {
+    console.log(`🚫 Rejected too short title: "${cleaned}"`);
+    return '';
   }
   
   return cleaned;
 };
 
-// Clean job description as well
+// Enhanced company name cleaning with strict validation
+export const cleanCompanyName = (company: string): string => {
+  if (!company || typeof company !== 'string') return '';
+  
+  let cleaned = company.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+  cleaned = cleaned.replace(/<[^>]*>/g, '');
+  cleaned = cleaned.trim().replace(/\s+/g, ' ');
+  
+  // STRICT RULES: Reject placeholder data for companies
+  const invalidPatterns = [
+    /^\*+$/,                          // Only asterisks
+    /\*{2,}/,                         // Two or more consecutive asterisks
+    /^[\*\-\s]+$/,                    // Only asterisks, dashes, and spaces
+    /^\s*[\*\-]+\s*[\(\)]*\s*$/,     // Asterisks/dashes with optional parentheses
+    /^null$/i,                        // literal "null"
+    /^undefined$/i,                   // literal "undefined"
+    /^[\s\-\(\)]*$/,                  // Only spaces, dashes, parentheses
+    /\*+.*\*+/,                       // Asterisks at beginning and end
+    /^Company\s*not\s*specified$/i,   // Generic placeholder
+  ];
+  
+  // Check against invalid patterns
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(cleaned)) {
+      console.log(`🚫 Rejected invalid company: "${company}" -> "${cleaned}"`);
+      return '';
+    }
+  }
+  
+  // Must have actual letters
+  if (!/[a-zA-Z]{2,}/.test(cleaned)) {
+    console.log(`🚫 Rejected company without sufficient letters: "${cleaned}"`);
+    return '';
+  }
+  
+  // Must be at least 2 characters
+  if (cleaned.length < 2) {
+    console.log(`🚫 Rejected too short company: "${cleaned}"`);
+    return '';
+  }
+  
+  return cleaned;
+};
+
+// Enhanced location cleaning
+export const cleanLocation = (location: string): string => {
+  if (!location || typeof location !== 'string') return '';
+  
+  let cleaned = location.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
+  cleaned = cleaned.replace(/<[^>]*>/g, '');
+  cleaned = cleaned.trim().replace(/\s+/g, ' ');
+  
+  // STRICT RULES: Reject placeholder data for locations
+  const invalidPatterns = [
+    /^\*+$/,                          
+    /\*{2,}/,                         
+    /^[\*\-\s]+$/,                    
+    /^\s*[\*\-]+\s*[\(\)]*\s*$/,     
+    /^null$/i,                        
+    /^undefined$/i,                   
+    /^[\s\-\(\)]*$/,                  
+    /\*+.*\*+/,                       
+  ];
+  
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(cleaned)) {
+      console.log(`🚫 Rejected invalid location: "${location}" -> "${cleaned}"`);
+      return '';
+    }
+  }
+  
+  // Must have actual letters
+  if (!/[a-zA-Z]{2,}/.test(cleaned)) {
+    return '';
+  }
+  
+  if (cleaned.length < 2) {
+    return '';
+  }
+  
+  return cleaned;
+};
+
+// Enhanced description cleaning
 export const cleanJobDescription = (description: string): string => {
-  if (!description) return '';
+  if (!description || typeof description !== 'string') return '';
   
   // Remove CDATA tags
   let cleaned = description.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
@@ -54,41 +160,28 @@ export const cleanJobDescription = (description: string): string => {
   cleaned = cleaned.replace(/<[^>]*>/g, '');
   
   // Clean up extra whitespace
-  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n'); // Remove triple+ line breaks
-  cleaned = cleaned.replace(/[ \t]+/g, ' '); // Normalize spaces and tabs
+  cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n');
+  cleaned = cleaned.replace(/[ \t]+/g, ' ');
   cleaned = cleaned.trim();
   
-  // Check if the result is just asterisks or placeholder text
-  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
-    return 'Job description not available';
+  // STRICT RULES: Reject placeholder descriptions
+  const invalidPatterns = [
+    /^\*+$/,
+    /\*{3,}/,
+    /^[\*\-\s]+$/,
+    /^null$/i,
+    /^undefined$/i,
+  ];
+  
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(cleaned)) {
+      return '';
+    }
   }
   
-  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
-  const asteriskCount = (cleaned.match(/\*/g) || []).length;
-  if (asteriskCount > cleaned.length * 0.5) {
-    return 'Job description not available';
-  }
-  
-  return cleaned;
-};
-
-// Clean company names
-export const cleanCompanyName = (company: string): string => {
-  if (!company) return 'Company Not Specified';
-  
-  let cleaned = company.replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1');
-  cleaned = cleaned.replace(/<[^>]*>/g, '');
-  cleaned = cleaned.trim().replace(/\s+/g, ' ');
-  
-  // Check if the result is just asterisks or placeholder text
-  if (/^\*+$/.test(cleaned) || cleaned === 'null' || cleaned === 'undefined' || cleaned.length === 0) {
-    return 'Company Not Specified';
-  }
-  
-  // If the text is mostly asterisks (more than 50% asterisks), treat as placeholder
-  const asteriskCount = (cleaned.match(/\*/g) || []).length;
-  if (asteriskCount > cleaned.length * 0.5) {
-    return 'Company Not Specified';
+  // Must have meaningful content
+  if (cleaned.length < 10 || !/[a-zA-Z]{5,}/.test(cleaned)) {
+    return '';
   }
   
   return cleaned;

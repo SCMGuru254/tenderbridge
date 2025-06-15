@@ -5,7 +5,7 @@ import { Job } from '../types/job.ts';
 import parseXmlJobs from '../utils/xmlJobParser.ts';
 
 export async function scrapeJobSites(jobSite: JobSite): Promise<Job[]> {
-  console.log(`🔍 Starting scrape for: ${jobSite.source} (${jobSite.url})`);
+  console.log(`🔍 Starting enhanced scrape for: ${jobSite.source} (${jobSite.url})`);
   
   try {
     // Handle XML feeds differently
@@ -14,7 +14,7 @@ export async function scrapeJobSites(jobSite: JobSite): Promise<Job[]> {
       return await scrapeXmlFeed(jobSite);
     }
     
-    // Handle regular HTML scraping
+    // Handle regular HTML scraping with enhanced extraction
     console.log(`🌐 Processing HTML scraping for ${jobSite.source}`);
     return await scrapeHtmlSite(jobSite);
   } catch (error) {
@@ -29,10 +29,10 @@ async function scrapeXmlFeed(jobSite: JobSite): Promise<Job[]> {
     
     const response = await fetch(jobSite.url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; JobBot/1.0; +https://example.com/bot)',
-        'Accept': 'application/rss+xml, application/xml, text/xml'
+        'User-Agent': 'Mozilla/5.0 (compatible; SupplyChainJobBot/1.0; +https://supplychainjobs.co.ke/bot)',
+        'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml'
       },
-      signal: AbortSignal.timeout(jobSite.timeout || 30000)
+      signal: AbortSignal.timeout(jobSite.timeout || 45000)
     });
     
     if (!response.ok) {
@@ -49,9 +49,15 @@ async function scrapeXmlFeed(jobSite: JobSite): Promise<Job[]> {
     
     // Parse XML jobs using the utility function
     const jobs = await parseXmlJobs(xmlText, jobSite);
-    console.log(`✅ Parsed ${jobs.length} jobs from XML`);
     
-    return jobs;
+    // STRICT VALIDATION: Filter out any jobs with placeholder data
+    const validJobs = jobs.filter(job => {
+      return isValidJobData(job.title, job.company, job.location, jobSite.source);
+    });
+    
+    console.log(`✅ Parsed ${jobs.length} raw jobs, ${validJobs.length} valid jobs from XML`);
+    
+    return validJobs;
   } catch (error) {
     console.error(`❌ Error scraping XML feed ${jobSite.source}:`, error);
     return [];
@@ -61,7 +67,7 @@ async function scrapeXmlFeed(jobSite: JobSite): Promise<Job[]> {
 async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
   const jobs: Job[] = [];
   let retries = 0;
-  const maxRetries = jobSite.retryAttempts || 2;
+  const maxRetries = jobSite.retryAttempts || 3;
   
   while (retries <= maxRetries) {
     try {
@@ -71,20 +77,24 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
         headers: {
           'User-Agent': getRandomUserAgent(),
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate',
+          'Accept-Language': 'en-US,en;q=0.9,sw;q=0.8',
+          'Accept-Encoding': 'gzip, deflate, br',
           'Connection': 'keep-alive',
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Pragma': 'no-cache',
+          'Referer': 'https://www.google.com/',
+          'Sec-Fetch-Dest': 'document',
+          'Sec-Fetch-Mode': 'navigate',
+          'Sec-Fetch-Site': 'cross-site'
         },
-        signal: AbortSignal.timeout(jobSite.timeout || 30000)
+        signal: AbortSignal.timeout(jobSite.timeout || 45000)
       });
       
       if (!response.ok) {
         console.error(`❌ HTTP error for ${jobSite.source}: ${response.status} ${response.statusText}`);
         if (retries < maxRetries) {
           retries++;
-          await delay(2000 * retries); // Exponential backoff
+          await delay(3000 * retries); // Exponential backoff
           continue;
         }
         return [];
@@ -97,22 +107,22 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
         console.error(`⚠️ Response too short for ${jobSite.source}, likely blocked or empty`);
         if (retries < maxRetries) {
           retries++;
-          await delay(3000 * retries);
+          await delay(5000 * retries);
           continue;
         }
         return [];
       }
       
-      // Parse HTML and extract jobs
-      const extractedJobs = await parseHtmlJobs(html, jobSite);
-      console.log(`✅ Successfully extracted ${extractedJobs.length} jobs from ${jobSite.source}`);
+      // Enhanced HTML parsing and job extraction
+      const extractedJobs = await parseHtmlJobsEnhanced(html, jobSite);
+      console.log(`✅ Successfully extracted ${extractedJobs.length} valid jobs from ${jobSite.source}`);
       return extractedJobs;
       
     } catch (error) {
       console.error(`❌ Error scraping HTML site ${jobSite.source} (attempt ${retries + 1}):`, error);
       if (retries < maxRetries) {
         retries++;
-        await delay(2000 * retries);
+        await delay(3000 * retries);
       } else {
         return [];
       }
@@ -122,48 +132,61 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
   return jobs;
 }
 
-async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
+async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Job[]> {
   const jobs: Job[] = [];
   const $ = load(html);
   
   const pageTitle = $('title').text();
   console.log(`📄 Page title for ${jobSite.source}: ${pageTitle}`);
 
-  // Use more aggressive job finding strategy
+  // Enhanced job finding strategy with multiple selector attempts
   let jobElements = $();
   
   // Try primary selectors first
   const containerSelectors = jobSite.selectors.jobContainer.split(',').map(s => s.trim());
   for (const selector of containerSelectors) {
-    const elements = $(selector);
-    if (elements.length > 0) {
-      jobElements = elements;
-      console.log(`🎯 Found ${elements.length} job containers with selector: ${selector}`);
-      break;
+    try {
+      const elements = $(selector);
+      if (elements.length > 0) {
+        jobElements = elements;
+        console.log(`🎯 Found ${elements.length} job containers with selector: ${selector}`);
+        break;
+      }
+    } catch (e) {
+      console.log(`⚠️ Invalid selector: ${selector}`);
     }
   }
   
-  // If no primary selectors work, try common job-related selectors
+  // Enhanced fallback selectors for better job detection
   if (jobElements.length === 0) {
-    const fallbackSelectors = [
+    const enhancedFallbackSelectors = [
       '[class*="job"]',
       '[class*="vacancy"]', 
       '[class*="listing"]',
       '[class*="position"]',
       '[class*="career"]',
+      '[data-job]',
+      '[data-testid*="job"]',
+      '[data-test*="job"]',
       'article',
       '.card',
       '.item',
-      '[data-testid*="job"]',
-      '[data-test*="job"]'
+      '.post',
+      '.entry',
+      'li[class*="job"]',
+      'div[class*="job"]'
     ];
     
-    for (const selector of fallbackSelectors) {
-      const elements = $(selector);
-      if (elements.length > 0) {
-        jobElements = elements;
-        console.log(`🔍 Found ${elements.length} potential job containers with fallback selector: ${selector}`);
-        break;
+    for (const selector of enhancedFallbackSelectors) {
+      try {
+        const elements = $(selector);
+        if (elements.length > 0 && elements.length < 500) { // Reasonable number
+          jobElements = elements;
+          console.log(`🔍 Found ${elements.length} potential job containers with fallback selector: ${selector}`);
+          break;
+        }
+      } catch (e) {
+        // Continue to next selector
       }
     }
   }
@@ -179,52 +202,39 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
     try {
       const $element = $(element);
       
-      // Extract job information with multiple selector attempts and fallbacks
-      const title = extractTextWithFallbacks($element, jobSite.selectors.title, $);
-      const company = extractTextWithFallbacks($element, jobSite.selectors.company, $);
-      const location = extractTextWithFallbacks($element, jobSite.selectors.location, $);
+      // Enhanced extraction with multiple attempts and cleaning
+      const rawTitle = extractTextWithFallbacks($element, jobSite.selectors.title, $);
+      const rawCompany = extractTextWithFallbacks($element, jobSite.selectors.company, $);
+      const rawLocation = extractTextWithFallbacks($element, jobSite.selectors.location, $);
       
-      // Extract job URL with multiple attempts
+      // Clean and validate the extracted data
+      const title = cleanTitle(rawTitle);
+      const company = cleanCompanyName(rawCompany);
+      const location = cleanLocation(rawLocation);
+      
+      // Enhanced job URL extraction
       let jobUrl = '';
       if (jobSite.selectors.jobLink) {
-        const linkElement = $element.find(jobSite.selectors.jobLink).first();
-        jobUrl = linkElement.attr('href') || '';
-        
-        // Try alternative link selectors if none found
-        if (!jobUrl) {
-          const altSelectors = ['a', '[href]', '.link'];
-          for (const selector of altSelectors) {
-            const altLink = $element.find(selector).first();
-            const href = altLink.attr('href');
-            if (href && (href.includes('/job') || href.includes('career') || href.includes('vacancy'))) {
-              jobUrl = href;
-              break;
-            }
-          }
-        }
-        
-        // Make relative URLs absolute
-        if (jobUrl && !jobUrl.startsWith('http')) {
-          try {
-            const baseUrl = new URL(jobSite.url).origin;
-            jobUrl = new URL(jobUrl, baseUrl).href;
-          } catch (e) {
-            console.log(`⚠️ Could not resolve URL for ${title}: ${jobUrl}`);
-            jobUrl = '';
-          }
-        }
+        jobUrl = extractJobUrl($element, jobSite.selectors.jobLink, jobSite.url);
       }
       
-      // More lenient validation - accept more potential jobs
-      if (isValidJob(title, company, jobSite)) {
+      // STRICT VALIDATION: Only proceed with jobs that have valid data
+      if (isValidJobData(title, company, location, jobSite.source)) {
+        // Extract description if available
+        let description = '';
+        if (jobSite.selectors.description) {
+          const rawDescription = extractTextWithFallbacks($element, jobSite.selectors.description, $);
+          description = cleanJobDescription(rawDescription);
+        }
+        
         const job: Job = {
-          title: cleanTitle(title),
-          company: company ? company.trim() : 'Company not specified',
-          location: location ? location.trim() : 'Kenya',
+          title: title,
+          company: company || 'Company Name Available on Site',
+          location: location || 'Kenya',
           source: jobSite.source,
           job_url: jobUrl || undefined,
           application_url: jobUrl || undefined,
-          description: '', 
+          description: description,
           job_type: 'full_time',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -233,14 +243,19 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         // Extract additional fields if available
         if (jobSite.selectors.jobType) {
           const jobType = extractTextWithFallbacks($element, jobSite.selectors.jobType, $);
-          if (jobType) job.job_type = mapJobType(jobType);
+          if (jobType && jobType.length > 0) {
+            job.job_type = mapJobType(jobType);
+          }
         }
         
         if (jobSite.selectors.deadline) {
           const deadline = extractTextWithFallbacks($element, jobSite.selectors.deadline, $);
-          if (deadline) {
+          if (deadline && deadline.length > 5) {
             try {
-              job.application_deadline = new Date(deadline).toISOString();
+              const parsedDate = new Date(deadline);
+              if (!isNaN(parsedDate.getTime())) {
+                job.application_deadline = parsedDate.toISOString();
+              }
             } catch (e) {
               // Invalid date format, skip
             }
@@ -248,9 +263,9 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
         }
         
         jobs.push(job);
-        console.log(`✅ Extracted: "${job.title}" at "${job.company}" from ${jobSite.source}`);
+        console.log(`✅ Extracted valid job: "${job.title}" at "${job.company}" in "${job.location}" from ${jobSite.source}`);
       } else {
-        console.log(`⚠️ Skipped invalid job: "${title}" at "${company}" from ${jobSite.source}`);
+        console.log(`🚫 Rejected invalid job data: title="${rawTitle}" company="${rawCompany}" location="${rawLocation}" from ${jobSite.source}`);
       }
     } catch (error) {
       console.error(`❌ Error processing job element ${index} from ${jobSite.source}:`, error);
@@ -260,6 +275,7 @@ async function parseHtmlJobs(html: string, jobSite: JobSite): Promise<Job[]> {
   return jobs;
 }
 
+// Enhanced text extraction with better fallback handling
 function extractTextWithFallbacks($element: any, selectors: string, $: any): string {
   if (!selectors) return '';
   
@@ -269,7 +285,7 @@ function extractTextWithFallbacks($element: any, selectors: string, $: any): str
   for (const selector of selectorList) {
     try {
       const text = $element.find(selector).first().text().trim();
-      if (text && text.length > 0) {
+      if (text && text.length > 0 && !isPlaceholderText(text)) {
         return text;
       }
     } catch (e) {
@@ -277,27 +293,28 @@ function extractTextWithFallbacks($element: any, selectors: string, $: any): str
     }
   }
   
-  // Try common fallback selectors based on content type
-  const fallbackSelectors = {
-    title: ['h1', 'h2', 'h3', 'h4', '.title', '.job-title', '.position', '[class*="title"]'],
-    company: ['.company', '.employer', '.organization', '[class*="company"]', '[class*="employer"]'],
-    location: ['.location', '.area', '.city', '[class*="location"]', '[class*="area"]']
+  // Enhanced fallback selectors based on content type
+  const enhancedFallbacks = {
+    title: ['h1', 'h2', 'h3', 'h4', 'h5', '.title', '.job-title', '.position', '.role', '[class*="title"]', '[class*="job"]', 'strong', 'b'],
+    company: ['.company', '.employer', '.organization', '.firm', '[class*="company"]', '[class*="employer"]', '[class*="org"]'],
+    location: ['.location', '.area', '.city', '.region', '.place', '[class*="location"]', '[class*="area"]', '[class*="city"]']
   };
   
-  // Determine which fallbacks to use based on the original selector content
+  // Determine which fallbacks to use
   let fallbacks: string[] = [];
-  if (selectors.includes('title') || selectors.includes('h2') || selectors.includes('h3')) {
-    fallbacks = fallbackSelectors.title;
-  } else if (selectors.includes('company') || selectors.includes('employer')) {
-    fallbacks = fallbackSelectors.company;
-  } else if (selectors.includes('location') || selectors.includes('area')) {
-    fallbacks = fallbackSelectors.location;
+  const selectorContent = selectors.toLowerCase();
+  if (selectorContent.includes('title') || selectorContent.includes('job') || selectorContent.includes('position')) {
+    fallbacks = enhancedFallbacks.title;
+  } else if (selectorContent.includes('company') || selectorContent.includes('employer')) {
+    fallbacks = enhancedFallbacks.company;
+  } else if (selectorContent.includes('location') || selectorContent.includes('area')) {
+    fallbacks = enhancedFallbacks.location;
   }
   
   for (const fallback of fallbacks) {
     try {
       const text = $element.find(fallback).first().text().trim();
-      if (text && text.length > 0) {
+      if (text && text.length > 0 && !isPlaceholderText(text)) {
         return text;
       }
     } catch (e) {
@@ -308,34 +325,194 @@ function extractTextWithFallbacks($element: any, selectors: string, $: any): str
   return '';
 }
 
-function isValidJob(title: string, company: string | null, jobSite: JobSite): boolean {
-  // More lenient validation
+// Enhanced job URL extraction
+function extractJobUrl($element: any, linkSelectors: string, baseUrl: string): string {
+  const selectors = linkSelectors.split(',').map(s => s.trim());
+  
+  for (const selector of selectors) {
+    try {
+      const linkElement = $element.find(selector).first();
+      let href = linkElement.attr('href');
+      
+      if (href) {
+        // Make relative URLs absolute
+        if (!href.startsWith('http')) {
+          try {
+            const baseUrlObj = new URL(baseUrl);
+            href = new URL(href, baseUrlObj.origin).href;
+          } catch (e) {
+            console.log(`⚠️ Could not resolve URL: ${href}`);
+            continue;
+          }
+        }
+        
+        // Validate that the URL looks like a job URL
+        if (isValidJobUrl(href)) {
+          return href;
+        }
+      }
+    } catch (e) {
+      // Continue to next selector
+    }
+  }
+  
+  // Try alternative approaches
+  const altSelectors = ['a[href*="job"]', 'a[href*="career"]', 'a[href*="vacancy"]', 'a[href*="position"]', 'a'];
+  for (const selector of altSelectors) {
+    try {
+      const links = $element.find(selector);
+      for (let i = 0; i < links.length; i++) {
+        const href = $(links[i]).attr('href');
+        if (href && isValidJobUrl(href)) {
+          if (!href.startsWith('http')) {
+            try {
+              const baseUrlObj = new URL(baseUrl);
+              return new URL(href, baseUrlObj.origin).href;
+            } catch (e) {
+              continue;
+            }
+          }
+          return href;
+        }
+      }
+    } catch (e) {
+      // Continue
+    }
+  }
+  
+  return '';
+}
+
+// STRICT validation for job data - NO MOCK/PLACEHOLDER DATA ALLOWED
+function isValidJobData(title: string, company: string, location: string, source: string): boolean {
+  // Title validation
   if (!title || title.length < 3) {
+    console.log(`🚫 Invalid title from ${source}: "${title}"`);
+    return false;
+  }
+  
+  // Check for placeholder patterns in title
+  if (isPlaceholderText(title)) {
+    console.log(`🚫 Placeholder title detected from ${source}: "${title}"`);
+    return false;
+  }
+  
+  // Must contain actual letters
+  if (!/[a-zA-Z]{3,}/.test(title)) {
+    console.log(`🚫 Title lacks sufficient letters from ${source}: "${title}"`);
+    return false;
+  }
+  
+  // Company validation (allow empty but not placeholder)
+  if (company && isPlaceholderText(company)) {
+    console.log(`🚫 Placeholder company detected from ${source}: "${company}"`);
+    return false;
+  }
+  
+  // Location validation (allow empty but not placeholder)
+  if (location && isPlaceholderText(location)) {
+    console.log(`🚫 Placeholder location detected from ${source}: "${location}"`);
     return false;
   }
   
   // Skip obvious non-job content
-  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all', 'register', 'login', 'sign up'];
+  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all', 'register', 'login', 'sign up', 'home', 'about', 'contact'];
   const titleLower = title.toLowerCase();
   if (skipWords.some(word => titleLower.includes(word))) {
-    return false;
-  }
-  
-  // Accept any job that looks legitimate - don't be too restrictive with keywords
-  // Just filter out obvious spam or navigation elements
-  if (titleLower.length < 10 && !titleLower.match(/\b(manager|officer|assistant|coordinator|analyst|specialist|executive)\b/)) {
+    console.log(`🚫 Non-job content detected from ${source}: "${title}"`);
     return false;
   }
   
   return true;
 }
 
+// Enhanced placeholder detection
+function isPlaceholderText(text: string): boolean {
+  if (!text || typeof text !== 'string') return true;
+  
+  const placeholderPatterns = [
+    /^\*+$/,                          // Only asterisks
+    /\*{2,}/,                         // Two or more consecutive asterisks
+    /^[\*\-\s]+$/,                    // Only asterisks, dashes, and spaces
+    /^\s*[\*\-]+\s*[\(\)]*\s*$/,     // Asterisks/dashes with optional parentheses
+    /^null$/i,                        // literal "null"
+    /^undefined$/i,                   // literal "undefined"
+    /^[\s\-\(\)]*$/,                  // Only spaces, dashes, parentheses
+    /\*+.*\*+/,                       // Asterisks at beginning and end
+    /^[^a-zA-Z]*$/,                   // No letters at all
+    /^\d+$/,                          // Only numbers
+    /^[^\w\s]*$/,                     // Only special characters
+  ];
+  
+  return placeholderPatterns.some(pattern => pattern.test(text.trim()));
+}
+
+// Enhanced URL validation
+function isValidJobUrl(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
+  
+  try {
+    new URL(url); // Basic URL validation
+    
+    // Must look like a job-related URL
+    const jobIndicators = ['job', 'career', 'vacancy', 'position', 'opportunity', 'hiring', 'employment'];
+    const urlLower = url.toLowerCase();
+    
+    return jobIndicators.some(indicator => urlLower.includes(indicator));
+  } catch (e) {
+    return false;
+  }
+}
+
+// Enhanced job title cleaning
 function cleanTitle(title: string): string {
+  if (!title || typeof title !== 'string') return '';
+  
   return title
     .replace(/\s+/g, ' ')
     .replace(/[^\w\s\-&().,]/g, '')
     .trim()
     .slice(0, 255);
+}
+
+// Enhanced company name cleaning
+function cleanCompanyName(company: string): string {
+  if (!company || typeof company !== 'string') return '';
+  
+  return company
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s\-&().,]/g, '')
+    .trim()
+    .slice(0, 200);
+}
+
+// Enhanced location cleaning
+function cleanLocation(location: string): string {
+  if (!location || typeof location !== 'string') return '';
+  
+  return location
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s\-&().,]/g, '')
+    .trim()
+    .slice(0, 100);
+}
+
+// Enhanced description cleaning
+function cleanJobDescription(description: string): string {
+  if (!description || typeof description !== 'string') return '';
+  
+  // Remove HTML tags and clean up
+  let cleaned = description
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  // Must have meaningful content
+  if (cleaned.length < 10 || isPlaceholderText(cleaned)) {
+    return '';
+  }
+  
+  return cleaned.slice(0, 5000); // Reasonable limit
 }
 
 function mapJobType(jobType: string): string {
@@ -352,7 +529,8 @@ function getRandomUserAgent(): string {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   ];
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
