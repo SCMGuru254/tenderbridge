@@ -1,13 +1,23 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, DollarSign } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePayPal } from "@/hooks/usePayPal";
-import { toast } from "sonner";
+
+interface SubscriptionPlan {
+  id: string;
+  plan_id: string;
+  name: string;
+  description: string;
+  status: string;
+  plan_data: any;
+  created_at: string;
+}
 
 interface Subscription {
   id: string;
@@ -18,50 +28,55 @@ interface Subscription {
   created_at: string;
 }
 
-interface SubscriptionPlan {
-  id: string;
-  plan_id: string;
-  name: string;
-  description: string;
-  status: string;
-  plan_data: any;
-}
-
 export const PayPalSubscriptions = () => {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPlan, setNewPlan] = useState({
     name: "",
     description: "",
     price: "",
-    interval: "monthly"
+    interval: "MONTH"
   });
-  const { createSubscriptionPlan, createSubscription, loading: paypalLoading } = usePayPal();
+  const { createSubscriptionPlan, loading: paypalLoading } = usePayPal();
 
   useEffect(() => {
-    fetchData();
+    fetchPlans();
+    fetchSubscriptions();
   }, []);
 
-  const fetchData = async () => {
+  const fetchPlans = async () => {
     try {
-      const [subscriptionsResult, plansResult] = await Promise.all([
-        supabase.from('paypal_subscriptions').select('*').order('created_at', { ascending: false }),
-        supabase.from('paypal_plans').select('*').order('created_at', { ascending: false })
-      ]);
-
-      setSubscriptions(subscriptionsResult.data || []);
-      setPlans(plansResult.data || []);
+      const { data } = await supabase
+        .from('paypal_plans')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      setPlans(data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching plans:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchSubscriptions = async () => {
+    try {
+      const { data } = await supabase
+        .from('paypal_subscriptions')
+        .select('*')
+        .eq('status', 'ACTIVE')
+        .order('created_at', { ascending: false });
+      
+      setSubscriptions(data || []);
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+    }
+  };
+
   const handleCreatePlan = async () => {
     if (!newPlan.name || !newPlan.price) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in plan name and price");
       return;
     }
 
@@ -69,13 +84,10 @@ export const PayPalSubscriptions = () => {
       product_id: crypto.randomUUID(),
       name: newPlan.name,
       description: newPlan.description,
-      type: "SERVICE",
-      category: "SOFTWARE",
-      status: "ACTIVE",
       billing_cycles: [
         {
           frequency: {
-            interval_unit: newPlan.interval.toUpperCase(),
+            interval_unit: newPlan.interval,
             interval_count: 1
           },
           tenure_type: "REGULAR",
@@ -99,94 +111,84 @@ export const PayPalSubscriptions = () => {
     const result = await createSubscriptionPlan(planData);
     if (result) {
       toast.success("Subscription plan created successfully!");
-      setNewPlan({ name: "", description: "", price: "", interval: "monthly" });
-      fetchData();
+      setNewPlan({ name: "", description: "", price: "", interval: "MONTH" });
+      fetchPlans();
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active': return 'text-green-600 bg-green-100';
+      case 'inactive': return 'text-yellow-600 bg-yellow-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'suspended': return 'text-orange-600 bg-orange-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Create New Plan */}
+      {/* Create New Plan Form */}
       <Card>
         <CardHeader>
           <CardTitle>Create Subscription Plan</CardTitle>
-          <CardDescription>Set up recurring payment plans for your services</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
-              <Label htmlFor="plan-name">Plan Name</Label>
+              <Label htmlFor="planName">Plan Name</Label>
               <Input
-                id="plan-name"
+                id="planName"
                 placeholder="Premium Plan"
                 value={newPlan.name}
                 onChange={(e) => setNewPlan({...newPlan, name: e.target.value})}
               />
             </div>
             <div>
-              <Label htmlFor="plan-price">Price (USD)</Label>
+              <Label htmlFor="description">Description</Label>
               <Input
-                id="plan-price"
-                type="number"
-                placeholder="29.99"
-                value={newPlan.price}
-                onChange={(e) => setNewPlan({...newPlan, price: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label htmlFor="plan-interval">Billing Interval</Label>
-              <Select value={newPlan.interval} onValueChange={(value) => setNewPlan({...newPlan, interval: value})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="plan-description">Description</Label>
-              <Input
-                id="plan-description"
-                placeholder="Premium features and support"
+                id="description"
+                placeholder="Access to premium features"
                 value={newPlan.description}
                 onChange={(e) => setNewPlan({...newPlan, description: e.target.value})}
               />
             </div>
+            <div>
+              <Label htmlFor="price">Price (USD)</Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="9.99"
+                value={newPlan.price}
+                onChange={(e) => setNewPlan({...newPlan, price: e.target.value})}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <Label htmlFor="interval">Billing Interval</Label>
+              <select
+                id="interval"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                value={newPlan.interval}
+                onChange={(e) => setNewPlan({...newPlan, interval: e.target.value})}
+              >
+                <option value="MONTH">Monthly</option>
+                <option value="YEAR">Yearly</option>
+              </select>
+            </div>
           </div>
+
           <Button 
             onClick={handleCreatePlan}
             disabled={paypalLoading || !newPlan.name || !newPlan.price}
             className="w-full md:w-auto"
           >
-            {paypalLoading ? "Creating..." : "Create Plan"}
+            {paypalLoading ? "Creating Plan..." : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Plan
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -195,21 +197,31 @@ export const PayPalSubscriptions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Subscription Plans</CardTitle>
-          <CardDescription>Your available subscription plans</CardDescription>
         </CardHeader>
         <CardContent>
-          {plans.length > 0 ? (
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-16 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : plans.length > 0 ? (
             <div className="space-y-4">
               {plans.map((plan) => (
                 <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-medium">{plan.name}</h3>
+                    <h3 className="font-semibold">{plan.name}</h3>
                     <p className="text-sm text-muted-foreground">{plan.description}</p>
                     <p className="text-xs text-muted-foreground">
                       Created: {new Date(plan.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="text-right">
+                    <p className="font-semibold">
+                      ${plan.plan_data?.billing_cycles?.[0]?.pricing_scheme?.fixed_price?.value || '0.00'}
+                    </p>
                     <Badge className={getStatusColor(plan.status)}>
                       {plan.status}
                     </Badge>
@@ -219,7 +231,7 @@ export const PayPalSubscriptions = () => {
             </div>
           ) : (
             <p className="text-muted-foreground text-center py-8">
-              No subscription plans created yet. Create your first plan above.
+              No plans created yet. Create your first plan above.
             </p>
           )}
         </CardContent>
@@ -229,7 +241,6 @@ export const PayPalSubscriptions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Active Subscriptions</CardTitle>
-          <CardDescription>Current subscriber activity</CardDescription>
         </CardHeader>
         <CardContent>
           {subscriptions.length > 0 ? (
@@ -237,7 +248,7 @@ export const PayPalSubscriptions = () => {
               {subscriptions.map((subscription) => (
                 <div key={subscription.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h3 className="font-medium">Subscription {subscription.subscription_id.slice(-8)}</h3>
+                    <p className="font-medium">Subscription: {subscription.subscription_id.slice(-8)}</p>
                     <p className="text-sm text-muted-foreground">Plan: {subscription.plan_id}</p>
                     <p className="text-xs text-muted-foreground">
                       Started: {new Date(subscription.created_at).toLocaleDateString()}

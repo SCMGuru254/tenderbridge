@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Users, CreditCard } from "lucide-react";
-import { usePayPal } from "@/hooks/usePayPal";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PayPalDashboard = () => {
@@ -13,7 +11,6 @@ export const PayPalDashboard = () => {
     pendingPayouts: 0
   });
   const [loading, setLoading] = useState(true);
-  const { getDashboardData } = usePayPal();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
