@@ -19,7 +19,6 @@ interface JobCardProps {
   application_deadline?: string | null;
   job_type?: string | null;
   category?: string;
-  social_shares?: Record<string, any>;
   jobId?: string;
 }
 
@@ -31,7 +30,6 @@ export default function JobCard({
   application_deadline,
   job_type,
   category,
-  social_shares,
   jobId
 }: JobCardProps) {
   const navigate = useNavigate();

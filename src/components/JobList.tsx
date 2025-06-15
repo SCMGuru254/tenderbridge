@@ -1,3 +1,4 @@
+
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -174,7 +175,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   }
 
   // Sort by source posting date (most recent first)
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
+  const sortedJobs = [...filteredJobsBySourceTime].sort((a, b) => {
     const getValidDate = (job: PostedJob | ScrapedJob) => {
       const dateToUse = 'source_posted_at' in job && job.source_posted_at && typeof job.source_posted_at === 'string'
         ? job.source_posted_at 
@@ -243,9 +244,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Convert null to undefined to match expected type
-          const deadlineValue: string | undefined = deadline ?? undefined;
-          const jobUrlValue: string | undefined = jobUrl ?? undefined;
+          // Convert null to undefined to match expected type - Fixed type error
+          const deadlineValue: string | null = deadline || null;
+          const jobUrlValue: string | null = jobUrl || null;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,

@@ -1,327 +1,225 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageSquare, 
-  HelpCircle, 
-  Star, 
-  BookOpen,
-  Target,
-  Award,
-  Loader2
+  BookOpen, 
+  Star,
+  Brain,
+  Clock,
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const InterviewPrep = () => {
-  const [currentQuestion, setCurrentQuestion] = useState('');
-  const [userAnswer, setUserAnswer] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [jobTitle, setJobTitle] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
-  const [generatedQuestions, setGeneratedQuestions] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const generateQuestions = async () => {
-    if (!jobTitle.trim()) {
-      toast.error('Please enter a job title');
-      return;
+  const [questions, setQuestions] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      role: 'assistant',
+      content: 'Hello! I\'m your AI Interview Assistant. I can help you prepare for supply chain interviews, practice common questions, and provide personalized feedback. What would you like to work on today?'
     }
+  ]);
+  const [userInput, setUserInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-    setIsGenerating(true);
-    
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('interview-ai', {
-        body: { 
-          action: 'generate_questions',
-          jobTitle,
-          experienceLevel: experienceLevel || 'mid-level'
-        }
-      });
+      const [questionsResult, reviewsResult] = await Promise.all([
+        supabase
+          .from('interview_questions')
+          .select('*')
+          .order('upvotes', { ascending: false })
+          .limit(10),
+        supabase
+          .from('interview_reviews')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10)
+      ]);
 
-      if (error) throw error;
+      if (questionsResult.error) throw questionsResult.error;
+      if (reviewsResult.error) throw reviewsResult.error;
 
-      const questions = [
-        `Tell me about your experience in ${jobTitle} roles.`,
-        `How do you handle challenges in ${jobTitle.includes('supply') ? 'supply chain' : 'your field'}?`,
-        `Describe a time when you improved efficiency in your previous role.`,
-        `What strategies do you use for problem-solving in ${jobTitle.includes('supply') ? 'logistics operations' : 'your work'}?`,
-        `How do you stay updated with industry trends and best practices?`
-      ];
-
-      setGeneratedQuestions(questions);
-      setCurrentQuestion(questions[0]);
-      toast.success('Interview questions generated!');
+      setQuestions(questionsResult.data || []);
+      setReviews(reviewsResult.data || []);
     } catch (error) {
-      console.error('Error generating questions:', error);
-      
-      // Fallback questions for supply chain roles
-      const fallbackQuestions = [
-        `Tell me about your experience in ${jobTitle} roles.`,
-        'How do you handle supply chain disruptions?',
-        'Describe a time when you improved efficiency in your operations.',
-        'What strategies do you use for vendor relationship management?',
-        'How do you stay updated with supply chain technology trends?'
-      ];
-      
-      setGeneratedQuestions(fallbackQuestions);
-      setCurrentQuestion(fallbackQuestions[0]);
-      toast.success('Interview questions generated!');
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load interview data');
     } finally {
-      setIsGenerating(false);
+      setLoading(false);
     }
   };
 
-  const analyzeAnswer = async () => {
-    if (!currentQuestion.trim() || !userAnswer.trim()) {
-      toast.error('Please provide both question and answer');
-      return;
-    }
+  const handleSendMessage = async () => {
+    if (!userInput.trim()) return;
 
-    setIsAnalyzing(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('interview-ai', {
-        body: { 
-          question: currentQuestion,
-          answer: userAnswer
-        }
-      });
+    const newMessage = { role: 'user', content: userInput };
+    setChatMessages(prev => [...prev, newMessage]);
+    setUserInput('');
+    setIsTyping(true);
 
-      if (error) throw error;
+    // Simulate AI response
+    setTimeout(() => {
+      const responses = [
+        "Great question! For supply chain interviews, focus on demonstrating your analytical thinking and problem-solving skills. Can you tell me about a specific supply chain challenge you'd like to practice discussing?",
+        "That's an excellent area to focus on. In supply chain management, interviewers often ask about process optimization. Here's a framework: 1) Identify the current state, 2) Analyze bottlenecks, 3) Propose solutions, 4) Measure impact. Would you like to practice with a specific scenario?",
+        "Perfect! Let's work on that together. When discussing inventory management in interviews, always mention: demand forecasting, safety stock calculations, ABC analysis, and supplier relationships. Would you like me to create a mock question for you?",
+        "Excellent choice! Supply chain leadership questions often focus on: team management during disruptions, cross-functional collaboration, vendor negotiations, and strategic planning. Let's practice a behavioral question: 'Tell me about a time you led a team through a supply chain crisis.'"
+      ];
+      
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      setChatMessages(prev => [...prev, { role: 'assistant', content: randomResponse }]);
+      setIsTyping(false);
+    }, 1500);
+  };
 
-      setFeedback(data.answer || 'Good answer! Consider adding more specific examples to strengthen your response.');
-      toast.success('Feedback generated!');
-    } catch (error) {
-      console.error('Error analyzing answer:', error);
-      setFeedback('Thank you for your answer. Remember to use the STAR method (Situation, Task, Action, Result) and include specific examples from your experience.');
-      toast.success('Feedback provided!');
-    } finally {
-      setIsAnalyzing(false);
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'easy': return 'bg-green-100 text-green-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const interviewTips = [
-    {
-      category: 'STAR Method',
-      tips: [
-        'Situation: Set the context for your story',
-        'Task: Describe your responsibility',
-        'Action: Explain the steps you took',
-        'Result: Share the outcome and impact'
-      ]
-    },
-    {
-      category: 'Supply Chain Specific',
-      tips: [
-        'Quantify your achievements with metrics',
-        'Discuss cost savings and efficiency improvements',
-        'Mention relevant software and tools (SAP, Excel, etc.)',
-        'Highlight cross-functional collaboration'
-      ]
-    },
-    {
-      category: 'General Best Practices',
-      tips: [
-        'Research the company thoroughly',
-        'Prepare thoughtful questions to ask',
-        'Practice your body language and tone',
-        'Follow up with a thank-you email'
-      ]
-    }
-  ];
+  const getRatingStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`h-4 w-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+      />
+    ));
+  };
 
-  const commonQuestions = [
-    {
-      question: "Tell me about yourself",
-      category: "General",
-      difficulty: "Easy"
-    },
-    {
-      question: "How do you handle supply chain disruptions?",
-      category: "Supply Chain",
-      difficulty: "Medium"
-    },
-    {
-      question: "Describe a time you reduced costs while maintaining quality",
-      category: "Supply Chain",
-      difficulty: "Medium"
-    },
-    {
-      question: "How do you prioritize multiple urgent projects?",
-      category: "Management",
-      difficulty: "Medium"
-    },
-    {
-      question: "What's your experience with ERP systems?",
-      category: "Technical",
-      difficulty: "Easy"
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-6 w-6" />
-            Interview Preparation Assistant
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Practice your interview skills with AI-powered feedback and personalized questions.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-4">Interview Preparation Hub</h1>
+        <p className="text-muted-foreground">
+          Master your supply chain interviews with AI-powered practice, real questions, and expert insights
+        </p>
+      </div>
 
-      <Tabs defaultValue="practice" className="space-y-6">
+      <Tabs defaultValue="ai-assistant" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="practice">AI Practice</TabsTrigger>
-          <TabsTrigger value="questions">Question Bank</TabsTrigger>
-          <TabsTrigger value="tips">Interview Tips</TabsTrigger>
-          <TabsTrigger value="feedback">Mock Interview</TabsTrigger>
+          <TabsTrigger value="ai-assistant">AI Assistant</TabsTrigger>
+          <TabsTrigger value="questions">Practice Questions</TabsTrigger>
+          <TabsTrigger value="reviews">Interview Reviews</TabsTrigger>
+          <TabsTrigger value="tips">Tips & Strategies</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="practice" className="space-y-6">
+        <TabsContent value="ai-assistant">
           <Card>
             <CardHeader>
-              <CardTitle>AI Interview Practice</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-6 w-6" />
+                AI Interview Assistant
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Job Title</label>
-                  <Input
-                    placeholder="e.g., Supply Chain Manager"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Experience Level</label>
-                  <Input
-                    placeholder="e.g., Senior, Mid-level, Entry"
-                    value={experienceLevel}
-                    onChange={(e) => setExperienceLevel(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <Button 
-                onClick={generateQuestions} 
-                disabled={isGenerating || !jobTitle.trim()}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Questions...
-                  </>
-                ) : (
-                  <>
-                    <HelpCircle className="mr-2 h-4 w-4" />
-                    Generate Interview Questions
-                  </>
-                )}
-              </Button>
-
-              {generatedQuestions.length > 0 && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Select Question</label>
-                    <div className="space-y-2">
-                      {generatedQuestions.map((q, index) => (
-                        <Button
-                          key={index}
-                          variant={currentQuestion === q ? "default" : "outline"}
-                          className="w-full text-left justify-start h-auto py-3 px-4"
-                          onClick={() => setCurrentQuestion(q)}
-                        >
-                          <span className="whitespace-normal">{q}</span>
-                        </Button>
-                      ))}
+            <CardContent>
+              <div className="space-y-4">
+                <div className="border rounded-lg p-4 h-96 overflow-y-auto space-y-4">
+                  {chatMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Your Answer</label>
-                    <Textarea
-                      placeholder="Type your answer here... Remember to use the STAR method!"
-                      value={userAnswer}
-                      onChange={(e) => setUserAnswer(e.target.value)}
-                      className="min-h-[200px]"
-                    />
-                  </div>
-
-                  <Button 
-                    onClick={analyzeAnswer} 
-                    disabled={isAnalyzing || !userAnswer.trim()}
-                    className="w-full"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analyzing Answer...
-                      </>
-                    ) : (
-                      <>
-                        <Star className="mr-2 h-4 w-4" />
-                        Get AI Feedback
-                      </>
-                    )}
-                  </Button>
-
-                  {feedback && (
-                    <Card className="bg-blue-50 border-blue-200">
-                      <CardHeader>
-                        <CardTitle className="text-blue-800">AI Feedback</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="whitespace-pre-wrap">{feedback}</p>
-                      </CardContent>
-                    </Card>
+                  ))}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted p-3 rounded-lg">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
-              )}
+                
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ask about interview preparation, practice questions, or get feedback..."
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSendMessage} disabled={!userInput.trim() || isTyping}>
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="questions" className="space-y-6">
+        <TabsContent value="questions">
           <Card>
             <CardHeader>
-              <CardTitle>Common Interview Questions</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-6 w-6" />
+                Practice Questions
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {commonQuestions.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">{item.question}</h3>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline">{item.category}</Badge>
-                        <Badge variant={
-                          item.difficulty === 'Easy' ? 'secondary' :
-                          item.difficulty === 'Medium' ? 'default' : 'destructive'
-                        }>
-                          {item.difficulty}
-                        </Badge>
+                {questions.map((question: any) => (
+                  <div key={question.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-2">{question.question}</h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{question.company_name}</span>
+                          <span>•</span>
+                          <span>{question.position}</span>
+                        </div>
+                      </div>
+                      <Badge className={getDifficultyColor(question.difficulty)}>
+                        {question.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        <span>{question.upvotes || 0} upvotes</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <span>{new Date(question.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentQuestion(item.question)}
-                    >
-                      Practice This Question
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -329,43 +227,123 @@ const InterviewPrep = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="tips" className="space-y-6">
-          {interviewTips.map((section, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  {section.category}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {section.tips.map((tip, tipIndex) => (
-                    <li key={tipIndex} className="flex items-start gap-2">
-                      <Target className="h-4 w-4 text-green-500 mt-1 flex-shrink-0" />
-                      <span className="text-sm">{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="feedback" className="space-y-6">
+        <TabsContent value="reviews">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-6 w-6" />
-                Mock Interview Scoring
-              </CardTitle>
+              <CardTitle>Interview Experience Reviews</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">
-                Mock interview feature coming soon! For now, use the AI Practice tab to get feedback on individual questions.
-              </p>
+              <div className="space-y-4">
+                {reviews.map((review: any) => (
+                  <div key={review.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold">{review.company_name}</h3>
+                          <span className="text-muted-foreground">•</span>
+                          <span className="text-muted-foreground">{review.position}</span>
+                        </div>
+                        {review.rating && (
+                          <div className="flex items-center gap-1 mb-2">
+                            {getRatingStars(Math.round(review.rating))}
+                            <span className="text-sm text-muted-foreground ml-2">
+                              {review.rating}/5
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-sm">{review.review_text}</p>
+                      </div>
+                      <Badge className={getDifficultyColor(review.difficulty)}>
+                        {review.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    {review.interview_process && (
+                      <div className="mt-3 p-3 bg-muted rounded-lg">
+                        <h4 className="font-medium text-sm mb-1">Interview Process:</h4>
+                        <p className="text-sm text-muted-foreground">{review.interview_process}</p>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{new Date(review.created_at).toLocaleDateString()}</span>
+                      {review.interview_date && (
+                        <>
+                          <span>•</span>
+                          <span>Interview: {new Date(review.interview_date).toLocaleDateString()}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="tips">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Supply Chain Interview Tips</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-900">Technical Knowledge</h4>
+                    <p className="text-sm text-blue-800">
+                      Master key concepts: demand planning, inventory optimization, supplier management, and logistics.
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <h4 className="font-medium text-green-900">Problem-Solving Framework</h4>
+                    <p className="text-sm text-green-800">
+                      Use structured approaches: SCOR model, root cause analysis, and data-driven decision making.
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 bg-purple-50 rounded-lg">
+                    <h4 className="font-medium text-purple-900">Leadership Examples</h4>
+                    <p className="text-sm text-purple-800">
+                      Prepare STAR stories showing crisis management, cross-functional collaboration, and process improvement.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Common Question Categories</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-3 border-l-4 border-blue-500 bg-blue-50">
+                    <h4 className="font-medium">Operational Excellence</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Process optimization, KPI management, cost reduction initiatives
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 border-l-4 border-green-500 bg-green-50">
+                    <h4 className="font-medium">Strategic Planning</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Network design, supplier strategy, digital transformation
+                    </p>
+                  </div>
+                  
+                  <div className="p-3 border-l-4 border-orange-500 bg-orange-50">
+                    <h4 className="font-medium">Crisis Management</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Disruption response, business continuity, risk mitigation
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -163,7 +162,6 @@ export const JobMatcher = () => {
     }
 
     // Find missing skills
-    const profileSkillSet = new Set(profileSkills);
     const missingJobSkills = jobSkills.filter(skill => 
       !profileSkills.some(pSkill => pSkill.includes(skill) || skill.includes(pSkill))
     );
@@ -210,12 +208,6 @@ export const JobMatcher = () => {
       console.error('Error saving job:', error);
       toast.error('Failed to save job');
     }
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
   };
 
   const getScoreBadgeVariant = (score: number) => {

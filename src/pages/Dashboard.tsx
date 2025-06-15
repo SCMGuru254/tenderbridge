@@ -11,7 +11,6 @@ import {
   Eye, 
   TrendingUp, 
   Clock,
-  Star,
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
@@ -19,15 +18,47 @@ import { supabase } from '@/integrations/supabase/client';
 import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+interface SavedJob {
+  id: string;
+  created_at: string;
+  notes?: string;
+  scraped_jobs?: {
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    job_type?: string;
+    job_url?: string;
+  };
+}
+
+interface JobApplication {
+  id: string;
+  status: string;
+  created_at: string;
+  jobs?: {
+    id: string;
+    title: string;
+    location: string;
+  };
+}
+
+interface ActivityItem {
+  type: string;
+  action: string;
+  details: string;
+  timestamp: string;
+}
+
 const Dashboard = () => {
   const { user, loading } = useAuth();
-  const [savedJobs, setSavedJobs] = useState([]);
-  const [appliedJobs, setAppliedJobs] = useState([]);
+  const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
+  const [appliedJobs, setAppliedJobs] = useState<JobApplication[]>([]);
   const [profileViews, setProfileViews] = useState(0);
   const [dashboardStats, setDashboardStats] = useState({
     totalSavedJobs: 0,
     totalApplications: 0,
-    recentActivity: [],
+    recentActivity: [] as ActivityItem[],
     jobAlerts: []
   });
 

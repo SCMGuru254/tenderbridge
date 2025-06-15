@@ -7,8 +7,6 @@ import {
   FileText, 
   Search, 
   MessageSquare,
-  Briefcase,
-  Star,
   TrendingUp
 } from 'lucide-react';
 import { ATSChecker } from '@/components/ats/ATSChecker';
