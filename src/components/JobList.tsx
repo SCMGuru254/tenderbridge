@@ -1,4 +1,3 @@
-
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -9,7 +8,6 @@ import { cleanJobTitle, cleanCompanyName, cleanLocation } from "@/utils/cleanJob
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { toast } from "sonner";
 import { PostgrestError } from "@supabase/supabase-js";
 
 interface JobListProps {
@@ -244,9 +242,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const cleanedCompany = cleanCompanyName(company || '') || "Company details available on site";
           const cleanedLocation = cleanLocation(location || '') || "Kenya";
           
-          // Fixed type error: Convert undefined to null for JobCard compatibility
-          const deadlineValue: string | null = deadline || null;
-          const jobUrlValue: string | null = jobUrl || null;
+          // Fixed type error: Convert to string | undefined instead of string | null
+          const deadlineValue: string | undefined = deadline || undefined;
+          const jobUrlValue: string | undefined = jobUrl || undefined;
           
           console.log(`JobList - Rendering job ${index + 1}:`, {
             title: cleanedTitle,
@@ -272,10 +270,10 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 social_shares: job.social_shares || {}
               }}
               onSave={() => {
-                toast.success("Job saved to favorites");
+                console.log("Job saved to favorites");
               }}
               onShare={() => {
-                toast.success("Job shared");
+                console.log("Job shared");
               }}
             />
           ) : (
@@ -290,7 +288,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
                 title={cleanedTitle}
                 company={cleanedCompany}
                 location={cleanedLocation}
-                job_type={job.job_type || null}
+                job_type={job.job_type || undefined}
                 category={getJobSource(job)}
                 job_url={jobUrlValue}
                 application_deadline={deadlineValue}

@@ -1,20 +1,35 @@
 
 import { useState } from 'react';
-import { Briefcase, MapPin, Search, Users, Star, Zap, Shield, Smartphone } from 'lucide-react';
+import { Briefcase, Search, Users, Star, Zap, Shield, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { JobList } from '@/components/JobList';
-import { useJobData } from '@/hooks/useJobData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { FeatureStatusCheck } from '@/components/debug/FeatureStatusCheck';
 import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFeatureCheck, setShowFeatureCheck] = useState(false);
-  const { jobs, isLoading, error } = useJobData();
+
+  // Fetch scraped jobs for the preview
+  const { data: scrapedJobs, isLoading, error } = useQuery({
+    queryKey: ['scraped-jobs-preview'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('scraped_jobs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const features = [
     {
@@ -154,7 +169,7 @@ const Index = () => {
             </TabsList>
             
             <TabsContent value="preview" className="space-y-6">
-              <JobList jobs={jobs?.slice(0, 6)} isLoading={isLoading} error={error} />
+              <JobList jobs={scrapedJobs?.slice(0, 6)} isLoading={isLoading} error={error} />
               <div className="text-center">
                 <Link to="/jobs">
                   <Button size="lg" variant="outline">

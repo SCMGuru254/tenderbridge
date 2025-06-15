@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface FeatureStatus {
   name: string;
@@ -68,14 +67,14 @@ export const FeatureStatusCheck = () => {
     // Check Job Saving (requires auth)
     if (isAuthenticated && user) {
       try {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('saved_jobs')
           .select('*')
           .eq('user_id', user.id)
           .limit(1);
         
         if (error) throw error;
-        updateFeatureStatus('Job Saving', 'working', `${data?.length || 0} saved jobs found`);
+        updateFeatureStatus('Job Saving', 'working', 'Job saving functionality ready');
       } catch (error) {
         updateFeatureStatus('Job Saving', 'error', 'Failed to check saved jobs');
       }
@@ -85,7 +84,7 @@ export const FeatureStatusCheck = () => {
 
     // Check Social Media Integration
     try {
-      const { data, error } = await supabase.functions.invoke('share-job', {
+      const { error } = await supabase.functions.invoke('share-job', {
         body: { test: true }
       });
       
