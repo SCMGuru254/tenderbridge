@@ -82,7 +82,7 @@ export const isJobExpired = (job: PostedJob | ScrapedJob): boolean => {
   }
 };
 
-// New function to check if a job was posted within the last 24 hours
+// Function to check if a job was posted within the last 24 hours
 export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean => {
   try {
     const jobCreatedAt = new Date(job.created_at);
@@ -100,7 +100,7 @@ export const isJobPostedWithin24Hours = (job: PostedJob | ScrapedJob): boolean =
   }
 };
 
-// New function to get human-readable time since posting
+// Function to get human-readable time since posting
 export const getTimeSincePosted = (job: PostedJob | ScrapedJob): string => {
   try {
     const jobCreatedAt = new Date(job.created_at);
