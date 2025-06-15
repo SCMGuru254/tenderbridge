@@ -1,4 +1,3 @@
-
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
@@ -65,8 +64,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
   const filteredJobs = jobs.filter(job => {
     console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
-    // Clean the title first
-    const cleanedTitle = cleanJobTitle(job.title);
+    // Clean the title first; ENSURE job.title is always a string
+    const cleanedTitle = cleanJobTitle(job.title || '');
     
     // Only skip jobs that are completely unusable even after cleaning
     if (!cleanedTitle || cleanedTitle === 'Job Title Not Available') {
@@ -139,7 +138,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
           const timeSincePosted = getTimeSincePosted(job);
           
           // Clean the job data before displaying
-          const cleanedTitle = cleanJobTitle(job.title);
+          const cleanedTitle = cleanJobTitle(job.title || '');
           const cleanedCompany = cleanCompanyName(company);
           
           // Convert null to undefined to match expected type
