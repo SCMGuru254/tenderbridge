@@ -1,4 +1,4 @@
-
+import './styles/animations.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navigation from "@/components/Navigation";
+import { MobileNavigation } from "@/components/MobileNavigation";
 
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
@@ -23,6 +24,9 @@ import Affiliate from "./pages/Affiliate";
 import FeaturedClients from "./pages/FeaturedClients";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
+import Analytics from "./pages/Analytics";
+import Communities from "./pages/Communities";
+import Documents from "./pages/Documents";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,9 +45,9 @@ function App() {
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <TooltipProvider>
               <AuthProvider>
-                <div className="min-h-screen bg-background">
+                <div className="min-h-screen bg-background pb-16 md:pb-0">
                   <Navigation />
-                  <main className="container mx-auto px-4 py-8">
+                  <main className="container mx-auto px-4 py-8 page-transition">
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/jobs" element={<Jobs />} />
@@ -59,8 +63,12 @@ function App() {
                       <Route path="/featured-clients" element={<FeaturedClients />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/payment-cancel" element={<PaymentCancel />} />
+                      <Route path="/analytics" element={<Analytics />} />
+                      <Route path="/communities" element={<Communities />} />
+                      <Route path="/documents" element={<Documents />} />
                     </Routes>
                   </main>
+                  <MobileNavigation />
                 </div>
                 <Toaster />
                 <Sonner />
