@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { JobList } from "@/components/JobList";
@@ -108,11 +107,11 @@ const Index = () => {
               <MobileJobFilters
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
-                category={selectedCategory || null}
+                category={selectedCategory}
                 setCategory={setSelectedCategory}
-                location={selectedLocation || null}
+                location={selectedLocation}
                 setLocation={setSelectedLocation}
-                jobType={selectedJobType || null}
+                jobType={selectedJobType}
                 setJobType={setSelectedJobType}
                 onClearFilters={clearFilters}
               />
@@ -120,11 +119,11 @@ const Index = () => {
               <JobFilters
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
-                category={selectedCategory || null}
+                category={selectedCategory}
                 setCategory={setSelectedCategory}
-                location={selectedLocation || null}
+                location={selectedLocation}
                 setLocation={setSelectedLocation}
-                jobType={selectedJobType || null}
+                jobType={selectedJobType}
                 setJobType={setSelectedJobType}
                 onClearFilters={clearFilters}
               />

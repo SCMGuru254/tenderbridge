@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,11 @@ import { Button } from "@/components/ui/button";
 interface JobFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  category: string | null;
+  category: string;
   setCategory: (category: string) => void;
-  location: string | null;
+  location: string;
   setLocation: (location: string) => void;
-  jobType: string | null;
+  jobType: string;
   setJobType: (jobType: string) => void;
   onClearFilters: () => void;
 }
@@ -42,7 +41,7 @@ export const JobFilters = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Category</label>
-        <Select value={category || ""} onValueChange={setCategory}>
+        <Select value={category} onValueChange={setCategory}>
           <SelectTrigger>
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
@@ -59,7 +58,7 @@ export const JobFilters = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Location</label>
-        <Select value={location || ""} onValueChange={setLocation}>
+        <Select value={location} onValueChange={setLocation}>
           <SelectTrigger>
             <SelectValue placeholder="All Locations" />
           </SelectTrigger>
@@ -76,7 +75,7 @@ export const JobFilters = ({
 
       <div>
         <label className="block text-sm font-medium mb-2">Job Type</label>
-        <Select value={jobType || ""} onValueChange={setJobType}>
+        <Select value={jobType} onValueChange={setJobType}>
           <SelectTrigger>
             <SelectValue placeholder="All Types" />
           </SelectTrigger>

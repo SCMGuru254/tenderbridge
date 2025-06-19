@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,11 +8,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface MobileJobFiltersProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  category: string | null;
+  category: string;
   setCategory: (category: string) => void;
-  location: string | null;
+  location: string;
   setLocation: (location: string) => void;
-  jobType: string | null;
+  jobType: string;
   setJobType: (jobType: string) => void;
   onClearFilters: () => void;
 }
@@ -60,7 +59,7 @@ export const MobileJobFilters = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">Category</label>
-          <Select value={category || ""} onValueChange={setCategory}>
+          <Select value={category} onValueChange={setCategory}>
             <SelectTrigger>
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
@@ -77,7 +76,7 @@ export const MobileJobFilters = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">Location</label>
-          <Select value={location || ""} onValueChange={setLocation}>
+          <Select value={location} onValueChange={setLocation}>
             <SelectTrigger>
               <SelectValue placeholder="All Locations" />
             </SelectTrigger>
@@ -94,7 +93,7 @@ export const MobileJobFilters = ({
 
         <div>
           <label className="block text-sm font-medium mb-2">Job Type</label>
-          <Select value={jobType || ""} onValueChange={setJobType}>
+          <Select value={jobType} onValueChange={setJobType}>
             <SelectTrigger>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
@@ -147,7 +146,7 @@ export const MobileJobFilters = ({
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Category</label>
-              <Select value={category || ""} onValueChange={setCategory}>
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
@@ -164,7 +163,7 @@ export const MobileJobFilters = ({
             
             <div>
               <label className="text-sm font-medium mb-1 block">Location</label>
-              <Select value={location || ""} onValueChange={setLocation}>
+              <Select value={location} onValueChange={setLocation}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
@@ -181,7 +180,7 @@ export const MobileJobFilters = ({
 
             <div>
               <label className="text-sm font-medium mb-1 block">Job Type</label>
-              <Select value={jobType || ""} onValueChange={setJobType}>
+              <Select value={jobType} onValueChange={setJobType}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
