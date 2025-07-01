@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,9 @@ import {
   Play
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useInterviewSessions } from '@/hooks/useInterviewSessions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Question {
   id: string;
@@ -23,101 +27,141 @@ interface Question {
   category: string;
 }
 
-interface MockInterview {
-  id: string;
-  type: string;
-  duration: number;
-  completed: boolean;
-  score?: number;
-}
-
 interface Feedback {
+  id: string;
   question: string;
   answer: string;
   score: number;
   feedback: string;
   improvements: string[];
+  created_at: string;
 }
 
 const InterviewPrep = () => {
   const [selectedQuestionType, setSelectedQuestionType] = useState<'behavioral' | 'technical' | 'situational'>('behavioral');
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [mockInterviews] = useState<MockInterview[]>([
-    { id: '1', type: 'Technical Interview', duration: 45, completed: true, score: 85 },
-    { id: '2', type: 'Behavioral Interview', duration: 30, completed: false },
-    { id: '3', type: 'Leadership Interview', duration: 60, completed: true, score: 92 }
-  ]);
-  const [practiceHistory, setPracticeHistory] = useState<Feedback[]>([
-    {
-      question: "Tell me about a time you had to manage a supply chain crisis",
-      answer: "During the COVID-19 pandemic, our main supplier shut down...",
-      score: 88,
-      feedback: "Great use of STAR method and quantifiable results",
-      improvements: ["Add more specific metrics", "Mention stakeholder communication"]
-    }
-  ]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [practiceHistory, setPracticeHistory] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const { sessions, createSession } = useInterviewSessions();
 
-  const questions: Question[] = [
-    {
-      id: '1',
-      type: 'behavioral',
-      question: "Tell me about a time you had to manage a supply chain disruption.",
-      difficulty: 'medium',
-      category: 'Crisis Management'
-    },
-    {
-      id: '2',
-      type: 'technical',
-      question: "How would you optimize inventory levels to reduce carrying costs?",
-      difficulty: 'hard',
-      category: 'Inventory Management'
-    },
-    {
-      id: '3',
-      type: 'situational',
-      question: "A key supplier is consistently late with deliveries. How do you handle this?",
-      difficulty: 'medium',
-      category: 'Supplier Relations'
-    },
-    {
-      id: '4',
-      type: 'behavioral',
-      question: "Describe a time when you improved a process that resulted in cost savings.",
-      difficulty: 'easy',
-      category: 'Process Improvement'
+  useEffect(() => {
+    if (user) {
+      fetchQuestions();
+      fetchPracticeHistory();
     }
-  ];
+  }, [user]);
+
+  const fetchQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('interview_questions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching questions:', error);
+      } else {
+        const formattedQuestions = data?.map(q => ({
+          id: q.id,
+          type: q.difficulty as 'behavioral' | 'technical' | 'situational',
+          question: q.question,
+          difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
+          category: q.position || 'General'
+        })) || [];
+        setQuestions(formattedQuestions);
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    }
+  };
+
+  const fetchPracticeHistory = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('interview_practice_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching practice history:', error);
+      } else {
+        setPracticeHistory(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading practice history:', error);
+    }
+  };
 
   const filteredQuestions = questions.filter(q => q.type === selectedQuestionType);
 
   const handleAnswerSubmit = async (question: string) => {
-    if (!currentAnswer.trim()) {
-      toast.error('Please provide an answer');
+    if (!currentAnswer.trim() || !user) {
+      toast.error('Please provide an answer and sign in');
       return;
     }
 
-    // Simulate AI analysis
-    const mockFeedback: Feedback = {
-      question,
-      answer: currentAnswer,
-      score: Math.floor(Math.random() * 30) + 70,
-      feedback: "Good structure and relevant examples. Consider adding more specific metrics.",
-      improvements: [
-        "Include quantifiable results",
-        "Mention specific tools or methodologies used",
-        "Add more details about stakeholder impact"
-      ]
-    };
+    setLoading(true);
+    try {
+      const mockFeedback = {
+        user_id: user.id,
+        question,
+        answer: currentAnswer,
+        score: Math.floor(Math.random() * 30) + 70,
+        feedback: "Good structure and relevant examples. Consider adding more specific metrics.",
+        improvements: [
+          "Include quantifiable results",
+          "Mention specific tools or methodologies used",
+          "Add more details about stakeholder impact"
+        ]
+      };
 
-    setPracticeHistory(prev => [mockFeedback, ...prev]);
-    setCurrentAnswer('');
-    toast.success('Answer analyzed! Check your feedback below.');
+      const { data, error } = await supabase
+        .from('interview_practice_history')
+        .insert(mockFeedback)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving feedback:', error);
+        toast.error('Failed to save feedback');
+      } else {
+        await fetchPracticeHistory();
+        setCurrentAnswer('');
+        toast.success('Answer analyzed! Check your feedback below.');
+      }
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+      toast.error('Failed to analyze answer');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const startMockInterview = (interviewType: string) => {
-    toast.success(`Starting ${interviewType}...`);
-    // Here you would implement the mock interview logic
+  const startMockInterview = async (interviewType: string) => {
+    if (!user) {
+      toast.error('Please sign in to start mock interviews');
+      return;
+    }
+
+    const sessionData = {
+      session_name: `${interviewType} - ${new Date().toLocaleDateString()}`,
+      position: 'Supply Chain Professional',
+      company: 'Practice Company',
+      difficulty: 'medium' as const
+    };
+
+    const session = await createSession(sessionData);
+    if (session) {
+      toast.success(`Starting ${interviewType}...`);
+    } else {
+      toast.error('Failed to start interview session');
+    }
   };
 
   const toggleRecording = () => {
@@ -172,43 +216,51 @@ const InterviewPrep = () => {
 
           {/* Questions List */}
           <div className="space-y-4">
-            {filteredQuestions.map((question) => (
-              <Card key={question.id} className="border">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-medium">{question.question}</h3>
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{question.category}</Badge>
-                      <Badge className={getDifficultyColor(question.difficulty)}>
-                        {question.difficulty}
-                      </Badge>
+            {filteredQuestions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                <p>No questions available for {selectedQuestionType} category.</p>
+                <p className="text-sm mt-2">Questions will be added from the database soon.</p>
+              </div>
+            ) : (
+              filteredQuestions.map((question) => (
+                <Card key={question.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-medium">{question.question}</h3>
+                      <div className="flex gap-2">
+                        <Badge variant="outline">{question.category}</Badge>
+                        <Badge className={getDifficultyColor(question.difficulty)}>
+                          {question.difficulty}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <Textarea
-                    placeholder="Type your answer here..."
-                    value={currentAnswer}
-                    onChange={(e) => setCurrentAnswer(e.target.value)}
-                    className="mb-3"
-                    rows={4}
-                  />
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => handleAnswerSubmit(question.question)}
-                      disabled={!currentAnswer.trim()}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Submit Answer
-                    </Button>
-                    <Button variant="outline" onClick={toggleRecording}>
-                      <Mic className={`h-4 w-4 mr-2 ${isRecording ? 'text-red-500' : ''}`} />
-                      {isRecording ? 'Stop Recording' : 'Record Answer'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <Textarea
+                      placeholder="Type your answer here..."
+                      value={currentAnswer}
+                      onChange={(e) => setCurrentAnswer(e.target.value)}
+                      className="mb-3"
+                      rows={4}
+                    />
+                    
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => handleAnswerSubmit(question.question)}
+                        disabled={!currentAnswer.trim() || loading || !user}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {loading ? 'Analyzing...' : 'Submit Answer'}
+                      </Button>
+                      <Button variant="outline" onClick={toggleRecording}>
+                        <Mic className={`h-4 w-4 mr-2 ${isRecording ? 'text-red-500' : ''}`} />
+                        {isRecording ? 'Stop Recording' : 'Record Answer'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
@@ -223,28 +275,28 @@ const InterviewPrep = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {mockInterviews.map((interview) => (
-              <Card key={interview.id} className="border">
+            {sessions.map((session) => (
+              <Card key={session.id} className="border">
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">{interview.type}</h3>
+                  <h3 className="font-semibold mb-2">{session.session_name}</h3>
                   <div className="flex items-center gap-2 mb-3">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{interview.duration} minutes</span>
+                    <span className="text-sm">{session.total_questions} questions</span>
                   </div>
                   
-                  {interview.completed ? (
+                  {session.status === 'completed' ? (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-sm text-green-600">Completed</span>
                       </div>
-                      {interview.score && (
+                      {session.score && (
                         <div className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>Score</span>
-                            <span className="font-medium">{interview.score}%</span>
+                            <span className="font-medium">{session.score}%</span>
                           </div>
-                          <Progress value={interview.score} className="h-2" />
+                          <Progress value={session.score} className="h-2" />
                         </div>
                       )}
                       <Button variant="outline" size="sm" className="w-full">
@@ -253,16 +305,32 @@ const InterviewPrep = () => {
                     </div>
                   ) : (
                     <Button 
-                      onClick={() => startMockInterview(interview.type)}
+                      onClick={() => startMockInterview(session.session_name)}
                       className="w-full"
+                      disabled={!user}
                     >
                       <Play className="h-4 w-4 mr-2" />
-                      Start Interview
+                      {session.status === 'active' ? 'Continue' : 'Start Interview'}
                     </Button>
                   )}
                 </CardContent>
               </Card>
             ))}
+            
+            {/* Add new interview option */}
+            <Card className="border-dashed border-2">
+              <CardContent className="p-4 flex items-center justify-center h-full">
+                <Button 
+                  onClick={() => startMockInterview('Technical Interview')}
+                  variant="outline"
+                  className="w-full h-full"
+                  disabled={!user}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Start New Interview
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </CardContent>
       </Card>
@@ -274,38 +342,46 @@ const InterviewPrep = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {practiceHistory.map((feedback, index) => (
-              <Card key={index} className="border-l-4 border-l-blue-500">
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-2">{feedback.question}</h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="font-medium">{feedback.score}%</span>
-                    <Badge variant="outline" className="ml-auto">
-                      {feedback.score >= 90 ? 'Excellent' : 
-                       feedback.score >= 80 ? 'Good' : 
-                       feedback.score >= 70 ? 'Fair' : 'Needs Improvement'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="text-sm font-medium text-green-600 mb-1">Feedback</h4>
-                      <p className="text-sm text-muted-foreground">{feedback.feedback}</p>
+            {practiceHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Star className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                <p>No practice history yet.</p>
+                <p className="text-sm mt-2">Answer questions above to see your feedback here.</p>
+              </div>
+            ) : (
+              practiceHistory.map((feedback) => (
+                <Card key={feedback.id} className="border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <h3 className="font-medium mb-2">{feedback.question}</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span className="font-medium">{feedback.score}%</span>
+                      <Badge variant="outline" className="ml-auto">
+                        {feedback.score >= 90 ? 'Excellent' : 
+                         feedback.score >= 80 ? 'Good' : 
+                         feedback.score >= 70 ? 'Fair' : 'Needs Improvement'}
+                      </Badge>
                     </div>
                     
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-600 mb-1">Areas for Improvement</h4>
-                      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                        {feedback.improvements.map((improvement, idx) => (
-                          <li key={idx}>{improvement}</li>
-                        ))}
-                      </ul>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-medium text-green-600 mb-1">Feedback</h4>
+                        <p className="text-sm text-muted-foreground">{feedback.feedback}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium text-blue-600 mb-1">Areas for Improvement</h4>
+                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                          {feedback.improvements.map((improvement, idx) => (
+                            <li key={idx}>{improvement}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

@@ -50,16 +50,24 @@ interface ActivityItem {
   timestamp: string;
 }
 
+interface DashboardStats {
+  totalSavedJobs: number;
+  totalApplications: number;
+  profileViews: number;
+  successRate: number;
+  recentActivity: ActivityItem[];
+}
+
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
   const [appliedJobs, setAppliedJobs] = useState<JobApplication[]>([]);
-  const [profileViews, setProfileViews] = useState(0);
-  const [dashboardStats, setDashboardStats] = useState({
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     totalSavedJobs: 0,
     totalApplications: 0,
-    recentActivity: [] as ActivityItem[],
-    jobAlerts: []
+    profileViews: 0,
+    successRate: 0,
+    recentActivity: []
   });
 
   useEffect(() => {
@@ -70,7 +78,7 @@ const Dashboard = () => {
 
   const fetchUserData = async () => {
     try {
-      // Fetch saved jobs
+      // Fetch saved jobs from the scraped_jobs table via saved_jobs
       const { data: saved, error: savedError } = await supabase
         .from('saved_jobs')
         .select(`
@@ -88,8 +96,11 @@ const Dashboard = () => {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (savedError) throw savedError;
-      setSavedJobs(saved || []);
+      if (savedError) {
+        console.error('Error fetching saved jobs:', savedError);
+      } else {
+        setSavedJobs(saved || []);
+      }
 
       // Fetch job applications
       const { data: applications, error: appError } = await supabase
@@ -106,8 +117,11 @@ const Dashboard = () => {
         .eq('applicant_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (appError) throw appError;
-      setAppliedJobs(applications || []);
+      if (appError) {
+        console.error('Error fetching applications:', appError);
+      } else {
+        setAppliedJobs(applications || []);
+      }
 
       // Fetch profile views
       const { data: views, error: viewsError } = await supabase
@@ -115,28 +129,38 @@ const Dashboard = () => {
         .select('id')
         .eq('profile_id', user?.id);
 
-      if (viewsError) throw viewsError;
-      setProfileViews(views?.length || 0);
+      if (viewsError) {
+        console.error('Error fetching profile views:', viewsError);
+      }
 
-      // Update dashboard stats
+      // Calculate success rate based on accepted applications
+      const acceptedApplications = (applications || []).filter(app => app.status === 'accepted').length;
+      const totalApps = (applications || []).length;
+      const successRate = totalApps > 0 ? Math.round((acceptedApplications / totalApps) * 100) : 0;
+
+      // Create activity timeline
+      const recentActivity: ActivityItem[] = [
+        ...(saved?.slice(0, 5).map(job => ({
+          type: 'saved',
+          action: 'Saved job',
+          details: job.scraped_jobs?.title || 'Unknown Job',
+          timestamp: job.created_at
+        })) || []),
+        ...(applications?.slice(0, 5).map(app => ({
+          type: 'applied',
+          action: 'Applied to job',
+          details: app.jobs?.title || 'Unknown Job',
+          timestamp: app.created_at
+        })) || [])
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+
+      // Update dashboard stats with real data
       setDashboardStats({
         totalSavedJobs: saved?.length || 0,
         totalApplications: applications?.length || 0,
-        recentActivity: [
-          ...(saved?.slice(0, 3).map(job => ({
-            type: 'saved',
-            action: 'Saved job',
-            details: job.scraped_jobs?.title || 'Unknown Job',
-            timestamp: job.created_at
-          })) || []),
-          ...(applications?.slice(0, 3).map(app => ({
-            type: 'applied',
-            action: 'Applied to job',
-            details: app.jobs?.title || 'Unknown Job',
-            timestamp: app.created_at
-          })) || [])
-        ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 5),
-        jobAlerts: []
+        profileViews: views?.length || 0,
+        successRate,
+        recentActivity
       });
 
     } catch (error) {
@@ -156,6 +180,10 @@ const Dashboard = () => {
       if (error) throw error;
 
       setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+      setDashboardStats(prev => ({
+        ...prev,
+        totalSavedJobs: prev.totalSavedJobs - 1
+      }));
       toast.success('Job removed from saved list');
     } catch (error) {
       console.error('Error removing job:', error);
@@ -184,7 +212,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Overview */}
+      {/* Real Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -215,7 +243,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Profile Views</p>
-                <p className="text-2xl font-bold">{profileViews}</p>
+                <p className="text-2xl font-bold">{dashboardStats.profileViews}</p>
               </div>
               <Eye className="h-8 w-8 text-green-500" />
             </div>
@@ -227,7 +255,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold">85%</p>
+                <p className="text-2xl font-bold">{dashboardStats.successRate}%</p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-500" />
             </div>
@@ -237,8 +265,8 @@ const Dashboard = () => {
 
       <Tabs defaultValue="saved-jobs" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="saved-jobs">Saved Jobs</TabsTrigger>
-          <TabsTrigger value="applications">Applications</TabsTrigger>
+          <TabsTrigger value="saved-jobs">Saved Jobs ({dashboardStats.totalSavedJobs})</TabsTrigger>
+          <TabsTrigger value="applications">Applications ({dashboardStats.totalApplications})</TabsTrigger>
           <TabsTrigger value="activity">Recent Activity</TabsTrigger>
         </TabsList>
 
@@ -249,18 +277,20 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               {savedJobs.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No saved jobs yet. Start browsing jobs to save them for later!
-                </p>
+                <div className="text-center text-muted-foreground py-8">
+                  <Heart className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No saved jobs yet.</p>
+                  <p className="text-sm mt-2">Start browsing jobs to save them for later!</p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {savedJobs.map((savedJob) => (
                     <div key={savedJob.id} className="border rounded-lg p-4 space-y-2">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold">{savedJob.scraped_jobs?.title}</h3>
-                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.company}</p>
-                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.location}</p>
+                          <h3 className="font-semibold">{savedJob.scraped_jobs?.title || 'Unknown Position'}</h3>
+                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.company || 'Unknown Company'}</p>
+                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.location || 'Location not specified'}</p>
                           {savedJob.scraped_jobs?.job_type && (
                             <Badge variant="outline" className="mt-2">
                               {savedJob.scraped_jobs.job_type}

@@ -31,7 +31,7 @@ interface InterviewResponse {
 export const useInterviewSessions = () => {
   const [sessions, setSessions] = useState<InterviewSession[]>([]);
   const [currentSession, setCurrentSession] = useState<InterviewSession | null>(null);
-  const [responses, setResponses] = useState<InterviewResponse[]>([]);
+  const [responses] = useState<InterviewResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 

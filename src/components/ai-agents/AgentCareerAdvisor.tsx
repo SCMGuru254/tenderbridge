@@ -1,27 +1,62 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, TrendingUp, Target, Users, Award } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AgentCareerAdvisor = () => {
   const [loading, setLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [advice, setAdvice] = useState("");
   const [careerGoals, setCareerGoals] = useState("");
+  const [careerAdvice, setCareerAdvice] = useState<any[]>([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchCareerAdvice();
+    }
+  }, [user]);
+
+  const fetchCareerAdvice = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('career_advice')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching career advice:', error);
+      } else {
+        setCareerAdvice(data || []);
+      }
+    } catch (error) {
+      console.error('Error loading career advice:', error);
+    }
+  };
 
   const handleGetAdvice = async () => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim() || !user) return;
     
     setLoading(true);
     try {
-      // Simulate AI advice generation - in production this would call an AI service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockAdvice = `Based on your input about "${userInput}", here are some career recommendations:
+      // Save user input to database
+      const { data, error } = await supabase
+        .from('career_advice')
+        .insert({
+          user_id: user.id,
+          user_input: userInput,
+          career_goals: careerGoals,
+          advice_text: `Based on your input about "${userInput}", here are some career recommendations:
 
 1. **Skill Development**: Consider developing expertise in supply chain analytics and digital transformation
 2. **Networking**: Join professional organizations like CSCMP or local supply chain groups
@@ -29,12 +64,23 @@ const AgentCareerAdvisor = () => {
 4. **Experience**: Seek opportunities in cross-functional projects
 5. **Leadership**: Develop soft skills through mentorship programs
 
-Your career trajectory looks promising with focused development in these areas.`;
-      
-      setAdvice(mockAdvice);
+Your career trajectory looks promising with focused development in these areas.`,
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving advice:', error);
+        toast.error('Failed to save career advice');
+      } else {
+        setAdvice(data.advice_text);
+        await fetchCareerAdvice();
+        toast.success('Career advice generated and saved!');
+      }
     } catch (error) {
-      console.error('Error getting career advice:', error);
-      setAdvice("Sorry, I couldn't generate advice at this time. Please try again later.");
+      console.error('Error generating career advice:', error);
+      toast.error('Failed to generate advice. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,18 +140,23 @@ Your career trajectory looks promising with focused development in these areas.`
             />
             <Button 
               onClick={handleGetAdvice} 
-              disabled={loading || !userInput.trim()}
+              disabled={loading || !userInput.trim() || !user}
               className="w-full"
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
+                  Generating Advice...
                 </>
               ) : (
                 "Get Career Advice"
               )}
             </Button>
+            {!user && (
+              <p className="text-sm text-muted-foreground text-center">
+                Please sign in to save your career advice
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -131,6 +182,42 @@ Your career trajectory looks promising with focused development in these areas.`
         </Card>
       </div>
 
+      {/* Previous Advice History */}
+      {careerAdvice.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Previous Career Advice</CardTitle>
+            <CardDescription>Your career consultation history</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {careerAdvice.map((advice, index) => (
+                <div key={advice.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium">Career Consultation #{careerAdvice.length - index}</h4>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(advice.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    <strong>Input:</strong> {advice.user_input}
+                  </p>
+                  {advice.career_goals && (
+                    <p className="text-sm text-muted-foreground mb-2">
+                      <strong>Goals:</strong> {advice.career_goals}
+                    </p>
+                  )}
+                  <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                    <pre className="whitespace-pre-wrap text-sm">{advice.advice_text}</pre>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Career Paths */}
       <Card>
         <CardHeader>
           <CardTitle>Popular Career Paths</CardTitle>
