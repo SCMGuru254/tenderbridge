@@ -16,12 +16,7 @@ import { DiscussionForm } from "@/components/DiscussionForm";
 import { useAuth } from "@/hooks/useAuth";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { FAB } from "@/components/ui/fab";
-
-const supplyChainTags = [
-  "Logistics", "Procurement", "Inventory", "Warehousing", "Transportation",
-  "Supplier Management", "Demand Planning", "Risk Management", "Sustainability",
-  "Technology", "Analytics", "Optimization", "Quality Control", "Compliance"
-];
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 const Discussions = () => {
   const [activeTab, setActiveTab] = useState("latest");
@@ -29,6 +24,7 @@ const Discussions = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { user } = useAuth();
+  const { settings } = useAppSettings();
   const isUserLoggedIn = !!user;
 
   const { data: discussions, isLoading, refetch } = useQuery({
@@ -177,7 +173,7 @@ const Discussions = () => {
                     <div className="space-y-4">
                       <h4 className="font-medium">Filter by Tags</h4>
                       <div className="grid grid-cols-2 gap-2">
-                        {supplyChainTags.map((tag) => (
+                        {settings.supply_chain_tags.map((tag) => (
                           <div key={tag} className="flex items-center space-x-2">
                             <Checkbox 
                               id={`tag-${tag}`} 
@@ -249,7 +245,7 @@ const Discussions = () => {
               <div className="mt-6">
                 <h3 className="font-semibold text-lg mb-2">Popular Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {supplyChainTags.slice(0, 8).map(tag => (
+                  {settings.supply_chain_tags.slice(0, 8).map(tag => (
                     <Button 
                       key={tag}
                       variant={selectedTags.includes(tag) ? "default" : "outline"}

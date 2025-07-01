@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppSettings } from "@/hooks/useAppSettings";
 import { supabase } from "@/integrations/supabase/client";
 
 const Onboarding = () => {
@@ -14,6 +15,7 @@ const Onboarding = () => {
   const [selectedExperience, setSelectedExperience] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { settings } = useAppSettings();
 
   const steps = [
     {
@@ -36,24 +38,6 @@ const Onboarding = () => {
       description: "Welcome to the supply chain community",
       component: "complete"
     }
-  ];
-
-  const interests = [
-    "Logistics & Transportation",
-    "Procurement & Sourcing",
-    "Warehouse Management",
-    "Inventory Management",
-    "Supply Chain Analytics",
-    "Sustainability",
-    "Risk Management",
-    "Operations Management"
-  ];
-
-  const experienceLevels = [
-    { id: "entry", label: "Entry Level (0-2 years)" },
-    { id: "mid", label: "Mid Level (3-5 years)" },
-    { id: "senior", label: "Senior Level (6-10 years)" },
-    { id: "executive", label: "Executive Level (10+ years)" }
   ];
 
   const handleInterestToggle = (interest: string) => {
@@ -127,7 +111,7 @@ const Onboarding = () => {
           {steps[currentStep].component === "interests" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                {interests.map((interest) => (
+                {settings.supply_chain_tags.map((interest) => (
                   <Button
                     key={interest}
                     variant={selectedInterests.includes(interest) ? "default" : "outline"}
@@ -146,7 +130,7 @@ const Onboarding = () => {
 
           {steps[currentStep].component === "experience" && (
             <div className="space-y-4">
-              {experienceLevels.map((level) => (
+              {settings.experience_levels.map((level) => (
                 <Button
                   key={level.id}
                   variant={selectedExperience === level.id ? "default" : "outline"}
@@ -173,7 +157,7 @@ const Onboarding = () => {
                   <strong>Interests:</strong> {selectedInterests.join(', ') || 'None selected'}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  <strong>Experience:</strong> {experienceLevels.find(l => l.id === selectedExperience)?.label || 'Not specified'}
+                  <strong>Experience:</strong> {settings.experience_levels.find(l => l.id === selectedExperience)?.label || 'Not specified'}
                 </p>
               </div>
             </div>
@@ -198,7 +182,7 @@ const Onboarding = () => {
                 }
               >
                 Next
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 w-4 ml-2" />
               </Button>
             ) : (
               <Button onClick={handleComplete}>

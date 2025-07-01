@@ -2,22 +2,39 @@
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Send, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 const AppFooter = () => {
   const currentYear = new Date().getFullYear();
+  const { settings } = useAppSettings();
   
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const getSocialIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
+      case 'facebook':
+        return Facebook;
+      case 'twitter':
+        return Twitter;
+      case 'instagram':
+        return Instagram;
+      case 'telegram':
+        return Send;
+      default:
+        return Send;
+    }
+  };
+
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 py-12 mt-16 relative">
-      {/* Scroll to top button */}
+      {/* Scroll to top button - improved visibility and positioning */}
       <Button
         onClick={scrollToTop}
-        className="fixed bottom-20 right-4 z-50 rounded-full w-12 h-12 p-0 shadow-lg md:bottom-4"
+        className="fixed bottom-20 right-4 z-50 rounded-full w-12 h-12 p-0 shadow-lg md:bottom-4 bg-primary hover:bg-primary/90 text-white"
         size="icon"
-        variant="secondary"
+        style={{ display: 'flex' }}
       >
         <ArrowUp className="h-5 w-5" />
       </Button>
@@ -30,42 +47,21 @@ const AppFooter = () => {
               Connecting supply chain professionals in Kenya with opportunities, insights, and community.
             </p>
             <div className="flex space-x-3">
-              <a 
-                href="https://www.facebook.com/people/SupplyChain-Ke/61575329135959/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <span className="sr-only">Facebook</span>
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://twitter.com/supplychainke" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://www.instagram.com/supplychainke" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <span className="sr-only">Instagram</span>
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a 
-                href="https://t.me/supplychainke" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <span className="sr-only">Telegram</span>
-                <Send className="h-5 w-5" />
-              </a>
+              {settings.social_links.map((social, index) => {
+                const Icon = getSocialIcon(social.platform);
+                return (
+                  <a 
+                    key={index}
+                    href={social.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <span className="sr-only">{social.platform}</span>
+                    <Icon className="h-5 w-5" />
+                  </a>
+                );
+              })}
             </div>
           </div>
           

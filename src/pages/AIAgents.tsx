@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import AgentDashboard from "@/components/ai-agents/AgentDashboard";
 import AgentJobMatcher from "@/components/ai-agents/AgentJobMatcher";
-import { AgentCareerAdvisor } from "@/components/ai-agents/AgentCareerAdvisor";
+import AgentCareerAdvisor from "@/components/ai-agents/AgentCareerAdvisor";
 
 const AIAgents = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
