@@ -1,3 +1,4 @@
+
 import './styles/animations.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Navigation from "@/components/Navigation";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import AppFooter from "@/components/AppFooter";
 
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
@@ -27,6 +29,7 @@ import PaymentCancel from "./pages/PaymentCancel";
 import Analytics from "./pages/Analytics";
 import Communities from "./pages/Communities";
 import Documents from "./pages/Documents";
+import Onboarding from "./pages/Onboarding";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,9 +48,9 @@ function App() {
           <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
             <TooltipProvider>
               <AuthProvider>
-                <div className="min-h-screen bg-background pb-16 md:pb-0">
+                <div className="min-h-screen bg-background pb-16 md:pb-0 flex flex-col">
                   <Navigation />
-                  <main className="container mx-auto px-4 py-8 page-transition">
+                  <main className="container mx-auto px-4 py-8 page-transition flex-1">
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/jobs" element={<Jobs />} />
@@ -66,8 +69,10 @@ function App() {
                       <Route path="/analytics" element={<Analytics />} />
                       <Route path="/communities" element={<Communities />} />
                       <Route path="/documents" element={<Documents />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
                     </Routes>
                   </main>
+                  <AppFooter />
                   <MobileNavigation />
                 </div>
                 <Toaster />

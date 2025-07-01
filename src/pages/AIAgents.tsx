@@ -1,119 +1,239 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Bot, 
-  FileText, 
-  Search, 
-  MessageSquare,
-  TrendingUp
-} from 'lucide-react';
-import { ATSChecker } from '@/components/ats/ATSChecker';
-import { JobMatcher } from '@/components/jobs/JobMatcher';
-import JobMatchingChat from '@/components/JobMatchingChat';
-import AgentJobMatcher from '@/components/ai-agents/AgentJobMatcher';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bot, FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { AgentDashboard } from "@/components/ai-agents/AgentDashboard";
+import { AgentJobMatcher } from "@/components/ai-agents/AgentJobMatcher";
+import { AgentCareerAdvisor } from "@/components/ai-agents/AgentCareerAdvisor";
+import { AgentNewsAnalyzer } from "@/components/ai-agents/AgentNewsAnalyzer";
 
 const AIAgents = () => {
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   const agents = [
     {
-      id: 'ats-checker',
-      name: 'ATS Resume Checker',
-      description: 'Optimize your resume for Applicant Tracking Systems',
-      icon: FileText,
-      status: 'active',
-      category: 'Resume Optimization'
-    },
-    {
-      id: 'job-matcher',
-      name: 'AI Job Matcher',
-      description: 'Find jobs that match your skills and preferences',
+      id: "job-matcher",
+      name: "Job Matcher",
+      description: "Find jobs that match your skills and preferences",
       icon: Search,
-      status: 'active',
-      category: 'Job Matching'
+      color: "bg-blue-500",
+      features: ["Smart matching", "Salary insights", "Skills analysis"],
+      component: <AgentJobMatcher />
     },
     {
-      id: 'job-chat',
-      name: 'Job Search Assistant',
-      description: 'Chat with AI to find relevant job opportunities',
-      icon: MessageSquare,
-      status: 'active',
-      category: 'Job Discovery'
+      id: "ats-checker",
+      name: "ATS Checker",
+      description: "Optimize your resume for applicant tracking systems",
+      icon: FileText,
+      color: "bg-green-500",
+      features: ["Resume scanning", "ATS optimization", "Keyword analysis"],
+      component: <div className="p-6 text-center">ATS Checker coming soon...</div>
     },
     {
-      id: 'resume-analyzer',
-      name: 'Resume-Job Analyzer',
-      description: 'Analyze how well your resume matches specific jobs',
+      id: "career-advisor",
+      name: "Career Advisor",
+      description: "Get personalized career guidance and growth strategies",
       icon: TrendingUp,
-      status: 'active',
-      category: 'Career Analysis'
+      color: "bg-purple-500",
+      features: ["Career planning", "Skill recommendations", "Growth tracking"],
+      component: <AgentCareerAdvisor />
+    },
+    {
+      id: "resume-analyzer",
+      name: "Resume Analyzer",
+      description: "Analyze and improve your resume with AI insights",
+      icon: Bot,
+      color: "bg-orange-500",
+      features: ["Content analysis", "Improvement suggestions", "Format optimization"],
+      component: <div className="p-6 text-center">Resume Analyzer coming soon...</div>
+    },
+    {
+      id: "interview-coach",
+      name: "Interview Coach",
+      description: "Practice interviews with AI-powered feedback",
+      icon: Users,
+      color: "bg-red-500",
+      features: ["Mock interviews", "Real-time feedback", "Question bank"],
+      component: <div className="p-6 text-center">Interview Coach coming soon...</div>
+    },
+    {
+      id: "chat-assistant",
+      name: "Chat Assistant",
+      description: "Get instant answers to your career questions",
+      icon: MessageSquare,
+      color: "bg-indigo-500",
+      features: ["24/7 availability", "Instant responses", "Career guidance"],
+      component: <div className="p-6 text-center">Chat Assistant coming soon...</div>
     }
   ];
 
+  const itemsPerSlide = 3;
+  const totalSlides = Math.ceil(agents.length / itemsPerSlide);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const getCurrentSlideAgents = () => {
+    const start = currentSlide * itemsPerSlide;
+    return agents.slice(start, start + itemsPerSlide);
+  };
+
+  if (selectedAgent) {
+    const agent = agents.find(a => a.id === selectedAgent);
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedAgent(null)}
+            className="mb-4"
+          >
+            ← Back to AI Agents
+          </Button>
+          <h1 className="text-3xl font-bold mb-2">{agent?.name}</h1>
+          <p className="text-muted-foreground">{agent?.description}</p>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border">
+          {agent?.component}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6" />
-            AI Career Agents
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-6">
-            Powerful AI tools to enhance your job search and career development in supply chain management.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {agents.map((agent) => {
-              const Icon = agent.icon;
-              return (
-                <Card key={agent.id} className="border-2 hover:border-primary/50 transition-colors">
-                  <CardContent className="p-4 text-center">
-                    <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                    <h3 className="font-semibold mb-1">{agent.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{agent.description}</p>
-                    <Badge variant="secondary">{agent.category}</Badge>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">AI-Powered Career Tools</h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Leverage artificial intelligence to accelerate your supply chain career
+        </p>
+      </div>
 
-      <Tabs defaultValue="ats-checker" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="ats-checker">ATS Checker</TabsTrigger>
-          <TabsTrigger value="job-matcher">Job Matcher</TabsTrigger>
-          <TabsTrigger value="job-chat">Job Chat</TabsTrigger>
-          <TabsTrigger value="resume-analyzer">Resume Analyzer</TabsTrigger>
+      <Tabs defaultValue="agents" className="mb-8">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="agents">AI Agents</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="agents" className="mt-6">
+          {/* Mobile Carousel */}
+          <div className="md:hidden">
+            <div className="relative mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold">Choose Your AI Assistant</h2>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={prevSlide}
+                    disabled={currentSlide === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentSlide + 1} / {totalSlides}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={nextSlide}
+                    disabled={currentSlide === totalSlides - 1}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {getCurrentSlideAgents().map((agent) => {
+                  const Icon = agent.icon;
+                  return (
+                    <Card 
+                      key={agent.id} 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedAgent(agent.id)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${agent.color} text-white`}>
+                            <Icon className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{agent.name}</CardTitle>
+                            <CardDescription className="text-sm">{agent.description}</CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex flex-wrap gap-1">
+                          {agent.features.map((feature, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
-        <TabsContent value="ats-checker">
-          <ATSChecker />
+          {/* Desktop Grid */}
+          <div className="hidden md:block">
+            <h2 className="text-2xl font-bold mb-6">Choose Your AI Assistant</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agents.map((agent) => {
+                const Icon = agent.icon;
+                return (
+                  <Card 
+                    key={agent.id} 
+                    className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                    onClick={() => setSelectedAgent(agent.id)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`p-3 rounded-lg ${agent.color} text-white`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">{agent.name}</CardTitle>
+                        </div>
+                      </div>
+                      <CardDescription>{agent.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {agent.features.map((feature, index) => (
+                          <Badge key={index} variant="secondary">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button className="w-full">
+                        Try {agent.name}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
         </TabsContent>
-
-        <TabsContent value="job-matcher">
-          <JobMatcher />
-        </TabsContent>
-
-        <TabsContent value="job-chat">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-6 w-6" />
-                Job Search Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <JobMatchingChat />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="resume-analyzer">
-          <AgentJobMatcher />
+        
+        <TabsContent value="dashboard" className="mt-6">
+          <AgentDashboard />
         </TabsContent>
       </Tabs>
     </div>

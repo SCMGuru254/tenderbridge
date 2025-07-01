@@ -115,7 +115,12 @@ const Discussions = () => {
               {/* Mobile FAB */}
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <FAB aria-label="Create new discussion" />
+                  <FAB 
+                    aria-label="Create new discussion"
+                    className="md:hidden"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </FAB>
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-3xl mx-auto">
                   <DialogHeader>
@@ -213,6 +218,7 @@ const Discussions = () => {
                     onClick={() => setCreateDialogOpen(true)}
                     className="bg-primary hover:bg-primary/90"
                   >
+                    <Plus className="mr-2 h-4 w-4" />
                     Start a Discussion
                   </Button>
                 )}

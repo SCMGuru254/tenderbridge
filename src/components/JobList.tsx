@@ -60,9 +60,9 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     );
   }
 
-  // IMPROVED FILTERING: Use multiple date sources and be more permissive
+  // ENHANCED FILTERING: Use word-based validation instead of character counting
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   
   const filteredJobsByTime = (jobs || []).filter(job => {
     // Use source_posted_at if available, otherwise use created_at
@@ -77,7 +77,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
     if (dateToCheck) {
       try {
         const jobDate = new Date(dateToCheck);
-        const isRecent = jobDate >= sevenDaysAgo && jobDate <= now;
+        const isRecent = jobDate >= thirtyDaysAgo && jobDate <= now;
         console.log(`Job "${job.title}" date check:`, {
           dateUsed: dateToCheck,
           parsed: jobDate.toISOString(),
@@ -87,28 +87,36 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
         return isRecent;
       } catch (error) {
         console.error('Error parsing job date:', dateToCheck, error);
-        // Include jobs with unparseable dates rather than excluding them
         return true;
       }
     }
     
-    // Include jobs without dates rather than excluding them
     console.log(`Job "${job.title}" has no valid date, including it`);
     return true;
   });
 
   console.log("JobList - After time filtering:", filteredJobsByTime.length, "jobs remain from", jobs.length, "total");
 
-  // All other filtering as before, but use filteredJobsByTime instead of jobs
+  // Enhanced validation with word-based filtering
   const filteredJobs = filteredJobsByTime.filter(job => {
     console.log("JobList - Processing job:", job.title || 'NO TITLE', "from source:", getJobSource(job));
     
     // Clean the title first and validate it's not empty
     const cleanedTitle = cleanJobTitle(job.title || '');
     
-    // STRICT RULE: No jobs with invalid or placeholder titles
-    if (!cleanedTitle || cleanedTitle.length < 3) {
+    // ENHANCED RULE: Word-based validation instead of character counting
+    if (!cleanedTitle || cleanedTitle.trim().length < 3) {
       console.log("🚫 JobList - Filtering out job with invalid title:", job);
+      return false;
+    }
+    
+    // Check for meaningful words in the title (at least 2 words with 2+ letters each)
+    const titleWords = cleanedTitle.trim().split(/\s+/).filter(word => 
+      word.length >= 2 && /^[a-zA-Z]/.test(word)
+    );
+    
+    if (titleWords.length < 2) {
+      console.log("🚫 JobList - Filtering out job without sufficient meaningful words:", cleanedTitle);
       return false;
     }
     
@@ -121,6 +129,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
       /^null$/i,                        // literal "null"
       /^undefined$/i,                   // literal "undefined"
       /Job\s*Title\s*Not\s*Available/i, // Generic placeholder
+      /^test\s*job$/i,                  // Test entries
+      /^sample\s*job$/i,                // Sample entries
     ];
     
     if (invalidTitlePatterns.some(pattern => pattern.test(cleanedTitle))) {
@@ -137,6 +147,8 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
         /\*{2,}/,
         /^[\*\-\s]+$/,
         /Company\s*not\s*specified/i,
+        /^test\s*company$/i,
+        /^sample\s*company$/i,
       ];
       
       if (invalidCompanyPatterns.some(pattern => pattern.test(cleanedCompany))) {
@@ -159,12 +171,6 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
         console.log("🚫 JobList - Filtering out job with placeholder location:", cleanedLocation);
         return false;
       }
-    }
-    
-    // Ensure the title contains actual meaningful words
-    if (!/[a-zA-Z]{3,}/.test(cleanedTitle)) {
-      console.log("🚫 JobList - Filtering out job without sufficient letters in title:", cleanedTitle);
-      return false;
     }
     
     // All validations passed
@@ -233,7 +239,7 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Valid Job Listings ({sortedJobs.length} total jobs)
+            Valid Job Listings ({sortedJobs.length} total jobs from {Object.keys(jobsBySource).length} sources)
           </CardTitle>
         </CardHeader>
         <CardContent>
