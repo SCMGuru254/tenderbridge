@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import AgentDashboard from "@/components/ai-agents/AgentDashboard";
 import AgentJobMatcher from "@/components/ai-agents/AgentJobMatcher";
-import AgentCareerAdvisor from "@/components/ai-agents/AgentCareerAdvisor";
+import { AgentCareerAdvisor } from "@/components/ai-agents/AgentCareerAdvisor";
 
 const AIAgents = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -70,7 +70,6 @@ const AIAgents = () => {
     }
   ];
 
-  const itemsPerSlide = 1; // Changed to 1 for better mobile experience
   const totalSlides = agents.length;
 
   const nextSlide = () => {
