@@ -1,87 +1,136 @@
 
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { 
-  Home, 
-  Briefcase, 
-  MessageSquare, 
-  Users, 
-  Award,
-  DollarSign,
-  Star,
-  Bot,
-  GraduationCap
-} from 'lucide-react';
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/jobs', label: 'Jobs', icon: Briefcase },
-    { href: '/interview-prep', label: 'Interview Prep', icon: GraduationCap },
-    { href: '/ai-agents', label: 'AI Agents', icon: Bot },
-    { href: '/discussions', label: 'Discussions', icon: MessageSquare },
-    { href: '/networking', label: 'Networking', icon: Users },
-    { href: '/rewards', label: 'Rewards', icon: Award },
-    { href: '/affiliate', label: 'Affiliate', icon: DollarSign },
-    { href: '/featured-clients', label: 'Featured Services', icon: Star },
+    { href: "/", label: "Home" },
+    { href: "/jobs", label: "Jobs" },
+    { href: "/ai-agents", label: "AI Tools" },
+    { href: "/interview-prep", label: "Interview Prep" },
+    { href: "/discussions", label: "Discussions" },
+    { href: "/networking", label: "Networking" },
+    { href: "/rewards", label: "Rewards" },
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
-      <div className="container mx-auto px-2 md:px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-4 md:space-x-8">
-            <Link to="/" className="text-xl font-bold text-primary">
-              SupplyChain Jobs
-            </Link>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-2 md:space-x-4">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      location.pathname === item.href
-                        ? "bg-primary text-primary-foreground"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="text-xl font-bold text-primary">SupplyChain_KE</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  location.pathname === item.href
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
-        </div>
-        
-        {/* Mobile Navigation - Horizontal scrollable at bottom */}
-        <div className="md:hidden overflow-x-auto scrollbar-hide">
-          <div className="flex space-x-1 pb-2 min-w-max">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex flex-col items-center justify-center min-w-[80px] px-3 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation",
-                    location.pathname === item.href
-                      ? "bg-primary text-primary-foreground"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  )}
-                >
-                  <Icon className="h-5 w-5 mb-1" />
-                  <span className="text-center leading-tight">{item.label}</span>
+
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden md:inline">{user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
                 </Link>
-              );
-            })}
+                <Link to="/auth">
+                  <Button size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <div className="flex flex-col space-y-4 mt-8">
+                  {navItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`text-sm font-medium transition-colors hover:text-primary ${
+                        location.pathname === item.href
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  {!user && (
+                    <div className="pt-4 border-t">
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full">Sign In / Sign Up</Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

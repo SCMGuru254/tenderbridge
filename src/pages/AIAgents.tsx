@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bot, FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
-import { AgentDashboard } from "@/components/ai-agents/AgentDashboard";
-import { AgentJobMatcher } from "@/components/ai-agents/AgentJobMatcher";
-import { AgentCareerAdvisor } from "@/components/ai-agents/AgentCareerAdvisor";
-import { AgentNewsAnalyzer } from "@/components/ai-agents/AgentNewsAnalyzer";
+import AgentDashboard from "@/components/ai-agents/AgentDashboard";
+import AgentJobMatcher from "@/components/ai-agents/AgentJobMatcher";
+import AgentCareerAdvisor from "@/components/ai-agents/AgentCareerAdvisor";
 
 const AIAgents = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -71,8 +70,8 @@ const AIAgents = () => {
     }
   ];
 
-  const itemsPerSlide = 3;
-  const totalSlides = Math.ceil(agents.length / itemsPerSlide);
+  const itemsPerSlide = 1; // Changed to 1 for better mobile experience
+  const totalSlides = agents.length;
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -83,8 +82,7 @@ const AIAgents = () => {
   };
 
   const getCurrentSlideAgents = () => {
-    const start = currentSlide * itemsPerSlide;
-    return agents.slice(start, start + itemsPerSlide);
+    return [agents[currentSlide]];
   };
 
   if (selectedAgent) {
@@ -127,25 +125,25 @@ const AIAgents = () => {
         
         <TabsContent value="agents" className="mt-6">
           {/* Mobile Carousel */}
-          <div className="md:hidden">
+          <div className="block md:hidden">
             <div className="relative mb-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Choose Your AI Assistant</h2>
+                <h2 className="text-xl font-bold">AI Assistants</h2>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="sm"
                     onClick={prevSlide}
                     disabled={currentSlide === 0}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground min-w-[60px] text-center">
                     {currentSlide + 1} / {totalSlides}
                   </span>
                   <Button
                     variant="outline"
-                    size="icon"
+                    size="sm"
                     onClick={nextSlide}
                     disabled={currentSlide === totalSlides - 1}
                   >
@@ -164,24 +162,29 @@ const AIAgents = () => {
                       onClick={() => setSelectedAgent(agent.id)}
                     >
                       <CardHeader className="pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${agent.color} text-white`}>
-                            <Icon className="h-5 w-5" />
+                        <div className="flex items-start gap-3">
+                          <div className={`p-3 rounded-lg ${agent.color} text-white flex-shrink-0`}>
+                            <Icon className="h-6 w-6" />
                           </div>
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{agent.name}</CardTitle>
-                            <CardDescription className="text-sm">{agent.description}</CardDescription>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg leading-tight">{agent.name}</CardTitle>
+                            <CardDescription className="text-sm mt-1 leading-relaxed">
+                              {agent.description}
+                            </CardDescription>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1 mb-3">
                           {agent.features.map((feature, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
                               {feature}
                             </Badge>
                           ))}
                         </div>
+                        <Button className="w-full">
+                          Try {agent.name}
+                        </Button>
                       </CardContent>
                     </Card>
                   );
