@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting job scraping process...')
+    console.log('Starting comprehensive job scraping process...')
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -27,11 +27,12 @@ serve(async (req) => {
       testMode = false, 
       forceUpdate = false,
       sources = [],
-      keywords = []
+      keywords = [],
+      minJobsRequired = 20
     } = await req.json();
 
     console.log(`Job scraping request received with options:`, { 
-      refreshAll, debug, testMode, forceUpdate, sources, keywords 
+      refreshAll, debug, testMode, forceUpdate, sources, keywords, minJobsRequired 
     });
 
     // Clear existing scraped jobs only if we're doing a full refresh and not in test mode
@@ -68,6 +69,7 @@ serve(async (req) => {
     // Prepare response data with source results
     let totalJobsScraped = 0;
     let sourceResults = {};
+    let allSuccessfulJobs: any[] = [];
     
     // Scrape each site and process the results
     for (const site of jobSites) {
@@ -81,6 +83,9 @@ serve(async (req) => {
         // Pass individual site to scraper (not array)
         const scrapedJobs = await scrapeJobSites(siteConfig);
         console.log(`Scraped ${scrapedJobs.length} jobs from ${site.source}`);
+        
+        // Track all successful jobs before insertion
+        allSuccessfulJobs.push(...scrapedJobs);
         
         // Insert each job into the database unless in test mode
         let sourceJobsInserted = 0;
@@ -133,12 +138,33 @@ serve(async (req) => {
     console.log(`Job scraping completed. Total jobs added: ${totalJobsScraped}`);
     console.log('Source results:', JSON.stringify(sourceResults));
 
-    return new Response(JSON.stringify({ 
+    // Check if we met the minimum jobs requirement
+    const meetsMinimum = totalJobsScraped >= minJobsRequired;
+    if (!meetsMinimum) {
+      console.warn(`⚠️ Only scraped ${totalJobsScraped} jobs, below minimum of ${minJobsRequired}`);
+    }
+
+    // Enhanced reporting
+    const successfulSources = Object.entries(sourceResults).filter(([_, result]) => (result as any).success);
+    const failedSources = Object.entries(sourceResults).filter(([_, result]) => !(result as any).success);
+    
+    const report = {
       success: true,
-      message: `Successfully processed ${totalJobsScraped} jobs`,
+      message: `Successfully processed ${totalJobsScraped} jobs from ${successfulSources.length}/${jobSites.length} sources`,
+      totalJobsScraped,
+      minJobsRequired,
+      meetsMinimum,
       sourceResults: sourceResults,
-      testMode: testMode
-    }), {
+      testMode: testMode,
+      summary: {
+        totalSources: jobSites.length,
+        successfulSources: successfulSources.length,
+        failedSources: failedSources.length,
+        averageJobsPerSource: totalJobsScraped / Math.max(successfulSources.length, 1)
+      }
+    };
+
+    return new Response(JSON.stringify(report), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

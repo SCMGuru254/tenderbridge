@@ -49,7 +49,7 @@ async function scrapeXmlFeed(jobSite: JobSite): Promise<Job[]> {
     // Parse XML jobs using the utility function
     const jobs = await parseXmlJobs(xmlText, jobSite);
     
-    // STRICT VALIDATION: Filter out any jobs with placeholder data
+    // Enhanced validation: Filter out any jobs with placeholder data
     const validJobs = jobs.filter(job => {
       return isValidJobData(job.title, job.company, job.location, jobSite.source);
     });
@@ -301,7 +301,6 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
   return jobs;
 }
 
-// Enhanced text extraction with better fallback handling
 function extractTextWithFallbacks($element: any, selectors: string, $: any): string {
   if (!selectors) return '';
   
@@ -351,7 +350,6 @@ function extractTextWithFallbacks($element: any, selectors: string, $: any): str
   return '';
 }
 
-// Enhanced job URL extraction
 function extractJobUrl($element: any, linkSelectors: string, baseUrl: string): string {
   const selectors = linkSelectors.split(',').map(s => s.trim());
   
@@ -409,7 +407,6 @@ function extractJobUrl($element: any, linkSelectors: string, baseUrl: string): s
   return '';
 }
 
-// STRICT validation for job data - NO MOCK/PLACEHOLDER DATA ALLOWED
 function isValidJobData(title: string, company: string, location: string, source: string): boolean {
   // Title validation
   if (!title || title.length < 3) {
@@ -452,7 +449,6 @@ function isValidJobData(title: string, company: string, location: string, source
   return true;
 }
 
-// Enhanced placeholder detection
 function isPlaceholderText(text: string): boolean {
   if (!text || typeof text !== 'string') return true;
   
@@ -473,7 +469,6 @@ function isPlaceholderText(text: string): boolean {
   return placeholderPatterns.some(pattern => pattern.test(text.trim()));
 }
 
-// Enhanced URL validation
 function isValidJobUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
   
@@ -490,7 +485,6 @@ function isValidJobUrl(url: string): boolean {
   }
 }
 
-// Enhanced job title cleaning
 function cleanTitle(title: string): string {
   if (!title || typeof title !== 'string') return '';
   
@@ -501,7 +495,6 @@ function cleanTitle(title: string): string {
     .slice(0, 255);
 }
 
-// Enhanced company name cleaning
 function cleanCompanyName(company: string): string {
   if (!company || typeof company !== 'string') return '';
   
@@ -512,7 +505,6 @@ function cleanCompanyName(company: string): string {
     .slice(0, 200);
 }
 
-// Enhanced location cleaning
 function cleanLocation(location: string): string {
   if (!location || typeof location !== 'string') return '';
   
@@ -523,7 +515,6 @@ function cleanLocation(location: string): string {
     .slice(0, 100);
 }
 
-// Enhanced description cleaning
 function cleanJobDescription(description: string): string {
   if (!description || typeof description !== 'string') return '';
   
