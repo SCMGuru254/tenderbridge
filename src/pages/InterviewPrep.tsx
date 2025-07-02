@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ const InterviewPrep = () => {
     completeSession,
     fetchSessions
   } = useInterviewSessions();
+  
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
@@ -54,7 +55,6 @@ const InterviewPrep = () => {
 
   useEffect(() => {
     if (user) {
-      // Fetch available questions from database or a predefined list
       const mockQuestions: Question[] = [
         { id: '1', text: 'Tell me about yourself.' },
         { id: '2', text: 'Why are you interested in this position?' },
@@ -72,23 +72,25 @@ const InterviewPrep = () => {
   }, [user]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | undefined;
 
     if (isPlaying && currentQuestion) {
-      setQuestionTimer(60); // Reset timer for each question
+      setQuestionTimer(60);
       intervalId = setInterval(() => {
         setQuestionTimer((prev) => {
           if (prev > 0) return prev - 1;
-          clearInterval(intervalId);
+          if (intervalId) clearInterval(intervalId);
           setIsPlaying(false);
           return 0;
         });
       }, 1000);
-    } else {
+    } else if (intervalId) {
       clearInterval(intervalId);
     }
 
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [isPlaying, currentQuestion]);
 
   const startSession = async () => {
@@ -159,7 +161,6 @@ const InterviewPrep = () => {
   const submitAnswer = async () => {
     if (!currentSession || !currentQuestion) return;
 
-    // Mock AI feedback and scoring
     const aiScore = Math.floor(Math.random() * 5) + 1;
     const feedback = `AI Feedback: Your answer was ${aiScore > 3 ? 'good' : 'okay'}. Consider focusing on specific examples.`;
 
