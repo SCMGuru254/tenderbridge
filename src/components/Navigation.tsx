@@ -1,141 +1,168 @@
 
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, User, LogOut } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Menu, 
+  X, 
+  Home, 
+  Briefcase, 
+  MessageSquare, 
+  User, 
+  LogOut,
+  Bot,
+  GraduationCap,
+  DollarSign,
+  Users,
+  BarChart3
+} from "lucide-react";
 
-const Navigation = () => {
+export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    await supabase.auth.signOut();
   };
 
   const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/jobs", label: "Jobs" },
-    { href: "/ai-agents", label: "AI Tools" },
-    { href: "/interview-prep", label: "Interview Prep" },
-    { href: "/discussions", label: "Discussions" },
-    { href: "/networking", label: "Networking" },
-    { href: "/rewards", label: "Rewards" },
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Jobs', href: '/jobs', icon: Briefcase },
+    { name: 'Discussions', href: '/discussions', icon: MessageSquare },
+    { name: 'AI Assistant', href: '/chat', icon: Bot },
+    { name: 'Interview Prep', href: '/interview-prep', icon: MessageSquare },
+    { name: 'Mentorship', href: '/mentorship', icon: GraduationCap },
+    { name: 'Salary Analyzer', href: '/salary-analyzer', icon: DollarSign },
+    { name: 'Join Team', href: '/join-team', icon: Users },
   ];
 
-  return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">SupplyChain_KE</span>
-          </Link>
+  if (user) {
+    navItems.push({ name: 'Dashboard', href: '/dashboard', icon: BarChart3 });
+  }
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === item.href
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+  return (
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center">
+              <span className="text-xl font-bold text-primary">SupplyChain Jobs</span>
+            </Link>
           </div>
 
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location.pathname === item.href
+                      ? 'bg-primary text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden md:inline">{user.email}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
               <div className="flex items-center space-x-2">
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">
-                    Sign In
+                <Link to="/profile">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
                   </Button>
                 </Link>
-                <Link to="/auth">
-                  <Button size="sm">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile Menu */}
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden">
-                  <Menu className="h-5 w-5" />
+                <Button onClick={handleSignOut} variant="outline" size="sm">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
                 </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <div className="flex flex-col space-y-4 mt-8">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className={`text-sm font-medium transition-colors hover:text-primary ${
-                        location.pathname === item.href
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                  {!user && (
-                    <div className="pt-4 border-t">
-                      <Link to="/auth" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full">Sign In / Sign Up</Button>
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button>Sign In</Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    location.pathname === item.href
+                      ? 'bg-primary text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            
+            <div className="border-t pt-2">
+              {user ? (
+                <>
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <User className="h-5 w-5" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 w-full text-left"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
-
-export default Navigation;

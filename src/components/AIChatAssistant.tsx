@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageCircle, 
   Send, 
@@ -120,7 +120,6 @@ export const AIChatAssistant = () => {
       timestamp: new Date()
     };
 
-    // Add user message to current session
     setSessions(prev => ({
       ...prev,
       [activeTab]: {
@@ -134,12 +133,11 @@ export const AIChatAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Call our edge function for AI response
       const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: {
           message: messageToSend,
           context: getSystemPrompt(activeTab),
-          conversation_history: sessions[activeTab].messages.slice(-5) // Last 5 messages for context
+          conversation_history: sessions[activeTab].messages.slice(-5)
         }
       });
 
@@ -166,7 +164,6 @@ export const AIChatAssistant = () => {
     } catch (error) {
       console.error('Error sending message:', error);
       
-      // Fallback response when AI service is unavailable
       const fallbackMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -232,7 +229,7 @@ export const AIChatAssistant = () => {
       ...prev,
       [activeTab]: {
         ...prev[activeTab],
-        messages: [prev[activeTab].messages[0]] // Keep only the initial message
+        messages: [prev[activeTab].messages[0]]
       }
     }));
   };
@@ -297,7 +294,6 @@ export const AIChatAssistant = () => {
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col">
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
             {sessions[activeTab]?.messages.map((message) => (
               <div
@@ -349,7 +345,6 @@ export const AIChatAssistant = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
           <div className="flex gap-2">
             <Input
               value={currentMessage}
@@ -372,7 +367,6 @@ export const AIChatAssistant = () => {
             </Button>
           </div>
 
-          {/* Usage Info */}
           <div className="mt-2 flex items-center justify-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="text-xs">
               <Sparkles className="h-3 w-3 mr-1" />

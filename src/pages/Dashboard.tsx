@@ -1,197 +1,101 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { 
+  User, 
   Briefcase, 
-  Heart, 
-  Eye, 
+  MessageSquare, 
   TrendingUp, 
   Clock,
-  CheckCircle,
-  AlertCircle
+  Star,
+  Eye,
+  Heart,
+  Calendar,
+  Award
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-interface SavedJob {
-  id: string;
-  created_at: string;
-  notes?: string;
-  scraped_jobs?: {
-    id: string;
-    title: string;
-    company: string;
-    location: string;
-    job_type?: string;
-    job_url?: string;
-  };
-}
-
-interface JobApplication {
-  id: string;
-  status: string;
-  created_at: string;
-  jobs?: {
-    id: string;
-    title: string;
-    location: string;
-  };
-}
-
-interface ActivityItem {
-  type: string;
-  action: string;
-  details: string;
-  timestamp: string;
-}
-
 interface DashboardStats {
-  totalSavedJobs: number;
-  totalApplications: number;
+  jobsApplied: number;
+  savedJobs: number;
   profileViews: number;
-  successRate: number;
-  recentActivity: ActivityItem[];
+  interviewSessions: number;
+  mentorshipSessions: number;
+  rewardPoints: number;
+  careerApplications: number;
+  discussionsParticipated: number;
 }
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
-  const [savedJobs, setSavedJobs] = useState<SavedJob[]>([]);
-  const [appliedJobs, setAppliedJobs] = useState<JobApplication[]>([]);
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    totalSavedJobs: 0,
-    totalApplications: 0,
+  const [stats, setStats] = useState<DashboardStats>({
+    jobsApplied: 0,
+    savedJobs: 0,
     profileViews: 0,
-    successRate: 0,
-    recentActivity: []
+    interviewSessions: 0,
+    mentorshipSessions: 0,
+    rewardPoints: 0,
+    careerApplications: 0,
+    discussionsParticipated: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchUserData();
+      fetchDashboardStats();
     }
   }, [user]);
 
-  const fetchUserData = async () => {
+  const fetchDashboardStats = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
     try {
-      // Fetch saved jobs from the scraped_jobs table via saved_jobs
-      const { data: saved, error: savedError } = await supabase
-        .from('saved_jobs')
-        .select(`
-          *,
-          scraped_jobs (
-            id,
-            title,
-            company,
-            location,
-            job_type,
-            created_at,
-            job_url
-          )
-        `)
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+      const [
+        jobApplicationsResult,
+        savedJobsResult,
+        profileViewsResult,
+        interviewSessionsResult,
+        mentorshipSessionsResult,
+        rewardPointsResult,
+        careerApplicationsResult,
+        discussionsResult
+      ] = await Promise.all([
+        supabase.from('job_applications').select('id').eq('applicant_id', user.id),
+        supabase.from('saved_jobs').select('id').eq('user_id', user.id),
+        supabase.from('profile_views').select('id').eq('profile_id', user.id),
+        supabase.from('interview_sessions').select('id').eq('user_id', user.id),
+        supabase.from('mentorship_sessions').select('id').or(`mentor_id.in.(select id from mentors where user_id=${user.id}),mentee_id.in.(select id from mentees where user_id=${user.id})`),
+        supabase.from('rewards_points').select('current_balance').eq('user_id', user.id).single(),
+        supabase.from('career_applications').select('id').eq('user_id', user.id),
+        supabase.from('discussions').select('id').eq('author_id', user.id)
+      ]);
 
-      if (savedError) {
-        console.error('Error fetching saved jobs:', savedError);
-      } else {
-        setSavedJobs(saved || []);
-      }
-
-      // Fetch job applications
-      const { data: applications, error: appError } = await supabase
-        .from('job_applications')
-        .select(`
-          *,
-          jobs (
-            id,
-            title,
-            location,
-            company_id
-          )
-        `)
-        .eq('applicant_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (appError) {
-        console.error('Error fetching applications:', appError);
-      } else {
-        setAppliedJobs(applications || []);
-      }
-
-      // Fetch profile views
-      const { data: views, error: viewsError } = await supabase
-        .from('profile_views')
-        .select('id')
-        .eq('profile_id', user?.id);
-
-      if (viewsError) {
-        console.error('Error fetching profile views:', viewsError);
-      }
-
-      // Calculate success rate based on accepted applications
-      const acceptedApplications = (applications || []).filter(app => app.status === 'accepted').length;
-      const totalApps = (applications || []).length;
-      const successRate = totalApps > 0 ? Math.round((acceptedApplications / totalApps) * 100) : 0;
-
-      // Create activity timeline
-      const recentActivity: ActivityItem[] = [
-        ...(saved?.slice(0, 5).map(job => ({
-          type: 'saved',
-          action: 'Saved job',
-          details: job.scraped_jobs?.title || 'Unknown Job',
-          timestamp: job.created_at
-        })) || []),
-        ...(applications?.slice(0, 5).map(app => ({
-          type: 'applied',
-          action: 'Applied to job',
-          details: app.jobs?.title || 'Unknown Job',
-          timestamp: app.created_at
-        })) || [])
-      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
-
-      // Update dashboard stats with real data
-      setDashboardStats({
-        totalSavedJobs: saved?.length || 0,
-        totalApplications: applications?.length || 0,
-        profileViews: views?.length || 0,
-        successRate,
-        recentActivity
+      setStats({
+        jobsApplied: jobApplicationsResult.data?.length || 0,
+        savedJobs: savedJobsResult.data?.length || 0,
+        profileViews: profileViewsResult.data?.length || 0,
+        interviewSessions: interviewSessionsResult.data?.length || 0,
+        mentorshipSessions: mentorshipSessionsResult.data?.length || 0,
+        rewardPoints: rewardPointsResult.data?.current_balance || 0,
+        careerApplications: careerApplicationsResult.data?.length || 0,
+        discussionsParticipated: discussionsResult.data?.length || 0
       });
-
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      toast.error('Failed to load dashboard data');
+      console.error('Error fetching dashboard stats:', error);
+      toast.error('Failed to load dashboard statistics');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const removeJob = async (jobId: string) => {
-    try {
-      const { error } = await supabase
-        .from('saved_jobs')
-        .delete()
-        .eq('id', jobId)
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
-      setDashboardStats(prev => ({
-        ...prev,
-        totalSavedJobs: prev.totalSavedJobs - 1
-      }));
-      toast.success('Job removed from saved list');
-    } catch (error) {
-      console.error('Error removing job:', error);
-      toast.error('Failed to remove job');
-    }
-  };
-
-  if (loading) {
+  if (loading || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -203,210 +107,204 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  const statCards = [
+    {
+      title: 'Jobs Applied',
+      value: stats.jobsApplied,
+      icon: Briefcase,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-100'
+    },
+    {
+      title: 'Saved Jobs',
+      value: stats.savedJobs,
+      icon: Heart,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100'
+    },
+    {
+      title: 'Profile Views',
+      value: stats.profileViews,
+      icon: Eye,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100'
+    },
+    {
+      title: 'Interview Sessions',
+      value: stats.interviewSessions,
+      icon: MessageSquare,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100'
+    },
+    {
+      title: 'Mentorship Sessions',
+      value: stats.mentorshipSessions,
+      icon: User,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100'
+    },
+    {
+      title: 'Reward Points',
+      value: stats.rewardPoints,
+      icon: Award,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-100'
+    },
+    {
+      title: 'Career Applications',
+      value: stats.careerApplications,
+      icon: TrendingUp,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100'
+    },
+    {
+      title: 'Discussions Started',
+      value: stats.discussionsParticipated,
+      icon: MessageSquare,
+      color: 'text-teal-600',
+      bgColor: 'bg-teal-100'
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user.user_metadata?.full_name || user.email}</p>
+          <p className="text-muted-foreground">Welcome back! Here's your activity overview.</p>
         </div>
+        <Button onClick={fetchDashboardStats}>
+          <TrendingUp className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Real Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Saved Jobs</p>
-                <p className="text-2xl font-bold">{dashboardStats.totalSavedJobs}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                  <p className="text-3xl font-bold">{stat.value}</p>
+                </div>
+                <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                </div>
               </div>
-              <Heart className="h-8 w-8 text-red-500" />
-            </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Job Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Browse the latest supply chain and logistics opportunities.
+            </p>
+            <Button className="w-full">Browse Jobs</Button>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Applications</p>
-                <p className="text-2xl font-bold">{dashboardStats.totalApplications}</p>
-              </div>
-              <Briefcase className="h-8 w-8 text-blue-500" />
-            </div>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              AI Assistant
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Get career advice from our AI-powered assistants.
+            </p>
+            <Button className="w-full" variant="outline">Chat with AI</Button>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Profile Views</p>
-                <p className="text-2xl font-bold">{dashboardStats.profileViews}</p>
-              </div>
-              <Eye className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
-                <p className="text-2xl font-bold">{dashboardStats.successRate}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-500" />
-            </div>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Mentorship
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Connect with industry experts for guidance.
+            </p>
+            <Button className="w-full" variant="outline">Find Mentors</Button>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="saved-jobs" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="saved-jobs">Saved Jobs ({dashboardStats.totalSavedJobs})</TabsTrigger>
-          <TabsTrigger value="applications">Applications ({dashboardStats.totalApplications})</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="saved-jobs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Saved Jobs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {savedJobs.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  <Heart className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                  <p>No saved jobs yet.</p>
-                  <p className="text-sm mt-2">Start browsing jobs to save them for later!</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {savedJobs.map((savedJob) => (
-                    <div key={savedJob.id} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{savedJob.scraped_jobs?.title || 'Unknown Position'}</h3>
-                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.company || 'Unknown Company'}</p>
-                          <p className="text-sm text-muted-foreground">{savedJob.scraped_jobs?.location || 'Location not specified'}</p>
-                          {savedJob.scraped_jobs?.job_type && (
-                            <Badge variant="outline" className="mt-2">
-                              {savedJob.scraped_jobs.job_type}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {savedJob.scraped_jobs?.job_url && (
-                            <Button asChild size="sm">
-                              <a href={savedJob.scraped_jobs.job_url} target="_blank" rel="noopener noreferrer">
-                                Apply
-                              </a>
-                            </Button>
-                          )}
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => removeJob(savedJob.id)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                      {savedJob.notes && (
-                        <div className="mt-2">
-                          <p className="text-sm text-muted-foreground">
-                            <strong>Notes:</strong> {savedJob.notes}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stats.jobsApplied === 0 && stats.savedJobs === 0 && stats.interviewSessions === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No recent activity yet.</p>
+              <p className="text-sm mt-2">Start exploring jobs and features to see your activity here.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {stats.jobsApplied > 0 && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Briefcase className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Applied to {stats.jobsApplied} jobs</p>
+                    <p className="text-sm text-muted-foreground">Keep tracking your applications</p>
+                  </div>
+                  <Badge variant="secondary" className="ml-auto">Recent</Badge>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="applications" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Job Applications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {appliedJobs.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No applications yet. Start applying to jobs through our platform!
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {appliedJobs.map((application) => (
-                    <div key={application.id} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{application.jobs?.title}</h3>
-                          <p className="text-sm text-muted-foreground">{application.jobs?.location}</p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Badge variant={
-                              application.status === 'accepted' ? 'default' :
-                              application.status === 'rejected' ? 'destructive' :
-                              'secondary'
-                            }>
-                              {application.status}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              Applied {new Date(application.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          {application.status === 'accepted' && <CheckCircle className="h-5 w-5 text-green-500" />}
-                          {application.status === 'rejected' && <AlertCircle className="h-5 w-5 text-red-500" />}
-                          {application.status === 'pending' && <Clock className="h-5 w-5 text-yellow-500" />}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              
+              {stats.savedJobs > 0 && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <Heart className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Saved {stats.savedJobs} jobs</p>
+                    <p className="text-sm text-muted-foreground">Don't forget to apply</p>
+                  </div>
+                  <Badge variant="outline" className="ml-auto">Active</Badge>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="activity" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {dashboardStats.recentActivity.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No recent activity. Start exploring jobs to see your activity here!
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {dashboardStats.recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
-                      <div className="flex-shrink-0">
-                        {activity.type === 'saved' && <Heart className="h-5 w-5 text-red-500" />}
-                        {activity.type === 'applied' && <Briefcase className="h-5 w-5 text-blue-500" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{activity.action}</p>
-                        <p className="text-sm text-muted-foreground">{activity.details}</p>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(activity.timestamp).toLocaleDateString()}
-                      </div>
-                    </div>
-                  ))}
+              {stats.interviewSessions > 0 && (
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <MessageSquare className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Completed {stats.interviewSessions} practice sessions</p>
+                    <p className="text-sm text-muted-foreground">Great job preparing!</p>
+                  </div>
+                  <Badge variant="default" className="ml-auto">Completed</Badge>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

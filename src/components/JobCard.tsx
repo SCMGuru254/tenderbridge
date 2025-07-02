@@ -56,13 +56,38 @@ export function JobCard({ job }: JobCardProps) {
   
   const remainingTime = getRemainingTime();
 
+  // Get the actual time when job was posted from source
+  const getPostedTime = () => {
+    // Check if job has source_posted_at field (for scraped jobs)
+    if ('source_posted_at' in job && job.source_posted_at) {
+      const postedDate = new Date(job.source_posted_at);
+      const now = new Date();
+      const diffTime = now.getTime() - postedDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "1 day ago";
+      return `${diffDays} days ago`;
+    }
+    
+    // Fallback to created_at
+    const createdDate = new Date(job.created_at);
+    const now = new Date();
+    const diffTime = now.getTime() - createdDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 day ago";
+    return `${diffDays} days ago`;
+  };
+
   // View job details handler
   const handleViewDetails = () => {
-    // For all imported/scraped jobs with URLs, go directly to the job URL
-    if (job_url) {
-      window.open(job_url, '_blank');
+    // For scraped jobs with external URLs, go directly to the source
+    if (job_url && job_url.startsWith('http')) {
+      window.open(job_url, '_blank', 'noopener,noreferrer');
     } else {
-      // Only use the details page for jobs without external URLs
+      // For internal jobs, navigate to details page
       navigate(`/jobs/${job.id}`);
     }
   };
@@ -135,10 +160,14 @@ export function JobCard({ job }: JobCardProps) {
               <span>{job_type}</span>
             </div>
           )}
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+            <span>Posted {getPostedTime()}</span>
+          </div>
           {remainingTime && (
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
-              <span>{remainingTime}</span>
+              <span>Deadline: {remainingTime}</span>
             </div>
           )}
         </div>
@@ -151,7 +180,7 @@ export function JobCard({ job }: JobCardProps) {
             onClick={handleViewDetails} 
             className="w-full sm:flex-1 h-12 sm:h-10 text-base sm:text-sm touch-manipulation"
           >
-            {job_url ? (
+            {job_url && job_url.startsWith('http') ? (
               <>
                 Apply Now
                 <ExternalLink className="ml-2 h-4 w-4" />
