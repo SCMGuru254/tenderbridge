@@ -27,7 +27,9 @@ export const useEngagement = () => {
             score: rep.score,
             level: rep.level,
             lastUpdated: rep.last_updated
-                 setReputation(reputationMap);
+          };
+        });
+        setReputation(reputationMap);
       }
     } catch (error) {
       console.error('Error fetching reputation:', error);

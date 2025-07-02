@@ -231,14 +231,14 @@ export const MentorshipProgram = () => {
     }
   };
 
-  const handleBookSession = async () => {
+  const handleBookSession = async (mentorId: string) => {
     if (!user || !userMenteeProfile) {
       toast.error('Please create a mentee profile first');
       setActiveTab('become-mentee');
       return;
     }
 
-    // In a real app, this would open a booking modal or redirect to a booking page
+    console.log('Booking session with mentor:', mentorId);
     toast.info('Booking system coming soon! Contact the mentor directly for now.');
   };
 
@@ -356,7 +356,7 @@ export const MentorshipProgram = () => {
                     </div>
 
                     <Button 
-                      onClick={handleBookSession} 
+                      onClick={() => handleBookSession(mentor.id)} 
                       className="w-full"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
