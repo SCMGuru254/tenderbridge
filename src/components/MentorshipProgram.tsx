@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,6 @@ import {
   Star, 
   Clock, 
   DollarSign,
-  MessageSquare,
   User,
   Award,
   Calendar
@@ -233,7 +231,7 @@ export const MentorshipProgram = () => {
     }
   };
 
-  const handleBookSession = async (mentorId: string) => {
+  const handleBookSession = async () => {
     if (!user || !userMenteeProfile) {
       toast.error('Please create a mentee profile first');
       setActiveTab('become-mentee');
@@ -358,7 +356,7 @@ export const MentorshipProgram = () => {
                     </div>
 
                     <Button 
-                      onClick={() => handleBookSession(mentor.id)} 
+                      onClick={handleBookSession} 
                       className="w-full"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
