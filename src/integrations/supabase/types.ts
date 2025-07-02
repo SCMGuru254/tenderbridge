@@ -541,6 +541,44 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_responses: {
+        Row: {
+          ai_feedback: string | null
+          created_at: string | null
+          id: string
+          question: string
+          score: number | null
+          session_id: string
+          user_answer: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          created_at?: string | null
+          id?: string
+          question: string
+          score?: number | null
+          session_id: string
+          user_answer: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          created_at?: string | null
+          id?: string
+          question?: string
+          score?: number | null
+          session_id?: string
+          user_answer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_reviews: {
         Row: {
           company_culture: string[] | null
@@ -586,6 +624,45 @@ export type Database = {
           review_text?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      interview_sessions: {
+        Row: {
+          company: string
+          created_at: string | null
+          difficulty: string
+          id: string
+          position: string
+          score: number | null
+          session_name: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company: string
+          created_at?: string | null
+          difficulty: string
+          id?: string
+          position: string
+          score?: number | null
+          session_name: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company?: string
+          created_at?: string | null
+          difficulty?: string
+          id?: string
+          position?: string
+          score?: number | null
+          session_name?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -755,6 +832,138 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentees: {
+        Row: {
+          areas_of_interest: string[] | null
+          career_goals: string | null
+          created_at: string | null
+          current_level: string
+          id: string
+          preferred_session_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          areas_of_interest?: string[] | null
+          career_goals?: string | null
+          created_at?: string | null
+          current_level: string
+          id?: string
+          preferred_session_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          areas_of_interest?: string[] | null
+          career_goals?: string | null
+          created_at?: string | null
+          current_level?: string
+          id?: string
+          preferred_session_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mentors: {
+        Row: {
+          availability_hours: number | null
+          bio: string | null
+          created_at: string | null
+          experience_years: number
+          expertise_areas: string[]
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          rating: number | null
+          total_sessions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          availability_hours?: number | null
+          bio?: string | null
+          created_at?: string | null
+          experience_years?: number
+          expertise_areas?: string[]
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          rating?: number | null
+          total_sessions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          availability_hours?: number | null
+          bio?: string | null
+          created_at?: string | null
+          experience_years?: number
+          expertise_areas?: string[]
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          rating?: number | null
+          total_sessions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mentorship_sessions: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          id: string
+          mentee_id: string
+          mentor_id: string
+          notes: string | null
+          rating: number | null
+          session_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          notes?: string | null
+          rating?: number | null
+          session_date: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          notes?: string | null
+          rating?: number | null
+          session_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorship_sessions_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "mentees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorship_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
             referencedColumns: ["id"]
           },
         ]
@@ -1538,6 +1747,63 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      team_applications: {
+        Row: {
+          availability: string | null
+          cover_letter: string | null
+          created_at: string | null
+          email: string
+          experience_years: number | null
+          full_name: string
+          id: string
+          phone: string | null
+          portfolio_url: string | null
+          position_applied: string
+          resume_url: string | null
+          salary_expectation: string | null
+          skills: string[] | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          availability?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          email: string
+          experience_years?: number | null
+          full_name: string
+          id?: string
+          phone?: string | null
+          portfolio_url?: string | null
+          position_applied: string
+          resume_url?: string | null
+          salary_expectation?: string | null
+          skills?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          availability?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          email?: string
+          experience_years?: number | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          portfolio_url?: string | null
+          position_applied?: string
+          resume_url?: string | null
+          salary_expectation?: string | null
+          skills?: string[] | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -21,6 +21,8 @@ interface JobCardProps {
     job_type?: string;
     category?: string;
     social_shares?: Record<string, any>;
+    source_posted_at?: string;
+    created_at?: string;
   };
 }
 
@@ -59,7 +61,7 @@ export function JobCard({ job }: JobCardProps) {
   // Get the actual time when job was posted from source
   const getPostedTime = () => {
     // Check if job has source_posted_at field (for scraped jobs)
-    if ('source_posted_at' in job && job.source_posted_at) {
+    if (job.source_posted_at) {
       const postedDate = new Date(job.source_posted_at);
       const now = new Date();
       const diffTime = now.getTime() - postedDate.getTime();
@@ -70,15 +72,19 @@ export function JobCard({ job }: JobCardProps) {
       return `${diffDays} days ago`;
     }
     
-    // Fallback to created_at
-    const createdDate = new Date(job.created_at);
-    const now = new Date();
-    const diffTime = now.getTime() - createdDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "1 day ago";
-    return `${diffDays} days ago`;
+    // Fallback to created_at if available
+    if (job.created_at) {
+      const createdDate = new Date(job.created_at);
+      const now = new Date();
+      const diffTime = now.getTime() - createdDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return "Today";
+      if (diffDays === 1) return "1 day ago";
+      return `${diffDays} days ago`;
+    }
+
+    return "Recently posted";
   };
 
   // View job details handler

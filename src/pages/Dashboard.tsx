@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { 
   User, 
@@ -12,10 +11,8 @@ import {
   MessageSquare, 
   TrendingUp, 
   Clock,
-  Star,
   Eye,
   Heart,
-  Calendar,
   Award
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,31 +56,25 @@ const Dashboard = () => {
     try {
       const [
         jobApplicationsResult,
-        savedJobsResult,
         profileViewsResult,
         interviewSessionsResult,
-        mentorshipSessionsResult,
-        rewardPointsResult,
         careerApplicationsResult,
         discussionsResult
       ] = await Promise.all([
         supabase.from('job_applications').select('id').eq('applicant_id', user.id),
-        supabase.from('saved_jobs').select('id').eq('user_id', user.id),
         supabase.from('profile_views').select('id').eq('profile_id', user.id),
         supabase.from('interview_sessions').select('id').eq('user_id', user.id),
-        supabase.from('mentorship_sessions').select('id').or(`mentor_id.in.(select id from mentors where user_id=${user.id}),mentee_id.in.(select id from mentees where user_id=${user.id})`),
-        supabase.from('rewards_points').select('current_balance').eq('user_id', user.id).single(),
         supabase.from('career_applications').select('id').eq('user_id', user.id),
         supabase.from('discussions').select('id').eq('author_id', user.id)
       ]);
 
       setStats({
         jobsApplied: jobApplicationsResult.data?.length || 0,
-        savedJobs: savedJobsResult.data?.length || 0,
+        savedJobs: 0, // This would need a saved_jobs table
         profileViews: profileViewsResult.data?.length || 0,
         interviewSessions: interviewSessionsResult.data?.length || 0,
-        mentorshipSessions: mentorshipSessionsResult.data?.length || 0,
-        rewardPoints: rewardPointsResult.data?.current_balance || 0,
+        mentorshipSessions: 0, // This would need the mentorship_sessions table
+        rewardPoints: 0, // This would need a rewards system
         careerApplications: careerApplicationsResult.data?.length || 0,
         discussionsParticipated: discussionsResult.data?.length || 0
       });
@@ -255,7 +246,7 @@ const Dashboard = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {stats.jobsApplied === 0 && stats.savedJobs === 0 && stats.interviewSessions === 0 ? (
+          {stats.jobsApplied === 0 && stats.profileViews === 0 && stats.interviewSessions === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No recent activity yet.</p>
@@ -276,14 +267,14 @@ const Dashboard = () => {
                 </div>
               )}
               
-              {stats.savedJobs > 0 && (
+              {stats.profileViews > 0 && (
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                    <Heart className="h-5 w-5 text-red-600" />
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Eye className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium">Saved {stats.savedJobs} jobs</p>
-                    <p className="text-sm text-muted-foreground">Don't forget to apply</p>
+                    <p className="font-medium">{stats.profileViews} profile views</p>
+                    <p className="text-sm text-muted-foreground">Your profile is getting attention</p>
                   </div>
                   <Badge variant="outline" className="ml-auto">Active</Badge>
                 </div>
