@@ -10,7 +10,6 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
-import Jobs from "./pages/Jobs";
 import { Mentorship } from "./components/Mentorship";
 import { SalaryAnalyzer } from "./components/SalaryAnalyzer";
 import { DiscussionList } from "./components/DiscussionList";

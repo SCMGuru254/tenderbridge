@@ -47,11 +47,11 @@ export class JobScraperService {
   private async scrapeSource(source: JobSource): Promise<any[]> {
     // In a real implementation, this would use a proper scraping service
     // For now, we'll simulate different job sources with varied data
-    const mockJobs = this.generateMockJobs(source.name);
+    const mockJobs = this.generateMockJobs();
     return mockJobs;
   }
 
-  private generateMockJobs(sourceName: string): any[] {
+  private generateMockJobs(): any[] {
     const titles = [
       'Supply Chain Manager', 'Logistics Coordinator', 'Procurement Officer',
       'Inventory Analyst', 'Warehouse Supervisor', 'Distribution Manager',
@@ -71,7 +71,7 @@ export class JobScraperService {
     ];
 
     const jobs = [];
-    const jobCount = Math.floor(Math.random() * 8) + 3; // 3-10 jobs per source
+    const jobCount = Math.floor(Math.random() * 15) + 10; // 10-25 jobs per source
 
     for (let i = 0; i < jobCount; i++) {
       jobs.push({

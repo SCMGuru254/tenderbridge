@@ -20,10 +20,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+interface InterviewReview {
+  id: string;
+  company_name: string;
+  position: string;
+  review_text: string;
+  rating: number;
+  difficulty: string;
+  interview_process?: string;
+  interview_date?: string;
+  company_culture?: string[];
+  is_anonymous: boolean;
+  created_at: string;
+}
+
 const CompanyReviews = () => {
   const { user } = useAuth();
-  const [reviews, setReviews] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [reviews, setReviews] = useState<InterviewReview[]>([]);
   const [newReview, setNewReview] = useState({
     company_name: '',
     position: '',
@@ -83,7 +96,6 @@ const CompanyReviews = () => {
         company_culture: [],
         is_anonymous: false
       });
-      setShowForm(false);
       loadReviews();
     } catch (error) {
       console.error('Error submitting review:', error);
@@ -91,7 +103,7 @@ const CompanyReviews = () => {
     }
   };
 
-  const renderStars = (rating) => {
+  const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, index) => (
       <Star
         key={index}
@@ -119,14 +131,6 @@ const CompanyReviews = () => {
         </TabsList>
 
         <TabsContent value="reviews" className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Latest Reviews</h2>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Review
-            </Button>
-          </div>
-
           <div className="space-y-4">
             {reviews.map((review) => (
               <Card key={review.id}>
@@ -158,7 +162,7 @@ const CompanyReviews = () => {
                         {new Date(review.interview_date).toLocaleDateString()}
                       </Badge>
                     )}
-                    {review.company_culture?.map((culture) => (
+                    {review.company_culture?.map((culture: string) => (
                       <Badge key={culture} variant="outline">
                         {culture}
                       </Badge>
@@ -201,10 +205,6 @@ const CompanyReviews = () => {
                 <p className="text-muted-foreground mb-4">
                   Be the first to share your interview experience.
                 </p>
-                <Button onClick={() => setShowForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Submit First Review
-                </Button>
               </CardContent>
             </Card>
           )}

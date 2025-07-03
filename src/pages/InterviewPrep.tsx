@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -21,10 +20,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+interface InterviewQuestion {
+  id: string;
+  company_name: string;
+  position: string;
+  question: string;
+  difficulty: string;
+  upvotes: number;
+}
+
+interface InterviewSession {
+  id: string;
+  session_name: string;
+  company: string;
+  position: string;
+  difficulty: string;
+  status: string;
+  score: number;
+}
+
 const InterviewPrep = () => {
   const { user } = useAuth();
-  const [sessions, setSessions] = useState([]);
-  const [questions, setQuestions] = useState([]);
+  const [sessions, setSessions] = useState<InterviewSession[]>([]);
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [newSession, setNewSession] = useState({
     session_name: '',
     company: '',
@@ -128,7 +146,7 @@ const InterviewPrep = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {questions.map((question, index) => (
+                {questions.map((question) => (
                   <Card key={question.id} className="border-l-4 border-l-primary">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
