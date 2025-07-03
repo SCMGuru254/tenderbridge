@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface JobSource {
@@ -21,19 +20,19 @@ export class JobScraperService {
     let totalJobs = 0;
     let successfulSources = 0;
 
-    for (const source of this.sources.filter(s => s.active)) {
+    for (const activeSource of this.sources.filter(s => s.active)) {
       try {
-        console.log(`Scraping ${source.name}...`);
-        const jobs = await this.scrapeSource(source);
+        console.log(`Scraping ${activeSource.name}...`);
+        const jobs = await this.scrapeSource(activeSource);
         
         if (jobs.length > 0) {
-          await this.saveJobs(jobs, source.name);
+          await this.saveJobs(jobs, activeSource.name);
           totalJobs += jobs.length;
           successfulSources++;
-          console.log(`✅ ${source.name}: ${jobs.length} jobs`);
+          console.log(`✅ ${activeSource.name}: ${jobs.length} jobs`);
         }
       } catch (error) {
-        console.error(`❌ Failed to scrape ${source.name}:`, error);
+        console.error(`❌ Failed to scrape ${activeSource.name}:`, error);
       }
     }
 
@@ -45,8 +44,7 @@ export class JobScraperService {
   }
 
   private async scrapeSource(source: JobSource): Promise<any[]> {
-    // In a real implementation, this would use a proper scraping service
-    // For now, we'll simulate different job sources with varied data
+    // Enhanced mock data generation with more jobs per source
     const mockJobs = this.generateMockJobs();
     return mockJobs;
   }
@@ -56,22 +54,30 @@ export class JobScraperService {
       'Supply Chain Manager', 'Logistics Coordinator', 'Procurement Officer',
       'Inventory Analyst', 'Warehouse Supervisor', 'Distribution Manager',
       'Supply Chain Analyst', 'Logistics Manager', 'Procurement Specialist',
-      'Operations Manager', 'Supply Chain Consultant', 'Vendor Manager'
+      'Operations Manager', 'Supply Chain Consultant', 'Vendor Manager',
+      'Transportation Manager', 'Materials Manager', 'Purchasing Manager',
+      'Demand Planner', 'Supply Chain Director', 'Logistics Specialist',
+      'Import/Export Coordinator', 'Fleet Manager', 'Quality Assurance Manager',
+      'Inventory Control Specialist', 'Supply Chain Planner', 'Customs Broker'
     ];
 
     const companies = [
       'Safaricom', 'Equity Bank', 'KCB Group', 'Unilever Kenya', 'Nestlé',
       'DHL Kenya', 'Coca-Cola Kenya', 'BAT Kenya', 'Standard Chartered',
-      'KPMG Kenya', 'Deloitte Kenya', 'PwC Kenya'
+      'KPMG Kenya', 'Deloitte Kenya', 'PwC Kenya', 'Barclays Bank',
+      'Nation Media Group', 'East African Breweries', 'Kenya Airways',
+      'Bamburi Cement', 'ARM Cement', 'Kenol Kobil', 'Total Kenya',
+      'Microsoft Kenya', 'Google Kenya', 'IBM Kenya', 'Oracle Kenya'
     ];
 
     const locations = [
       'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret',
-      'Thika', 'Machakos', 'Nyeri', 'Meru', 'Kitale'
+      'Thika', 'Machakos', 'Nyeri', 'Meru', 'Kitale',
+      'Malindi', 'Lamu', 'Garissa', 'Isiolo', 'Kajiado'
     ];
 
     const jobs = [];
-    const jobCount = Math.floor(Math.random() * 15) + 10; // 10-25 jobs per source
+    const jobCount = Math.floor(Math.random() * 20) + 15; // 15-35 jobs per source
 
     for (let i = 0; i < jobCount; i++) {
       jobs.push({
@@ -80,8 +86,8 @@ export class JobScraperService {
         location: locations[Math.floor(Math.random() * locations.length)],
         job_type: ['full-time', 'part-time', 'contract'][Math.floor(Math.random() * 3)],
         description: this.generateJobDescription(),
-        salary_min: Math.floor(Math.random() * 100000) + 50000,
-        salary_max: Math.floor(Math.random() * 150000) + 100000,
+        salary_min: Math.floor(Math.random() * 150000) + 50000,
+        salary_max: Math.floor(Math.random() * 200000) + 150000,
         requirements: this.generateRequirements(),
         source_url: `https://example.com/job/${i}`,
         posted_date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -94,11 +100,14 @@ export class JobScraperService {
 
   private generateJobDescription(): string {
     const descriptions = [
-      'We are seeking an experienced professional to join our dynamic team and drive supply chain excellence.',
-      'Join our growing organization and make a significant impact on our supply chain operations.',
-      'Exciting opportunity to work with a leading company and advance your supply chain career.',
-      'Be part of our innovative team and help transform our supply chain processes.',
-      'We offer competitive compensation and excellent growth opportunities in supply chain management.'
+      'We are seeking an experienced professional to join our dynamic team and drive supply chain excellence across East Africa.',
+      'Join our growing organization and make a significant impact on our supply chain operations in the Kenyan market.',
+      'Exciting opportunity to work with a leading company and advance your supply chain career in a fast-paced environment.',
+      'Be part of our innovative team and help transform our supply chain processes using cutting-edge technology.',
+      'We offer competitive compensation and excellent growth opportunities in supply chain management with international exposure.',
+      'Lead strategic initiatives in procurement and logistics while working with cross-functional teams.',
+      'Drive operational efficiency and cost optimization across our supply chain network.',
+      'Manage vendor relationships and implement best practices in procurement and inventory management.'
     ];
     return descriptions[Math.floor(Math.random() * descriptions.length)];
   }

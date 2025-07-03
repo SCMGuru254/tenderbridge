@@ -16,7 +16,6 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const { toast } = useToast();
 
-  // Updated to match the actual sources in the jobSites.ts file
   const sources = [
     { id: "all", name: "All Sources" },
     { id: "LinkedIn", name: "LinkedIn" },
@@ -26,24 +25,35 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
     { id: "JobsInKenya", name: "Jobs In Kenya" },
   ];
 
+  const getLoadingMessage = () => {
+    const messages = [
+      "Hunting for jobs...",
+      "Please give me a minute...",
+      "Loading fresh opportunities...",
+      "Gathering job listings...",
+      "Almost there...",
+      "Finding your next role..."
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
   const refreshJobs = async () => {
     try {
       setIsRefreshing(true);
-      setRefreshStatus(`Scraping ${selectedSource === "all" ? "all sources" : selectedSource}...`);
+      const loadingMsg = getLoadingMessage();
+      setRefreshStatus(loadingMsg);
       
       toast({
-        title: `Scraping ${selectedSource === "all" ? "all job sources" : selectedSource}`,
-        description: "This may take up to a minute while we fetch jobs from the selected source.",
+        title: "Fetching Job Opportunities",
+        description: "We're gathering the latest supply chain jobs for you. This might take a moment...",
       });
 
-      // Determine which sources to scrape
       const sourcesToScrape = selectedSource === "all" 
         ? sources.filter(s => s.id !== "all").map(s => s.id)
         : [selectedSource];
 
       console.log("Scraping sources:", sourcesToScrape);
 
-      // Call the Edge Function to scrape jobs from selected sources
       const { data, error } = await supabase.functions.invoke('scrape-jobs', {
         body: { 
           refreshAll: selectedSource === "all",
@@ -66,7 +76,6 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
       } else {
         console.log('Job scraping completed:', data);
         
-        // Show detailed results
         if (data?.sourceResults) {
           const successfulSources = Object.entries(data.sourceResults)
             .filter(([_, result]) => (result as any).success)
@@ -83,26 +92,25 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
           ].filter(Boolean).join('\n');
           
           toast({
-            title: "Job scraping completed",
+            title: "Job refresh completed!",
             description: toastDescription,
             duration: 5000,
           });
         } else {
           toast({
-            title: "Job scraping completed",
-            description: data?.message || "Jobs scraped successfully, check console for details.",
+            title: "Jobs refreshed successfully!",
+            description: data?.message || "New job opportunities have been added to your feed.",
           });
         }
         
-        // Call the onClick callback to refetch jobs
         onClick();
       }
     } catch (error) {
       console.error('Exception when scraping jobs:', error);
       toast({
         variant: "destructive",
-        title: "Error scraping jobs",
-        description: "Something went wrong. Please check the console for detailed error logs.",
+        title: "Error refreshing jobs",
+        description: "Something went wrong. Please check your connection and try again.",
       });
     } finally {
       setIsRefreshing(false);
@@ -137,7 +145,7 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
         {isRefreshing ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            {refreshStatus || "Scraping..."}
+            {refreshStatus || "Loading..."}
           </>
         ) : (
           <>
