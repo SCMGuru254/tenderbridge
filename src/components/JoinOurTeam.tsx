@@ -1,20 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Briefcase, 
-  MapPin, 
-  Clock, 
-  DollarSign,
-  Users,
-  Award,
-  Send
-} from 'lucide-react';
+import { Award, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -56,7 +47,7 @@ export const JoinOurTeam = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('team_applications')
         .insert([application]);
 
@@ -160,9 +151,7 @@ export const JoinOurTeam = () => {
             </div>
             <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? (
-                <>
-                  Submitting...
-                </>
+                'Submitting...'
               ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,10 +11,12 @@ import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import Jobs from "./pages/Jobs";
-import Mentorship from "./components/Mentorship";
-import SalaryAnalyzer from "./components/SalaryAnalyzer";
-import DiscussionList from "./components/DiscussionList";
-import JoinOurTeam from "./components/JoinOurTeam";
+import { Mentorship } from "./components/Mentorship";
+import { SalaryAnalyzer } from "./components/SalaryAnalyzer";
+import { DiscussionList } from "./components/DiscussionList";
+import { JoinOurTeam } from "./components/JoinOurTeam";
+import InterviewPrep from "./pages/InterviewPrep";
+import CompanyReviews from "./pages/CompanyReviews";
 
 const queryClient = new QueryClient();
 
@@ -30,11 +33,12 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/jobs" element={<Jobs />} />
             <Route path="/mentorship" element={<Mentorship />} />
             <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
             <Route path="/discussions" element={<DiscussionList />} />
             <Route path="/join-our-team" element={<JoinOurTeam />} />
+            <Route path="/interview-prep" element={<InterviewPrep />} />
+            <Route path="/company-reviews" element={<CompanyReviews />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

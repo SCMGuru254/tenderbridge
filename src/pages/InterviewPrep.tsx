@@ -1,397 +1,275 @@
+
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Plus, 
   Play, 
-  Pause, 
-  RotateCcw, 
+  Brain, 
+  BookOpen, 
+  Star,
   Clock,
-  CheckCircle,
-  AlertCircle,
-  Trash2
+  Target,
+  MessageSquare
 } from 'lucide-react';
-import { useInterviewSessions } from '@/hooks/useInterviewSessions';
-import { Navigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface Question {
-  id: string;
-  text: string;
-}
-
 const InterviewPrep = () => {
-  const { user, loading } = useAuth();
-  const { 
-    sessions, 
-    currentSession, 
-    responses, 
-    loading: sessionLoading,
-    setCurrentSession, 
-    createSession, 
-    deleteSession,
-    saveResponse,
-    completeSession,
-    fetchSessions
-  } = useInterviewSessions();
-  
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [userAnswer, setUserAnswer] = useState('');
-  const [aiFeedback, setAiFeedback] = useState('');
-  const [sessionName, setSessionName] = useState('');
-  const [position, setPosition] = useState('');
-  const [company, setCompany] = useState('');
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [questionTimer, setQuestionTimer] = useState(0);
-  const [score, setScore] = useState(0);
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [newSession, setNewSession] = useState({
+    session_name: '',
+    company: '',
+    position: '',
+    difficulty: 'medium'
+  });
 
   useEffect(() => {
     if (user) {
-      const mockQuestions: Question[] = [
-        { id: '1', text: 'Tell me about yourself.' },
-        { id: '2', text: 'Why are you interested in this position?' },
-        { id: '3', text: 'Describe your experience with supply chain management.' },
-        { id: '4', text: 'How do you handle stressful situations?' },
-        { id: '5', text: 'What are your strengths and weaknesses?' },
-        { id: '6', text: 'Where do you see yourself in 5 years?' },
-        { id: '7', text: 'Describe a time you failed and what you learned.' },
-        { id: '8', text: 'How do you stay updated with industry trends?' },
-        { id: '9', text: 'What is your expected salary?' },
-        { id: '10', text: 'Do you have any questions for me?' }
-      ];
-      setAvailableQuestions(mockQuestions);
+      loadSessions();
+      loadQuestions();
     }
   }, [user]);
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined;
+  const loadSessions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('interview_sessions')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
 
-    if (isPlaying && currentQuestion) {
-      setQuestionTimer(60);
-      intervalId = setInterval(() => {
-        setQuestionTimer((prev) => {
-          if (prev > 0) return prev - 1;
-          if (intervalId) clearInterval(intervalId);
-          setIsPlaying(false);
-          return 0;
+      if (error) throw error;
+      setSessions(data || []);
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+    }
+  };
+
+  const loadQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('interview_questions')
+        .select('*')
+        .order('upvotes', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setQuestions(data || []);
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    }
+  };
+
+  const createSession = async () => {
+    if (!user) {
+      toast.error('Please sign in to create interview sessions');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('interview_sessions')
+        .insert({
+          ...newSession,
+          user_id: user.id
         });
-      }, 1000);
-    } else if (intervalId) {
-      clearInterval(intervalId);
-    }
 
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [isPlaying, currentQuestion]);
+      if (error) throw error;
 
-  const startSession = async () => {
-    if (!sessionName || !position || !company) {
-      toast.error('Please fill in all session details.');
-      return;
-    }
-
-    const newSession = await createSession({
-      session_name: sessionName,
-      position,
-      company,
-      difficulty
-    });
-
-    if (newSession) {
-      setCurrentSession(newSession);
-      toast.success('Session started!');
-      nextQuestion();
-    } else {
-      toast.error('Failed to start session.');
+      toast.success('Interview session created!');
+      setNewSession({
+        session_name: '',
+        company: '',
+        position: '',
+        difficulty: 'medium'
+      });
+      loadSessions();
+    } catch (error) {
+      console.error('Error creating session:', error);
+      toast.error('Failed to create session');
     }
   };
-
-  const deleteCurrentSession = async () => {
-    if (!currentSession) return;
-
-    const confirmDelete = window.confirm('Are you sure you want to delete this session? All progress will be lost.');
-    if (!confirmDelete) return;
-
-    const success = await deleteSession(currentSession.id);
-    if (success) {
-      toast.success('Session deleted.');
-      setCurrentSession(null);
-    } else {
-      toast.error('Failed to delete session.');
-    }
-  };
-
-  const nextQuestion = () => {
-    if (!currentSession || availableQuestions.length === 0) return;
-
-    const answeredCount = responses.filter(r => r.session_id === currentSession.id).length;
-    if (answeredCount >= 10) {
-      toast.message('Session completed! Please submit to get your score.');
-      setIsPlaying(false);
-      return;
-    }
-
-    const nextIndex = answeredCount % availableQuestions.length;
-    setCurrentQuestion(availableQuestions[nextIndex]);
-    setUserAnswer('');
-    setAiFeedback('');
-    setIsPlaying(true);
-  };
-
-  const pauseSession = () => {
-    setIsPlaying(false);
-  };
-
-  const restartSession = () => {
-    setUserAnswer('');
-    setAiFeedback('');
-    setIsPlaying(true);
-    setQuestionTimer(60);
-  };
-
-  const submitAnswer = async () => {
-    if (!currentSession || !currentQuestion) return;
-
-    const aiScore = Math.floor(Math.random() * 5) + 1;
-    const feedback = `AI Feedback: Your answer was ${aiScore > 3 ? 'good' : 'okay'}. Consider focusing on specific examples.`;
-
-    const savedResponse = await saveResponse({
-      question: currentQuestion.text,
-      user_answer: userAnswer,
-      ai_feedback: feedback,
-      score: aiScore
-    });
-
-    if (savedResponse) {
-      setAiFeedback(feedback);
-      setScore(prevScore => prevScore + aiScore);
-      toast.success('Answer submitted!');
-      setIsPlaying(false);
-    } else {
-      toast.error('Failed to submit answer.');
-    }
-  };
-
-  const endSession = async () => {
-    if (!currentSession) return;
-
-    const confirmEnd = window.confirm('Are you sure you want to end this session?');
-    if (!confirmEnd) return;
-
-    const success = await completeSession(currentSession.id, score);
-    if (success) {
-      toast.success('Session ended and score saved!');
-      setCurrentSession(null);
-      setScore(0);
-    } else {
-      toast.error('Failed to end session.');
-    }
-  };
-
-  if (loading || sessionLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Interview Preparation</h1>
-      <p className="text-muted-foreground">Practice your interview skills with AI feedback.</p>
+    <div className="container mx-auto p-6 max-w-6xl">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-4 flex items-center justify-center gap-2">
+          <Brain className="h-8 w-8 text-primary" />
+          Interview Preparation
+        </h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Practice supply chain interview questions, create mock interview sessions, and prepare for your dream job.
+        </p>
+      </div>
 
-      {!currentSession ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Start a New Session</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="session-name">Session Name</Label>
-              <Input
-                id="session-name"
-                value={sessionName}
-                onChange={(e) => setSessionName(e.target.value)}
-                placeholder="e.g., Supply Chain Manager Interview"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                placeholder="e.g., Supply Chain Manager"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g., TechCorp Inc."
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="difficulty">Difficulty</Label>
-              <Select value={difficulty} onValueChange={(value) => setDifficulty(value as 'easy' | 'medium' | 'hard')}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={startSession}>
-              <Plus className="mr-2 h-4 w-4" />
-              Start Session
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>{currentSession.session_name}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {currentSession.position} at {currentSession.company} ({currentSession.difficulty})
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {currentQuestion ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Question {responses.length + 1}</h2>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">Time Left: {questionTimer}s</Badge>
-                    {isPlaying ? (
-                      <Button variant="outline" size="icon" onClick={pauseSession}>
-                        <Pause className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="icon" onClick={restartSession}>
-                        <Play className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+      <Tabs defaultValue="practice" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="practice">Practice Questions</TabsTrigger>
+          <TabsTrigger value="mock-interview">Mock Interview</TabsTrigger>
+          <TabsTrigger value="my-sessions">My Sessions</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="practice" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Popular Interview Questions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {questions.map((question, index) => (
+                  <Card key={question.id} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold">{question.company_name} - {question.position}</h3>
+                        <Badge variant={question.difficulty === 'easy' ? 'secondary' : question.difficulty === 'medium' ? 'default' : 'destructive'}>
+                          {question.difficulty}
+                        </Badge>
+                      </div>
+                      <p className="text-muted-foreground mb-3">{question.question}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          {question.upvotes} upvotes
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <MessageSquare className="h-4 w-4 mr-1" />
+                          Practice Answer
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mock-interview" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Create Mock Interview Session
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <Label htmlFor="session_name">Session Name</Label>
+                  <Input
+                    id="session_name"
+                    value={newSession.session_name}
+                    onChange={(e) => setNewSession({...newSession, session_name: e.target.value})}
+                    placeholder="Supply Chain Manager Interview Prep"
+                  />
                 </div>
-                <p className="text-lg">{currentQuestion.text}</p>
-                <Textarea
-                  placeholder="Your answer..."
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  disabled={!isPlaying}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="secondary" 
-                    onClick={submitAnswer} 
-                    disabled={!isPlaying || !userAnswer}
+                <div>
+                  <Label htmlFor="company">Target Company</Label>
+                  <Input
+                    id="company"
+                    value={newSession.company}
+                    onChange={(e) => setNewSession({...newSession, company: e.target.value})}
+                    placeholder="Safaricom, Unilever, etc."
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <Label htmlFor="position">Position</Label>
+                  <Input
+                    id="position"
+                    value={newSession.position}
+                    onChange={(e) => setNewSession({...newSession, position: e.target.value})}
+                    placeholder="Supply Chain Manager"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Select 
+                    value={newSession.difficulty} 
+                    onValueChange={(value) => setNewSession({...newSession, difficulty: value})}
                   >
-                    Submit Answer
-                  </Button>
-                  <Button onClick={nextQuestion} disabled={isPlaying}>
-                    Next Question
-                  </Button>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                {aiFeedback && (
-                  <div className="mt-4 p-4 border rounded-md bg-secondary text-secondary-foreground">
-                    <p className="font-semibold">AI Feedback:</p>
-                    <p>{aiFeedback}</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <p>Session paused or completed.</p>
-                {responses.length >= 10 && (
-                  <p className="text-sm mt-2">Click "End Session" to submit your answers and get your score!</p>
-                )}
               </div>
-            )}
-            <div className="flex justify-between">
-              <Button variant="destructive" onClick={deleteCurrentSession}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Session
-              </Button>
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={fetchSessions}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Refresh
-                </Button>
-                <Button onClick={endSession} disabled={responses.length < 1}>
-                  End Session
-                </Button>
-              </div>
-            </div>
-            {currentSession.score !== null && (
-              <div className="mt-4 p-4 border rounded-md bg-accent text-accent-foreground">
-                <p className="font-semibold">Final Score:</p>
-                <p className="text-2xl">{score} / 50</p>
-                <Badge variant={score > 40 ? 'default' : score > 30 ? 'secondary' : 'destructive'}>
-                  {score > 40 ? 'Excellent' : score > 30 ? 'Good' : 'Needs Improvement'}
-                </Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
-      {sessions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Past Sessions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {sessions.map((session) => (
-                <div 
-                  key={session.id} 
-                  className="border rounded-md p-3 cursor-pointer hover:bg-accent"
-                  onClick={() => setCurrentSession(session)}
-                >
-                  <h3 className="font-semibold">{session.session_name}</h3>
-                  <p className="text-sm text-muted-foreground">{session.position} at {session.company}</p>
-                  <div className="flex items-center space-x-2 mt-2">
-                    {session.status === 'completed' && (
-                      <>
-                        {session.score !== null ? (
-                          <>
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                            <span className="text-sm text-muted-foreground">Score: {session.score}</span>
-                          </>
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-yellow-500" />
-                        )}
-                      </>
-                    )}
-                    {session.status === 'active' && <Clock className="h-5 w-5 text-blue-500" />}
-                    <Badge variant="outline">{session.status}</Badge>
-                  </div>
+              <Button onClick={createSession} className="w-full md:w-auto">
+                <Play className="h-4 w-4 mr-2" />
+                Create Session
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="my-sessions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                My Interview Sessions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {sessions.length === 0 ? (
+                <div className="text-center py-8">
+                  <Brain className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No sessions yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create your first mock interview session to start practicing.
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              ) : (
+                <div className="space-y-4">
+                  {sessions.map((session) => (
+                    <Card key={session.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold">{session.session_name}</h3>
+                          <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                            {session.status}
+                          </Badge>
+                        </div>
+                        <p className="text-muted-foreground mb-2">
+                          {session.company} - {session.position}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>Difficulty: {session.difficulty}</span>
+                          <span>Score: {session.score || 0}/100</span>
+                          <Button variant="outline" size="sm">
+                            <Play className="h-4 w-4 mr-1" />
+                            Continue
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

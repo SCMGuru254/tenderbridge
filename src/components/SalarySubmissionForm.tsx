@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, MapPin, Briefcase } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -22,6 +22,8 @@ interface SalarySubmission {
   employment_type: string;
   benefits: string[];
   additional_info?: string;
+  sector: string;
+  qualifications: string;
 }
 
 export const SalarySubmissionForm = () => {
@@ -36,7 +38,9 @@ export const SalarySubmissionForm = () => {
     currency: 'USD',
     employment_type: 'full-time',
     benefits: [],
-    additional_info: ''
+    additional_info: '',
+    sector: '',
+    qualifications: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +71,9 @@ export const SalarySubmissionForm = () => {
         currency: 'USD',
         employment_type: 'full-time',
         benefits: [],
-        additional_info: ''
+        additional_info: '',
+        sector: '',
+        qualifications: ''
       });
     } catch (error) {
       console.error('Error submitting salary data:', error);
@@ -90,6 +96,12 @@ export const SalarySubmissionForm = () => {
     'Health Insurance', 'Dental Coverage', 'Vision Coverage',
     'Retirement Plan', 'Paid Time Off', 'Remote Work',
     'Flexible Hours', 'Professional Development', 'Stock Options'
+  ];
+
+  const supplychainSectors = [
+    'Manufacturing', 'Retail', 'Healthcare', 'Automotive',
+    'Food & Beverage', 'Technology', 'Pharmaceuticals',
+    'Logistics & Transportation', 'Energy', 'Aerospace'
   ];
 
   return (
@@ -121,6 +133,34 @@ export const SalarySubmissionForm = () => {
                 onChange={(e) => setSubmission(prev => ({ ...prev, company_name: e.target.value }))}
                 placeholder="Company Inc."
                 required
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="sector">Supply Chain Sector</Label>
+              <Select
+                value={submission.sector}
+                onValueChange={(value) => setSubmission(prev => ({ ...prev, sector: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sector" />
+                </SelectTrigger>
+                <SelectContent>
+                  {supplychainSectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="qualifications">Supply Chain Qualifications</Label>
+              <Input
+                id="qualifications"
+                value={submission.qualifications}
+                onChange={(e) => setSubmission(prev => ({ ...prev, qualifications: e.target.value }))}
+                placeholder="CSCP, CLTD, MBA, etc."
               />
             </div>
           </div>

@@ -7,9 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Badge } from '@/components/ui/badge';
 import { 
-  Calendar as CalendarIcon, 
   Clock, 
   DollarSign, 
   User,
@@ -19,7 +17,6 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 interface BookingSession {
   id?: string;
@@ -40,7 +37,6 @@ interface MentorshipBookingProps {
 }
 
 export const MentorshipBooking = ({ mentor, menteeProfile, onClose }: MentorshipBookingProps) => {
-  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
   const [duration, setDuration] = useState(60);
