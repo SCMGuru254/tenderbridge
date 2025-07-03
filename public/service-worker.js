@@ -1,13 +1,12 @@
+
 // TenderBridge Service Worker
-const CACHE_NAME = 'tenderbridge-cache-v1';
+const CACHE_NAME = 'tenderbridge-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/apple-touch-icon.png',
-  '/logo192.png',
-  '/logo512.png',
+  '/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png'
 ];
 
 // Install event - cache essential files
@@ -16,7 +15,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Add files one by one to avoid failures
+        return Promise.allSettled(
+          urlsToCache.map(url => cache.add(url).catch(err => {
+            console.warn(`Failed to cache ${url}:`, err);
+            return Promise.resolve();
+          }))
+        );
       })
   );
 });
@@ -39,6 +44,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
+  // Skip non-http requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -46,6 +56,13 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
+        
+        // For missing logo files, return a fallback or skip
+        if (event.request.url.includes('logo192.png') || event.request.url.includes('logo512.png')) {
+          return fetch('/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png')
+            .catch(() => new Response('', { status: 404 }));
+        }
+        
         return fetch(event.request).then(
           (response) => {
             // Check if we received a valid response
@@ -63,26 +80,31 @@ self.addEventListener('fetch', (event) => {
 
             return response;
           }
-        );
+        ).catch(() => {
+          // Return a basic response for failed requests
+          return new Response('Offline', { status: 503 });
+        });
       })
   );
 });
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
-  const data = event.data.json();
-  const options = {
-    body: data.body,
-    icon: '/logo192.png',
-    badge: '/favicon.ico',
-    data: {
-      url: data.url
-    }
-  };
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: '/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png',
+      badge: '/favicon.ico',
+      data: {
+        url: data.url
+      }
+    };
 
-  event.waitUntil(
-    self.registration.showNotification(data.title, options)
-  );
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
 });
 
 // Handle notification clicks

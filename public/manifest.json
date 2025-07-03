@@ -1,3 +1,4 @@
+
 {
   "short_name": "TenderBridge",
   "name": "TenderBridge - Job Portal",
@@ -9,13 +10,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "logo512.png",
+      "src": "lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -27,37 +28,20 @@
   "background_color": "#ffffff",
   "orientation": "portrait",
   "categories": ["business", "productivity", "social"],
-  "screenshots": [
-    {
-      "src": "screenshots/home.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    },
-    {
-      "src": "screenshots/jobs.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    },
-    {
-      "src": "screenshots/profile.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Find Jobs",
       "short_name": "Jobs",
       "description": "View the latest supply chain jobs",
       "url": "/jobs",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png", "sizes": "192x192" }]
     },
     {
       "name": "My Profile",
       "short_name": "Profile",
       "description": "View your profile",
       "url": "/profile",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png", "sizes": "192x192" }]
     }
   ],
   "related_applications": [],

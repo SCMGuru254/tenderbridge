@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 interface JobSource {
@@ -43,7 +44,7 @@ export class JobScraperService {
     };
   }
 
-  private async scrapeSource(source: JobSource): Promise<any[]> {
+  private async scrapeSource(activeSource: JobSource): Promise<any[]> {
     // Enhanced mock data generation with more jobs per source
     const mockJobs = this.generateMockJobs();
     return mockJobs;
