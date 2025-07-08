@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Users, Briefcase, TrendingUp, Star, Play, CheckCircle, Target, Sparkles } from "lucide-react";
+import { Users, Briefcase, TrendingUp, Star, Play, CheckCircle, Target, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DemoVideoModal } from "@/components/DemoVideoModal";
 
@@ -63,7 +62,7 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button asChild size="lg" className="text-lg px-8 py-4">
+              <Button asChild size="lg" className="text-lg px-8 py-4 bg-primary hover:bg-primary/90 text-white font-semibold">
                 <Link to="/auth">
                   <Target className="h-5 w-5 mr-2" />
                   Get Started Free
@@ -73,7 +72,7 @@ const Landing = () => {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="text-lg px-8 py-4"
+                className="text-lg px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold transition-all duration-300"
                 onClick={() => setShowDemoModal(true)}
               >
                 <Play className="h-5 w-5 mr-2" />

@@ -1,7 +1,8 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, X } from "lucide-react";
+import { Play, X, Pause } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface DemoVideoModalProps {
   isOpen: boolean;
@@ -9,6 +10,51 @@ interface DemoVideoModalProps {
 }
 
 export const DemoVideoModal = ({ isOpen, onClose }: DemoVideoModalProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const demoSteps = [
+    {
+      title: "Welcome to SupplyChain Jobs",
+      content: "Your gateway to premium supply chain opportunities in Kenya",
+      bg: "from-blue-500 to-purple-600"
+    },
+    {
+      title: "Smart Job Matching",
+      content: "AI-powered recommendations based on your skills and preferences",
+      bg: "from-green-500 to-blue-500"
+    },
+    {
+      title: "Professional Network",
+      content: "Connect with industry experts and build meaningful relationships",
+      bg: "from-purple-500 to-pink-500"
+    },
+    {
+      title: "Career Growth Tools",
+      content: "Access mentorship, salary insights, and interview preparation",
+      bg: "from-orange-500 to-red-500"
+    },
+    {
+      title: "Get Started Today",
+      content: "Join thousands of professionals who found their dream jobs",
+      bg: "from-indigo-500 to-purple-500"
+    }
+  ];
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setCurrentStep((prev) => (prev + 1) % demoSteps.length);
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, demoSteps.length]);
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full">
@@ -20,14 +66,47 @@ export const DemoVideoModal = ({ isOpen, onClose }: DemoVideoModalProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Video Placeholder */}
-          <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <div className="text-center text-white">
-              <Play className="h-16 w-16 mx-auto mb-4 opacity-80" />
-              <h3 className="text-xl font-semibold mb-2">Platform Demo Video</h3>
-              <p className="text-sm opacity-90">
-                Watch how our platform connects supply chain professionals with their dream jobs
-              </p>
+          {/* Animated Demo Area */}
+          <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden">
+            <div 
+              className={`absolute inset-0 bg-gradient-to-br ${demoSteps[currentStep].bg} transition-all duration-1000 opacity-90`}
+            />
+            <div className="relative z-10 flex flex-col items-center justify-center h-full text-white p-8">
+              <div className="text-center transform transition-all duration-500">
+                <h3 className="text-2xl lg:text-3xl font-bold mb-4 animate-fade-in">
+                  {demoSteps[currentStep].title}
+                </h3>
+                <p className="text-lg lg:text-xl opacity-90 animate-fade-in">
+                  {demoSteps[currentStep].content}
+                </p>
+              </div>
+              
+              {/* Progress indicator */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {demoSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === currentStep ? 'bg-white' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* Play/Pause Button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Button
+                onClick={handlePlayPause}
+                size="lg"
+                className="bg-black/50 hover:bg-black/70 text-white rounded-full w-16 h-16"
+              >
+                {isPlaying ? (
+                  <Pause className="h-8 w-8" />
+                ) : (
+                  <Play className="h-8 w-8 ml-1" />
+                )}
+              </Button>
             </div>
           </div>
           
