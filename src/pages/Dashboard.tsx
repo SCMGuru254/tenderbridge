@@ -45,48 +45,50 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (user) {
-      fetchDashboardStats();
+      // Add a small delay to show immediate UI, then load data
+      setTimeout(() => {
+        fetchDashboardStats();
+      }, 100);
     }
   }, [user]);
 
   const fetchDashboardStats = async () => {
     if (!user) return;
     
-    setIsLoading(true);
+    console.log('Fetching dashboard stats for user:', user.id);
+    
     try {
-      const [
-        jobApplicationsResult,
-        profileViewsResult,
-        interviewSessionsResult,
-        careerApplicationsResult,
-        discussionsResult
-      ] = await Promise.all([
-        supabase.from('job_applications').select('id').eq('applicant_id', user.id),
-        supabase.from('profile_views').select('id').eq('profile_id', user.id),
-        supabase.from('interview_sessions').select('id').eq('user_id', user.id),
-        supabase.from('career_applications').select('id').eq('user_id', user.id),
-        supabase.from('discussions').select('id').eq('author_id', user.id)
+      // Use Promise.allSettled instead of Promise.all to handle individual failures
+      const results = await Promise.allSettled([
+        supabase.from('job_applications').select('id', { count: 'exact' }).eq('applicant_id', user.id),
+        supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id),
+        supabase.from('interview_sessions').select('id', { count: 'exact' }).eq('user_id', user.id),
+        supabase.from('career_applications').select('id', { count: 'exact' }).eq('user_id', user.id),
+        supabase.from('discussions').select('id', { count: 'exact' }).eq('author_id', user.id)
       ]);
 
+      console.log('Dashboard query results:', results);
+
       setStats({
-        jobsApplied: jobApplicationsResult.data?.length || 0,
+        jobsApplied: results[0].status === 'fulfilled' ? (results[0].value.count || 0) : 0,
         savedJobs: 0, // This would need a saved_jobs table
-        profileViews: profileViewsResult.data?.length || 0,
-        interviewSessions: interviewSessionsResult.data?.length || 0,
+        profileViews: results[1].status === 'fulfilled' ? (results[1].value.count || 0) : 0,
+        interviewSessions: results[2].status === 'fulfilled' ? (results[2].value.count || 0) : 0,
         mentorshipSessions: 0, // This would need the mentorship_sessions table
         rewardPoints: 0, // This would need a rewards system
-        careerApplications: careerApplicationsResult.data?.length || 0,
-        discussionsParticipated: discussionsResult.data?.length || 0
+        careerApplications: results[3].status === 'fulfilled' ? (results[3].value.count || 0) : 0,
+        discussionsParticipated: results[4].status === 'fulfilled' ? (results[4].value.count || 0) : 0
       });
+      
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
-      toast.error('Failed to load dashboard statistics');
+      toast.error('Failed to load some dashboard statistics');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (loading || isLoading) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -164,8 +166,12 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Here's your activity overview.</p>
         </div>
-        <Button onClick={fetchDashboardStats}>
-          <TrendingUp className="mr-2 h-4 w-4" />
+        <Button onClick={fetchDashboardStats} disabled={isLoading}>
+          {isLoading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+          ) : (
+            <TrendingUp className="mr-2 h-4 w-4" />
+          )}
           Refresh
         </Button>
       </div>
@@ -178,7 +184,13 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <p className="text-3xl font-bold">{stat.value}</p>
+                  <p className="text-3xl font-bold">
+                    {isLoading ? (
+                      <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                    ) : (
+                      stat.value
+                    )}
+                  </p>
                 </div>
                 <div className={`p-3 rounded-full ${stat.bgColor}`}>
                   <stat.icon className={`h-6 w-6 ${stat.color}`} />

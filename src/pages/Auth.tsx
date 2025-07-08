@@ -21,12 +21,33 @@ const Auth = () => {
 
   useEffect(() => {
     checkAuthState();
-  }, []);
+    
+    // Handle OAuth callback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_IN' && session) {
+          toast.success("Successfully signed in!");
+          navigate("/onboarding");
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+        }
+        
+        setSocialLoading(false);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const checkAuthState = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-      navigate("/");
+      navigate("/dashboard");
     }
   };
 
@@ -44,7 +65,7 @@ const Auth = () => {
       }
 
       toast.success("Successfully signed in!");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Sign in error:", error);
       toast.error("An unexpected error occurred");
@@ -83,21 +104,36 @@ const Auth = () => {
 
   const handleLinkedInSignIn = async () => {
     setSocialLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Attempting LinkedIn sign-in...');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
           redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
+      console.log('LinkedIn OAuth response:', { data, error });
+
       if (error) {
-        toast.error("LinkedIn sign-in failed: " + error.message);
+        console.error('LinkedIn OAuth error:', error);
+        toast.error(`LinkedIn sign-in failed: ${error.message}`);
+        setSocialLoading(false);
+        return;
       }
+
+      // Don't set loading to false here as the redirect will handle it
+      console.log('LinkedIn OAuth initiated successfully');
+      
     } catch (error) {
       console.error("LinkedIn sign-in error:", error);
       toast.error("An unexpected error occurred with LinkedIn sign-in");
-    } finally {
       setSocialLoading(false);
     }
   };
@@ -163,7 +199,7 @@ const Auth = () => {
                 disabled={loading || socialLoading}
               >
                 {socialLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Continue with LinkedIn
+                {socialLoading ? 'Connecting...' : 'Continue with LinkedIn'}
               </Button>
             </TabsContent>
 

@@ -21,19 +21,19 @@ export class JobScraperService {
     let totalJobs = 0;
     let successfulSources = 0;
 
-    for (const sourceConfig of this.sources.filter(s => s.active)) {
+    for (const source of this.sources.filter(s => s.active)) {
       try {
-        console.log(`Scraping ${sourceConfig.name}...`);
-        const jobs = await this.scrapeSource(sourceConfig);
+        console.log(`Scraping ${source.name}...`);
+        const jobs = await this.scrapeSource(source);
         
         if (jobs.length > 0) {
-          await this.saveJobs(jobs, sourceConfig.name);
+          await this.saveJobs(jobs, source.name);
           totalJobs += jobs.length;
           successfulSources++;
-          console.log(`✅ ${sourceConfig.name}: ${jobs.length} jobs`);
+          console.log(`✅ ${source.name}: ${jobs.length} jobs`);
         }
       } catch (error) {
-        console.error(`❌ Failed to scrape ${sourceConfig.name}:`, error);
+        console.error(`❌ Failed to scrape ${source.name}:`, error);
       }
     }
 
@@ -44,7 +44,7 @@ export class JobScraperService {
     };
   }
 
-  private async scrapeSource(sourceConfig: JobSource): Promise<any[]> {
+  private async scrapeSource(_source: JobSource): Promise<any[]> {
     // Enhanced mock data generation with more jobs per source
     const mockJobs = this.generateMockJobs();
     return mockJobs;
