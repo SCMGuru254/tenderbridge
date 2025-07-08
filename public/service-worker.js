@@ -1,43 +1,57 @@
 
 // TenderBridge Service Worker
-const CACHE_NAME = 'tenderbridge-cache-v2';
+const CACHE_NAME = 'tenderbridge-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png'
+  '/logo.png',
+  '/logo192.png',
+  '/logo512.png'
 ];
 
 // Install event - cache essential files
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
         // Add files one by one to avoid failures
         return Promise.allSettled(
-          urlsToCache.map(url => cache.add(url).catch(err => {
-            console.warn(`Failed to cache ${url}:`, err);
-            return Promise.resolve();
-          }))
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`Failed to cache ${url}:`, err);
+              return Promise.resolve();
+            })
+          )
         );
+      })
+      .then(() => {
+        console.log('Service Worker installation complete');
+        self.skipWaiting(); // Force activation
       })
   );
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...');
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      console.log('Service Worker activation complete');
+      return self.clients.claim(); // Take control of all pages
     })
   );
 });
@@ -49,40 +63,68 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip POST requests and API calls
+  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Cache hit - return response
         if (response) {
+          console.log('Serving from cache:', event.request.url);
           return response;
         }
         
-        // For missing logo files, return a fallback or skip
+        // Handle logo file requests specifically
         if (event.request.url.includes('logo192.png') || event.request.url.includes('logo512.png')) {
-          return fetch('/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png')
-            .catch(() => new Response('', { status: 404 }));
+          // Try to serve the actual logo files first
+          return fetch(event.request)
+            .then(fetchResponse => {
+              if (fetchResponse.ok) {
+                // Cache the successful response
+                const responseToCache = fetchResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(event.request, responseToCache);
+                });
+                return fetchResponse;
+              }
+              // If logo files don't exist, serve the main logo as fallback
+              return fetch('/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png');
+            })
+            .catch(() => {
+              // Ultimate fallback - serve main logo
+              return fetch('/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png')
+                .catch(() => new Response('', { status: 404 }));
+            });
         }
         
+        // For all other requests, try network first
         return fetch(event.request).then(
-          (response) => {
+          (fetchResponse) => {
             // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+            if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+              return fetchResponse;
             }
 
             // Clone the response
-            const responseToCache = response.clone();
+            const responseToCache = fetchResponse.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache);
               });
 
-            return response;
+            return fetchResponse;
           }
         ).catch(() => {
           // Return a basic response for failed requests
-          return new Response('Offline', { status: 503 });
+          console.warn('Network request failed for:', event.request.url);
+          return new Response('Offline - Please check your connection', { 
+            status: 503,
+            statusText: 'Service Unavailable'
+          });
         });
       })
   );
@@ -94,7 +136,7 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/lovable-uploads/03c0e1ef-197d-4e61-926e-c4b14f094c6a.png',
+      icon: '/logo192.png',
       badge: '/favicon.ico',
       data: {
         url: data.url

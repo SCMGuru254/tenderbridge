@@ -1,8 +1,6 @@
-
 import { Loader2, Clock } from "lucide-react";
 import JobCard from "@/components/job-card/JobCard";
 import { SwipeableJobCard } from "@/components/SwipeableJobCard";
-import { ExternalJobWidget } from "@/components/ExternalJobWidget";
 import { PostedJob, AggregatedJob } from "@/types/jobs";
 import { getCompanyName, getLocation, getJobUrl, getJobSource, getDeadline, getTimeSincePosted } from "@/utils/jobUtils";
 import { cleanJobTitle, cleanCompanyName, cleanLocation } from "@/utils/cleanJobTitle";
@@ -326,12 +324,6 @@ export const JobList = ({ jobs, isLoading, error }: JobListProps) => {
             </div>
           );
         })}
-      </div>
-      
-      {/* External Job Widget Section - Full width for better responsiveness */}
-      <div className="mt-12 pt-8 border-t border-gray-200 w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center">More Professional Jobs For You</h2>
-        <ExternalJobWidget />
       </div>
     </div>
   );

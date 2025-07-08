@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +15,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [profile, setProfile] = useState({
     full_name: '',
     position: '',
@@ -43,26 +43,76 @@ const Onboarding = () => {
   const handleComplete = async () => {
     if (!user) {
       toast.error('Please sign in to complete onboarding');
+      navigate('/auth');
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      const { error } = await supabase
+      // First, check if profile already exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          ...profile,
-          email: user.email,
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('id', user.id)
+        .single();
 
-      if (error) throw error;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
 
-      toast.success('Profile completed successfully!');
+      const profileData = {
+        id: user.id,
+        email: user.email || '',
+        full_name: profile.full_name || 'User',
+        position: profile.position || '',
+        company: profile.company || '',
+        bio: profile.bio || '',
+        linkedin_url: profile.linkedin_url || '',
+        experience_level: profile.experience_level || 'entry',
+        career_goals: profile.career_goals || '',
+        skills: profile.skills || '',
+        location: profile.location || 'Kenya',
+        updated_at: new Date().toISOString()
+      };
+
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update(profileData)
+          .eq('id', user.id);
+      } else {
+        // Insert new profile
+        result = await supabase
+          .from('profiles')
+          .insert([profileData]);
+      }
+
+      if (result.error) {
+        console.error('Profile save error:', result.error);
+        throw result.error;
+      }
+
+      toast.success('Profile completed successfully! Welcome to SupplyChain Jobs!');
       navigate('/dashboard');
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error completing onboarding:', error);
-      toast.error('Failed to complete profile');
+      
+      let errorMessage = 'Failed to complete profile. ';
+      if (error.message) {
+        errorMessage += error.message;
+      } else if (error.code) {
+        errorMessage += `Error code: ${error.code}`;
+      } else {
+        errorMessage += 'Please try again or contact support.';
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,12 +122,13 @@ const Onboarding = () => {
       content: (
         <div className="space-y-4">
           <div>
-            <Label htmlFor="full_name">Full Name</Label>
+            <Label htmlFor="full_name">Full Name *</Label>
             <Input
               id="full_name"
               value={profile.full_name}
               onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
               placeholder="John Doe"
+              required
             />
           </div>
           <div>
@@ -219,19 +270,31 @@ const Onboarding = () => {
               <Button 
                 variant="outline" 
                 onClick={handlePrevious}
-                disabled={currentStep === 1}
+                disabled={currentStep === 1 || isSubmitting}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Previous
               </Button>
               
               {currentStep === steps.length ? (
-                <Button onClick={handleComplete}>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Complete Profile
+                <Button 
+                  onClick={handleComplete}
+                  disabled={isSubmitting || !profile.full_name.trim()}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Complete Profile
+                    </>
+                  )}
                 </Button>
               ) : (
-                <Button onClick={handleNext}>
+                <Button onClick={handleNext} disabled={isSubmitting}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>

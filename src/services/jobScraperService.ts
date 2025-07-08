@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface JobSource {
@@ -21,19 +20,19 @@ export class JobScraperService {
     let totalJobs = 0;
     let successfulSources = 0;
 
-    for (const activeSource of this.sources.filter(s => s.active)) {
+    for (const source of this.sources.filter(s => s.active)) {
       try {
-        console.log(`Scraping ${activeSource.name}...`);
-        const jobs = await this.scrapeSource(activeSource);
+        console.log(`Scraping ${source.name}...`);
+        const jobs = await this.scrapeSource(source);
         
         if (jobs.length > 0) {
-          await this.saveJobs(jobs, activeSource.name);
+          await this.saveJobs(jobs, source.name);
           totalJobs += jobs.length;
           successfulSources++;
-          console.log(`✅ ${activeSource.name}: ${jobs.length} jobs`);
+          console.log(`✅ ${source.name}: ${jobs.length} jobs`);
         }
       } catch (error) {
-        console.error(`❌ Failed to scrape ${activeSource.name}:`, error);
+        console.error(`❌ Failed to scrape ${source.name}:`, error);
       }
     }
 
@@ -44,7 +43,7 @@ export class JobScraperService {
     };
   }
 
-  private async scrapeSource(activeSource: JobSource): Promise<any[]> {
+  private async scrapeSource(source: JobSource): Promise<any[]> {
     // Enhanced mock data generation with more jobs per source
     const mockJobs = this.generateMockJobs();
     return mockJobs;
