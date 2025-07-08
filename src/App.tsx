@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -26,6 +26,16 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (replaces deprecated cacheTime)
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as any).status;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        return failureCount < 3;
+      },
     },
   },
 });
@@ -40,31 +50,33 @@ const LoadingSpinner = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/jobs" element={<Index />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/mentorship" element={<Mentorship />} />
-              <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
-              <Route path="/discussions" element={<DiscussionList />} />
-              <Route path="/join-our-team" element={<JoinOurTeam />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} />
-              <Route path="/company-reviews" element={<CompanyReviews />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/jobs" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/mentorship" element={<Mentorship />} />
+                <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
+                <Route path="/discussions" element={<DiscussionList />} />
+                <Route path="/join-our-team" element={<JoinOurTeam />} />
+                <Route path="/interview-prep" element={<InterviewPrep />} />
+                <Route path="/company-reviews" element={<CompanyReviews />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

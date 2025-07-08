@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +21,7 @@ const Auth = () => {
   useEffect(() => {
     checkAuthState();
     
-    // Handle OAuth callback
+    // Handle OAuth callback and errors
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event, session?.user?.email);
@@ -36,18 +35,47 @@ const Auth = () => {
           console.log('User signed out');
         }
         
+        // Handle OAuth errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          console.error('Token refresh failed');
+          toast.error("Authentication failed. Please try again.");
+        }
+        
         setSocialLoading(false);
         setLoading(false);
       }
     );
 
+    // Check for OAuth error in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+      console.error('OAuth error:', error, errorDescription);
+      if (error === 'access_denied') {
+        toast.error("Authentication was cancelled or denied");
+      } else if (error === 'invalid_request') {
+        toast.error("OAuth configuration error. Please contact support.");
+      } else {
+        toast.error(`Authentication error: ${errorDescription || error}`);
+      }
+      setSocialLoading(false);
+      // Clear error from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     return () => subscription.unsubscribe();
   }, [navigate]);
 
   const checkAuthState = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      navigate("/dashboard");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error('Error checking auth state:', error);
     }
   };
 
@@ -108,10 +136,13 @@ const Auth = () => {
     try {
       console.log('Attempting LinkedIn sign-in...');
       
+      // Use the current origin for redirect
+      const redirectUrl = `${window.location.origin}/auth`;
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -128,7 +159,6 @@ const Auth = () => {
         return;
       }
 
-      // Don't set loading to false here as the redirect will handle it
       console.log('LinkedIn OAuth initiated successfully');
       
     } catch (error) {
