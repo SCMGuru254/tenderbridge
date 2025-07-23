@@ -1,6 +1,6 @@
 {
-  "appId": "com.tenderbridge.app",
-  "appName": "TenderBridge",
+  "appId": "com.supplychainke.app",
+  "appName": "Supply-Chain_Ke",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "plugins": {
@@ -21,7 +21,11 @@
       "style": "dark"
     },
     "PushNotifications": {
-      "presentationOptions": ["badge", "sound", "alert"]
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     }
   },
   "server": {
