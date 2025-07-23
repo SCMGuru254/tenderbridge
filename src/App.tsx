@@ -20,6 +20,7 @@ const DiscussionList = lazy(() => import("./components/DiscussionList").then(m =
 const JoinOurTeam = lazy(() => import("./components/JoinOurTeam").then(m => ({ default: m.JoinOurTeam })));
 const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const CompanyReviews = lazy(() => import("./pages/CompanyReviews"));
+const HRDirectory = lazy(() => import("./pages/HRDirectory"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/join-our-team" element={<JoinOurTeam />} />
                 <Route path="/interview-prep" element={<InterviewPrep />} />
                 <Route path="/company-reviews" element={<CompanyReviews />} />
+                <Route path="/hr-directory" element={<HRDirectory />} />
               </Routes>
             </Suspense>
           </BrowserRouter>
