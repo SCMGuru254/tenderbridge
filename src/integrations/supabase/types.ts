@@ -325,6 +325,212 @@ export type Database = {
         }
         Relationships: []
       }
+      company_reviews: {
+        Row: {
+          career_growth_rating: number | null
+          company_id: string
+          compensation_rating: number | null
+          cons: string | null
+          created_at: string
+          culture_rating: number | null
+          employment_duration: string | null
+          id: string
+          is_anonymous: boolean
+          is_current_employee: boolean
+          job_position: string | null
+          management_rating: number | null
+          pros: string | null
+          rating: number
+          review_text: string
+          updated_at: string
+          user_id: string
+          work_life_balance_rating: number | null
+        }
+        Insert: {
+          career_growth_rating?: number | null
+          company_id: string
+          compensation_rating?: number | null
+          cons?: string | null
+          created_at?: string
+          culture_rating?: number | null
+          employment_duration?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_current_employee?: boolean
+          job_position?: string | null
+          management_rating?: number | null
+          pros?: string | null
+          rating: number
+          review_text: string
+          updated_at?: string
+          user_id: string
+          work_life_balance_rating?: number | null
+        }
+        Update: {
+          career_growth_rating?: number | null
+          company_id?: string
+          compensation_rating?: number | null
+          cons?: string | null
+          created_at?: string
+          culture_rating?: number | null
+          employment_duration?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_current_employee?: boolean
+          job_position?: string | null
+          management_rating?: number | null
+          pros?: string | null
+          rating?: number
+          review_text?: string
+          updated_at?: string
+          user_id?: string
+          work_life_balance_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_reviews_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_bookmarks: {
+        Row: {
+          created_at: string
+          discussion_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discussion_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discussion_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_bookmarks_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "discussions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_comments: {
+        Row: {
+          content: string
+          created_at: string
+          discussion_id: string
+          id: string
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          discussion_id: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          discussion_id?: string
+          id?: string
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_comments_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "discussions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discussion_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_likes: {
+        Row: {
+          created_at: string
+          discussion_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discussion_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discussion_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_likes_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "discussions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discussion_shares: {
+        Row: {
+          created_at: string
+          discussion_id: string
+          id: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discussion_id: string
+          id?: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discussion_id?: string
+          id?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_shares_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "discussions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussions: {
         Row: {
           author_id: string
@@ -359,6 +565,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_uploads: {
+        Row: {
+          created_at: string
+          document_type: string
+          extracted_text: string | null
+          file_path: string
+          file_size: number
+          filename: string
+          id: string
+          is_active: boolean
+          mime_type: string
+          original_name: string
+          updated_at: string
+          upload_source: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          extracted_text?: string | null
+          file_path: string
+          file_size: number
+          filename: string
+          id?: string
+          is_active?: boolean
+          mime_type: string
+          original_name: string
+          updated_at?: string
+          upload_source?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          extracted_text?: string | null
+          file_path?: string
+          file_size?: number
+          filename?: string
+          id?: string
+          is_active?: boolean
+          mime_type?: string
+          original_name?: string
+          updated_at?: string
+          upload_source?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       featured_clients: {
         Row: {
@@ -503,6 +757,77 @@ export type Database = {
             columns: ["employer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_profiles: {
+        Row: {
+          availability_status: string
+          bio: string | null
+          certifications: string[] | null
+          company_id: string | null
+          created_at: string
+          hourly_rate: number | null
+          id: string
+          is_verified: boolean
+          languages_spoken: string[] | null
+          preferred_contact_method: string | null
+          rating: number | null
+          services_offered: string[]
+          specializations: string[]
+          timezone: string | null
+          total_clients: number | null
+          updated_at: string
+          user_id: string
+          years_experience: number
+        }
+        Insert: {
+          availability_status?: string
+          bio?: string | null
+          certifications?: string[] | null
+          company_id?: string | null
+          created_at?: string
+          hourly_rate?: number | null
+          id?: string
+          is_verified?: boolean
+          languages_spoken?: string[] | null
+          preferred_contact_method?: string | null
+          rating?: number | null
+          services_offered?: string[]
+          specializations?: string[]
+          timezone?: string | null
+          total_clients?: number | null
+          updated_at?: string
+          user_id: string
+          years_experience?: number
+        }
+        Update: {
+          availability_status?: string
+          bio?: string | null
+          certifications?: string[] | null
+          company_id?: string | null
+          created_at?: string
+          hourly_rate?: number | null
+          id?: string
+          is_verified?: boolean
+          languages_spoken?: string[] | null
+          preferred_contact_method?: string | null
+          rating?: number | null
+          services_offered?: string[]
+          specializations?: string[]
+          timezone?: string | null
+          total_clients?: number | null
+          updated_at?: string
+          user_id?: string
+          years_experience?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -711,6 +1036,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       job_reports: {
         Row: {
