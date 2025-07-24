@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Filter, Plus, Loader2, MessageSquare } from "lucide-react";
 import { DiscussionCard } from "@/components/DiscussionCard";
 import { DiscussionForm } from "@/components/DiscussionForm";
+
 import { useAuth } from "@/hooks/useAuth";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { FAB } from "@/components/ui/fab";

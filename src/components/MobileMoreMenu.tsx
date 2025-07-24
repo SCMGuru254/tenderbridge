@@ -1,51 +1,89 @@
 import { Link } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 import {
-  BarChart3,
-  Settings,
-  MessageCircle,
-  Users,
+  Bot,
+  GraduationCap,
+  LineChart,
   FileText,
-  Award,
-  DollarSign,
   Star,
-  ChevronRight
+  User,
+  Award,
+  Building2,
+  Settings
 } from 'lucide-react';
 
-export function MobileMoreMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+interface MobileMoreMenuProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
   const menuItems = [
     {
-      group: "Analytics & Insights",
-      items: [
-        { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-        { href: '/documents', label: 'Documents', icon: FileText },
-      ]
+      href: '/ai-agents',
+      label: 'AI Agents',
+      icon: Bot,
+      description: 'AI-powered career tools'
     },
     {
-      group: "Community",
-      items: [
-        { href: '/communities', label: 'Communities', icon: Users },
-        { href: '/discussions', label: 'Discussions', icon: MessageCircle },
-      ]
+      href: '/interview-prep',
+      label: 'Interview Prep',
+      icon: GraduationCap,
+      description: 'Practice interviews'
     },
     {
-      group: "Rewards & Benefits",
-      items: [
-        { href: '/rewards', label: 'Rewards', icon: Award },
-        { href: '/affiliate', label: 'Affiliate Program', icon: DollarSign },
-        { href: '/featured-services', label: 'Premium Services', icon: Star },
-      ]
+      href: '/documents',
+      label: 'Documents',
+      icon: FileText,
+      description: 'CV & Cover Letters'
     },
     {
-      group: "Account",
-      items: [
-        { href: '/settings', label: 'Settings', icon: Settings },
-      ]
+      href: '/mentorship',
+      label: 'Mentorship',
+      icon: User,
+      description: 'Find mentors'
+    },
+    {
+      href: '/careers',
+      label: 'Careers',
+      icon: Star,
+      description: 'Join our team'
+    },
+    {
+      href: '/rewards',
+      label: 'Rewards',
+      icon: Award,
+      description: 'Earn points'
+    },
+    {
+      href: '/hr-directory',
+      label: 'HR Directory',
+      icon: Building2,
+      description: 'Find HR professionals'
+    },
+    {
+      href: '/analytics',
+      label: 'Analytics',
+      icon: LineChart,
+      description: 'Job insights'
+    },
+    {
+      href: '/profile',
+      label: 'Profile',
+      icon: User,
+      description: 'Your profile'
+    },
+    {
+      href: '/dashboard',
+      label: 'Dashboard',
+      icon: Settings,
+      description: 'Your dashboard'
     }
   ];
 
@@ -55,31 +93,30 @@ export function MobileMoreMenu({ open, onClose }: { open: boolean; onClose: () =
         <SheetHeader>
           <SheetTitle>More Options</SheetTitle>
         </SheetHeader>
-        <div className="py-6 divide-y">
-          {menuItems.map((group) => (
-            <div key={group.group} className="py-4">
-              <h3 className="text-sm font-medium text-muted-foreground mb-3">{group.group}</h3>
-              <div className="space-y-2">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={onClose}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-accent"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="w-5 h-5" />
-                        <span>{item.label}</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        
+        <div className="grid grid-cols-2 gap-4 mt-6 pb-6 overflow-y-auto">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={onClose}
+                className={cn(
+                  "flex flex-col items-center justify-center p-4 rounded-lg",
+                  "bg-background hover:bg-accent transition-colors",
+                  "border border-border hover:border-primary/20",
+                  "min-h-[100px] text-center"
+                )}
+              >
+                <Icon className="h-6 w-6 mb-2 text-primary" />
+                <span className="font-medium text-sm">{item.label}</span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  {item.description}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </SheetContent>
     </Sheet>

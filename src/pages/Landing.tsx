@@ -159,7 +159,7 @@ const Landing = () => {
               </Link>
             </Button>
             
-            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-gray-900">
+            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-4 border-white text-white hover:bg-white hover:text-gray-900 bg-orange-500 hover:bg-white hover:text-orange-600 border-orange-500">
               <Link to="/jobs">
                 <Briefcase className="h-5 w-5 mr-2" />
                 Browse Jobs

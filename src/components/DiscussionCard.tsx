@@ -172,17 +172,32 @@ export function DiscussionCard({ discussion, onReport }: DiscussionCardProps) {
       
       <CardFooter className="flex justify-between border-t pt-4">
         <div className="flex gap-4">
-          <Button variant="ghost" size="sm" className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-1 hover:text-blue-600"
+            onClick={() => toast.info("Like functionality coming soon!")}
+          >
             <ThumbsUp className="h-4 w-4" />
             <span>Like</span>
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-1 hover:text-green-600"
+            onClick={() => toast.info("Comment functionality coming soon!")}
+          >
             <MessageSquare className="h-4 w-4" />
             <span>Comment</span>
           </Button>
         </div>
         
-        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-1 hover:text-purple-600"
+          onClick={() => toast.info("Share functionality coming soon!")}
+        >
           <Share2 className="h-4 w-4" />
           <span>Share</span>
         </Button>

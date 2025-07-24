@@ -3,10 +3,11 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
-  Bot,
-  GraduationCap,
-  LineChart,
-  Menu
+  Menu,
+  Home,
+  Briefcase,
+  MessageSquare,
+  Building2
 } from 'lucide-react';
 import { MobileMoreMenu } from './MobileMoreMenu';
 
@@ -16,22 +17,28 @@ export function MobileNavigation() {
 
   const mobileNavItems = [
     {
-      href: '/ai-agents',
-      label: 'AI Tools',
-      icon: Bot,
-      description: 'AI-powered job tools'
+      href: '/',
+      label: 'Home',
+      icon: Home,
+      description: 'Home page'
     },
     {
-      href: '/interview-prep',
-      label: 'Practice',
-      icon: GraduationCap,
-      description: 'Interview practice'
+      href: '/jobs',
+      label: 'Jobs',
+      icon: Briefcase,
+      description: 'Find jobs'
     },
     {
-      href: '/analytics',
-      label: 'Analytics',
-      icon: LineChart,
-      description: 'Your insights'
+      href: '/discussions',
+      label: 'Discussions',
+      icon: MessageSquare,
+      description: 'Community discussions'
+    },
+    {
+      href: '/companies',
+      label: 'Companies',
+      icon: Building2,
+      description: 'Browse companies'
     }
   ];
 

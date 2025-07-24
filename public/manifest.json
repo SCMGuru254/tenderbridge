@@ -1,7 +1,7 @@
 
 {
-  "short_name": "TenderBridge",
-  "name": "TenderBridge - Job Portal", 
+  "short_name": "SupplyChain_KE",
+  "name": "SupplyChain_KE - Job Portal",
   "description": "Connect with professionals, find jobs, and access career resources",
   "icons": [
     {
@@ -10,13 +10,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "logo512.png", 
+      "src": "logo.png", 
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -34,14 +34,14 @@
       "short_name": "Jobs",
       "description": "View the latest supply chain jobs",
       "url": "/jobs",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
     },
     {
       "name": "My Profile",
       "short_name": "Profile", 
       "description": "View your profile",
       "url": "/profile",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
     }
   ],
   "related_applications": [],
