@@ -185,6 +185,36 @@ export type Database = {
           },
         ]
       }
+      ats_analyses: {
+        Row: {
+          analysis_result: Json
+          analyzed_at: string
+          created_at: string
+          file_path: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analysis_result: Json
+          analyzed_at?: string
+          created_at?: string
+          file_path: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json
+          analyzed_at?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string
@@ -324,6 +354,51 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      company_review_replies: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          reply_text: string
+          review_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          reply_text: string
+          review_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          reply_text?: string
+          review_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_review_replies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_review_replies_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "company_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_reviews: {
         Row: {

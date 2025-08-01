@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, Upload, FileText } from "lucide-react";
+import { AlertCircle, CheckCircle, Upload, FileText, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ATSScore {
   overall: number;
@@ -22,11 +22,21 @@ interface ATSAnalysis {
   issues: string[];
 }
 
+interface UploadedDocument {
+  id: string;
+  filename: string;
+  file_path: string;
+  analyzed_at?: string;
+  analysis_result?: ATSAnalysis;
+}
+
 export const ATSChecker = () => {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<ATSAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -38,8 +48,26 @@ export const ATSChecker = () => {
     }
   };
 
+  const loadUploadedDocuments = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('document_uploads')
+        .select('id, filename, file_path, created_at')
+        .eq('user_id', user.id)
+        .eq('document_type', 'cv')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUploadedDocuments(data || []);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+    }
+  };
+
   const analyzeCV = async () => {
-    if (!file) {
+    if (!file || !user) {
       toast.error("Please upload a CV first");
       return;
     }
@@ -47,12 +75,27 @@ export const ATSChecker = () => {
     setIsAnalyzing(true);
     try {
       // Upload file to Supabase storage
-      const fileName = `${Date.now()}_${file.name}`;
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
+
+      // Store document metadata
+      const { error: docError } = await supabase
+        .from('document_uploads')
+        .insert({
+          user_id: user.id,
+          filename: file.name,
+          original_name: file.name,
+          file_path: uploadData.path,
+          document_type: 'cv',
+          mime_type: file.type,
+          file_size: file.size
+        });
+
+      if (docError) throw docError;
 
       // Call ATS checker function
       const { data, error } = await supabase.functions.invoke('ats-checker', {
@@ -64,13 +107,56 @@ export const ATSChecker = () => {
 
       if (error) throw error;
 
+      // Store analysis result
+      const analysisData = {
+        user_id: user.id,
+        file_path: uploadData.path,
+        analysis_result: data
+      };
+
+      await supabase.from('ats_analyses').insert(analysisData);
+
       setAnalysis(data);
       toast.success("CV analysis completed!");
+      loadUploadedDocuments();
     } catch (error) {
       console.error('ATS analysis error:', error);
       toast.error("Failed to analyze CV. Please try again.");
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const deleteDocument = async (document: UploadedDocument) => {
+    if (!user) return;
+
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([document.file_path]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('document_uploads')
+        .delete()
+        .eq('id', document.id);
+
+      if (dbError) throw dbError;
+
+      // Delete analysis if exists
+      await supabase
+        .from('ats_analyses')
+        .delete()
+        .eq('file_path', document.file_path);
+
+      toast.success("Document deleted successfully");
+      loadUploadedDocuments();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error("Failed to delete document");
     }
   };
 
@@ -145,6 +231,35 @@ export const ATSChecker = () => {
           </Button>
         </CardContent>
       </Card>
+
+      {uploadedDocuments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Uploaded CVs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {uploadedDocuments.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{doc.filename}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Uploaded on {new Date(doc.analyzed_at || '').toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => deleteDocument(doc)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {analysis && (
         <div className="space-y-4">

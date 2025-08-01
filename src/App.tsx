@@ -15,6 +15,8 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Auth = lazy(() => import("./pages/Auth"));
+const JobDetails = lazy(() => import("./pages/JobDetails"));
+const CompanySignup = lazy(() => import("./components/companies/CompanySignup"));
 const Mentorship = lazy(() => import("./components/Mentorship").then(m => ({ default: m.Mentorship })));
 const SalaryAnalyzer = lazy(() => import("./components/SalaryAnalyzer").then(m => ({ default: m.SalaryAnalyzer })));
 const DiscussionList = lazy(() => import("./components/DiscussionList").then(m => ({ default: m.DiscussionList })));
@@ -76,7 +78,7 @@ const App = () => (
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route element={<Layout />}>
                   <Route path="/jobs" element={<Index />} />
-                  <Route path="/jobs/:id" element={<lazy(() => import("./pages/JobDetails"))} />
+                  <Route path="/jobs/:id" element={<JobDetails />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/mentorship" element={<Mentorship />} />
                   <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
@@ -87,7 +89,7 @@ const App = () => (
                   <Route path="/hr-directory" element={<HRDirectory />} />
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/companies" element={<Companies />} />
-                  <Route path="/companies/signup" element={<lazy(() => import("./components/companies/CompanySignup"))} />
+                  <Route path="/companies/signup" element={<CompanySignup />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
