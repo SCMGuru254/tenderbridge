@@ -76,6 +76,7 @@ const App = () => (
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route element={<Layout />}>
                   <Route path="/jobs" element={<Index />} />
+                  <Route path="/jobs/:id" element={<lazy(() => import("./pages/JobDetails"))} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/mentorship" element={<Mentorship />} />
                   <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
@@ -86,6 +87,7 @@ const App = () => (
                   <Route path="/hr-directory" element={<HRDirectory />} />
                   <Route path="/careers" element={<Careers />} />
                   <Route path="/companies" element={<Companies />} />
+                  <Route path="/companies/signup" element={<lazy(() => import("./components/companies/CompanySignup"))} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -130,6 +130,61 @@ const Auth = () => {
     }
   };
 
+  const handleMagicLinkSignIn = async () => {
+    if (!email) {
+      toast.error("Please enter your email first");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Magic link sent! Check your email.");
+    } catch (error) {
+      console.error("Magic link error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast.error("Please enter your email first");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (error) {
+      console.error("Password reset error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLinkedInSignIn = async () => {
     setSocialLoading(true);
     
@@ -210,6 +265,26 @@ const Auth = () => {
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Sign In
               </Button>
+
+              <div className="text-center">
+                <Button 
+                  variant="link" 
+                  onClick={() => handleMagicLinkSignIn()}
+                  className="text-sm text-muted-foreground"
+                  disabled={loading || socialLoading}
+                >
+                  Send Magic Link
+                </Button>
+                <span className="mx-2 text-muted-foreground">|</span>
+                <Button 
+                  variant="link" 
+                  onClick={() => handlePasswordReset()}
+                  className="text-sm text-muted-foreground"
+                  disabled={loading || socialLoading}
+                >
+                  Forgot Password?
+                </Button>
+              </div>
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
