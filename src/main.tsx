@@ -1,4 +1,3 @@
-import React from "react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
@@ -17,26 +16,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-function initializeApp() {
-  console.log("[DEBUG] main.tsx - Initializing app");
-  
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    throw new Error('Root element not found');
-  }
-  
-  const root = createRoot(rootElement);
+console.log("[DEBUG] main.tsx - Starting app initialization");
 
-  root.render(
-    React.createElement(StrictMode, null,
-      React.createElement(App)
-    )
-  );
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
 }
 
-// Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  initializeApp();
-}
+const root = createRoot(rootElement);
+
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
