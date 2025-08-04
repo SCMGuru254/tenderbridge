@@ -34,5 +34,9 @@ function initializeApp() {
   );
 }
 
-// Simple immediate initialization
-initializeApp();
+// Initialize app when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
