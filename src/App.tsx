@@ -4,6 +4,7 @@ import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Layout } from "@/components/Layout";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -62,38 +63,40 @@ const LoadingSpinner = () => (
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route element={<Layout />}>
-              <Route path="/jobs" element={<Index />} />
-              <Route path="/jobs/:id" element={<JobDetails />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/mentorship" element={<Mentorship />} />
-              <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
-              <Route path="/discussions" element={<DiscussionList />} />
-              <Route path="/join-our-team" element={<JoinOurTeam />} />
-              <Route path="/interview-prep" element={<InterviewPrep />} />
-              <Route path="/company-reviews" element={<CompanyReviews />} />
-              <Route path="/hr-directory" element={<HRDirectory />} />
-              <Route path="/careers" element={<Careers />} />
-              <Route path="/companies" element={<Companies />} />
-              <Route path="/companies/signup" element={<CompanySignup />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/rewards" element={<Rewards />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/payment-cancel" element={<PaymentCancel />} />
-              <Route path="/ai-agents" element={<AIAgents />} />
-              <Route path="/documents" element={<DocumentGenerator />} />
-              <Route path="/ats-checker" element={<ATSChecker />} />
-              <Route path="/chat-assistant" element={<ChatAssistant />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <TooltipProvider delayDuration={300}>
+        <BrowserRouter>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route element={<Layout />}>
+                <Route path="/jobs" element={<Index />} />
+                <Route path="/jobs/:id" element={<JobDetails />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/mentorship" element={<Mentorship />} />
+                <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
+                <Route path="/discussions" element={<DiscussionList />} />
+                <Route path="/join-our-team" element={<JoinOurTeam />} />
+                <Route path="/interview-prep" element={<InterviewPrep />} />
+                <Route path="/company-reviews" element={<CompanyReviews />} />
+                <Route path="/hr-directory" element={<HRDirectory />} />
+                <Route path="/careers" element={<Careers />} />
+                <Route path="/companies" element={<Companies />} />
+                <Route path="/companies/signup" element={<CompanySignup />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/rewards" element={<Rewards />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancel" element={<PaymentCancel />} />
+                <Route path="/ai-agents" element={<AIAgents />} />
+                <Route path="/documents" element={<DocumentGenerator />} />
+                <Route path="/ats-checker" element={<ATSChecker />} />
+                <Route path="/chat-assistant" element={<ChatAssistant />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
