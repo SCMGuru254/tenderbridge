@@ -32,6 +32,21 @@ const AIAgents = lazy(() => import("./pages/AIAgents"));
 const DocumentGenerator = lazy(() => import("./pages/DocumentGenerator"));
 const ATSChecker = lazy(() => import("./components/ATSChecker").then(m => ({ default: m.ATSChecker })));
 const ChatAssistant = lazy(() => import("./pages/ChatAssistant"));
+// Additional pages
+const Blog = lazy(() => import("./pages/Blog"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Networking = lazy(() => import("./pages/Networking"));
+const Affiliate = lazy(() => import("./pages/Affiliate"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Security = lazy(() => import("./pages/Security"));
+const Forms = lazy(() => import("./pages/Forms"));
+const FreeServices = lazy(() => import("./pages/FreeServices"));
+const Faq = lazy(() => import("./pages/Faq"));
+const SocialHub = lazy(() => import("./pages/SocialHub"));
+const PayPalPortal = lazy(() => import("./pages/PayPalPortal"));
+const FeaturedClients = lazy(() => import("./pages/FeaturedClients"));
+const Documents = lazy(() => import("./pages/Documents"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,9 +106,23 @@ const App = () => (
                   <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="/payment-cancel" element={<PaymentCancel />} />
                   <Route path="/ai-agents" element={<AIAgents />} />
-                  <Route path="/documents" element={<DocumentGenerator />} />
+                  <Route path="/document-generator" element={<DocumentGenerator />} />
+                  <Route path="/documents" element={<Documents />} />
                   <Route path="/ats-checker" element={<ATSChecker />} />
                   <Route path="/chat-assistant" element={<ChatAssistant />} />
+                  <Route path="/blog" element={<Blog />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/networking" element={<Networking />} />
+                  <Route path="/affiliate" element={<Affiliate />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/security" element={<Security />} />
+                  <Route path="/forms" element={<Forms />} />
+                  <Route path="/free-services" element={<FreeServices />} />
+                  <Route path="/faq" element={<Faq />} />
+                  <Route path="/social-hub" element={<SocialHub />} />
+                  <Route path="/paypal-portal" element={<PayPalPortal />} />
+                  <Route path="/featured-clients" element={<FeaturedClients />} />
                 </Route>
               </Routes>
             </Suspense>
