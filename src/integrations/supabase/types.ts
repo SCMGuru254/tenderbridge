@@ -1785,54 +1785,66 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          career_goals: string | null
           company: string | null
           created_at: string
           cv_filename: string | null
           cv_url: string | null
           email: string
+          experience_level: string | null
           full_name: string | null
           id: string
           linkedin_url: string | null
+          location: string | null
           notify_on_view: boolean | null
           position: string | null
           previous_job: string | null
           role: string | null
+          skills: string | null
           tagline: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          career_goals?: string | null
           company?: string | null
           created_at?: string
           cv_filename?: string | null
           cv_url?: string | null
           email: string
+          experience_level?: string | null
           full_name?: string | null
           id: string
           linkedin_url?: string | null
+          location?: string | null
           notify_on_view?: boolean | null
           position?: string | null
           previous_job?: string | null
           role?: string | null
+          skills?: string | null
           tagline?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          career_goals?: string | null
           company?: string | null
           created_at?: string
           cv_filename?: string | null
           cv_url?: string | null
           email?: string
+          experience_level?: string | null
           full_name?: string | null
           id?: string
           linkedin_url?: string | null
+          location?: string | null
           notify_on_view?: boolean | null
           position?: string | null
           previous_job?: string | null
           role?: string | null
+          skills?: string | null
           tagline?: string | null
           updated_at?: string
         }
