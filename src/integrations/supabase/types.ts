@@ -2290,6 +2290,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_paginated_jobs: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search_term?: string
+          p_location?: string
+          p_job_type?: string
+        }
+        Returns: {
+          id: string
+          title: string
+          company_name: string
+          location: string
+          description: string
+          job_type: string
+          created_at: string
+          total_count: number
+        }[]
+      }
       increment_vote_count: {
         Args: { application_id: string }
         Returns: undefined

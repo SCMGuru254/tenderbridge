@@ -51,21 +51,28 @@ const Documents = lazy(() => import("./pages/Documents"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (replaces deprecated cacheTime)
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
-        if (error && typeof error === 'object' && 'status' in error) {
-          const status = (error as any).status;
-          if (status >= 400 && status < 500) {
-            return false;
-          }
-        }
-        return failureCount < 3;
-      },
+    },
+    mutations: {
+      retry: 2,
     },
   },
 });
+
+// Register PWA service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('PWA: Service worker registered successfully', registration.scope);
+      })
+      .catch((error) => {
+        console.log('PWA: Service worker registration failed', error);
+      });
+  });
+}
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -84,45 +91,48 @@ const App = () => (
           <BrowserRouter>
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route element={<Layout />}>
-                  <Route path="/jobs" element={<Index />} />
-                  <Route path="/jobs/:id" element={<JobDetails />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/mentorship" element={<Mentorship />} />
-                  <Route path="/salary-analyzer" element={<SalaryAnalyzer />} />
-                  <Route path="/discussions" element={<DiscussionList />} />
-                  <Route path="/join-our-team" element={<JoinOurTeam />} />
-                  <Route path="/interview-prep" element={<InterviewPrep />} />
-                  <Route path="/company-reviews" element={<CompanyReviews />} />
-                  <Route path="/hr-directory" element={<HRDirectory />} />
-                  <Route path="/careers" element={<Careers />} />
-                  <Route path="/companies" element={<Companies />} />
-                  <Route path="/companies/signup" element={<CompanySignup />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/rewards" element={<Rewards />} />
-                  <Route path="/payment-success" element={<PaymentSuccess />} />
-                  <Route path="/payment-cancel" element={<PaymentCancel />} />
-                  <Route path="/ai-agents" element={<AIAgents />} />
-                  <Route path="/document-generator" element={<DocumentGenerator />} />
-                  <Route path="/documents" element={<Documents />} />
-                  <Route path="/ats-checker" element={<ATSChecker />} />
-                  <Route path="/chat-assistant" element={<ChatAssistant />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/networking" element={<Networking />} />
-                  <Route path="/affiliate" element={<Affiliate />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/security" element={<Security />} />
-                  <Route path="/forms" element={<Forms />} />
-                  <Route path="/free-services" element={<FreeServices />} />
-                  <Route path="/faq" element={<Faq />} />
-                  <Route path="/social-hub" element={<SocialHub />} />
-                  <Route path="/paypal-portal" element={<PayPalPortal />} />
-                  <Route path="/featured-clients" element={<FeaturedClients />} />
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Index />} />
+                  <Route path="landing" element={<Landing />} />
+                  <Route path="index" element={<Index />} />
+                  <Route path="jobs" element={<Index />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="onboarding" element={<Onboarding />} />
+                  <Route path="auth" element={<Auth />} />
+                  <Route path="job/:id" element={<JobDetails />} />
+                  <Route path="company-signup" element={<CompanySignup />} />
+                  <Route path="mentorship" element={<Mentorship />} />
+                  <Route path="salary-analyzer" element={<SalaryAnalyzer />} />
+                  <Route path="discussions" element={<DiscussionList />} />
+                  <Route path="careers" element={<JoinOurTeam />} />
+                  <Route path="interview-prep" element={<InterviewPrep />} />
+                  <Route path="company-reviews" element={<CompanyReviews />} />
+                  <Route path="hr-directory" element={<HRDirectory />} />
+                  <Route path="join-team" element={<Careers />} />
+                  <Route path="companies" element={<Companies />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="rewards" element={<Rewards />} />
+                  <Route path="payment-success" element={<PaymentSuccess />} />
+                  <Route path="payment-cancel" element={<PaymentCancel />} />
+                  <Route path="ai-agents" element={<AIAgents />} />
+                  <Route path="document-generator" element={<DocumentGenerator />} />
+                  <Route path="ats-checker" element={<ATSChecker />} />
+                  <Route path="chat-assistant" element={<ChatAssistant />} />
+                  {/* Additional pages */}
+                  <Route path="blog" element={<Blog />} />
+                  <Route path="analytics" element={<Analytics />} />
+                  <Route path="networking" element={<Networking />} />
+                  <Route path="affiliate" element={<Affiliate />} />
+                  <Route path="privacy" element={<Privacy />} />
+                  <Route path="terms" element={<Terms />} />
+                  <Route path="security" element={<Security />} />
+                  <Route path="forms" element={<Forms />} />
+                  <Route path="free-services" element={<FreeServices />} />
+                  <Route path="faq" element={<Faq />} />
+                  <Route path="social-hub" element={<SocialHub />} />
+                  <Route path="paypal-portal" element={<PayPalPortal />} />
+                  <Route path="featured-clients" element={<FeaturedClients />} />
+                  <Route path="documents" element={<Documents />} />
                 </Route>
               </Routes>
             </Suspense>
