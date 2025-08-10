@@ -22,6 +22,7 @@ export const DesktopNavigation = () => {
     { path: "/", icon: Home, label: "Home" },
     { path: "/jobs", icon: Briefcase, label: "Jobs" },
     { path: "/companies", icon: Building2, label: "Companies" },
+    { path: "/company-signup", icon: Building2, label: "Company Signup" },
     { path: "/discussions", icon: MessageCircle, label: "Discussions" },
     { path: "/paypal-portal", icon: CreditCard, label: "PayPal Portal" },
     { path: "/profile", icon: Users, label: "Profile" },

@@ -15,6 +15,9 @@ const NavigationMenus = () => {
         <NavLink to="/companies">Companies</NavLink>
       </Button>
       <Button variant="ghost" asChild>
+        <NavLink to="/company-signup">Company Signup</NavLink>
+      </Button>
+      <Button variant="ghost" asChild>
         <NavLink to="/supply-chain-insights">Insights</NavLink>
       </Button>
     </nav>

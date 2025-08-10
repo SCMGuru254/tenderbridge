@@ -61,8 +61,8 @@ const queryClient = new QueryClient({
   },
 });
 
-// Register PWA service worker
-if ('serviceWorker' in navigator) {
+// Register PWA service worker (disabled on preview domains to prevent chunk-loading issues)
+if ('serviceWorker' in navigator && !window.location.hostname.startsWith('preview--')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
