@@ -27,6 +27,9 @@ const MobileNavigation = () => {
     { to: "/companies", label: "Companies", icon: Building2 },
     { to: "/company-signup", label: "Company Signup", icon: Building2 },
     { to: "/supply-chain-insights", label: "Insights", icon: BookOpen },
+    { to: "/salary-analyzer", label: "Salary Analyzer", icon: BookOpen },
+    { to: "/post-job", label: "Post Job", icon: BookOpen },
+    { to: "/chat-assistant", label: "Chat Assistant", icon: Bot },
     { to: "/interview-prep", label: "Interview Prep", icon: Search },
     { to: "/ai-agents", label: "AI Agents", icon: Bot },
   ];

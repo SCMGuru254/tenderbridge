@@ -13,6 +13,13 @@ export default function Navbar() {
           <Link to="/" className="font-bold text-xl">
             SupplyChain_KE
           </Link>
+          <div className="hidden md:flex items-center space-x-4">
+            <Link to="/jobs"><Button variant="ghost">Jobs</Button></Link>
+            <Link to="/supply-chain-insights"><Button variant="ghost">Insights</Button></Link>
+            <Link to="/salary-analyzer"><Button variant="ghost">Salary</Button></Link>
+            <Link to="/chat-assistant"><Button variant="ghost">Assistant</Button></Link>
+            <Link to="/post-job"><Button variant="ghost">Post Job</Button></Link>
+          </div>
 
           <div className="flex items-center space-x-4">
             {user ? (
@@ -20,7 +27,6 @@ export default function Navbar() {
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
-                {/* Removed signOut as it's not present in useAuth */}
               </>
             ) : (
               <Link to="/auth">

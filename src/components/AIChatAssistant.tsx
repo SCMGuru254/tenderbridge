@@ -17,6 +17,7 @@ import {
   BookOpen,
   RotateCcw
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { generateChatResponse } from '@/services/localAI';
 import { toast } from 'sonner';
 
@@ -133,16 +134,35 @@ export const AIChatAssistant = () => {
     setIsLoading(true);
 
     try {
-      const responseText = await generateChatResponse(
-        messageToSend,
-        getSystemPrompt(activeTab),
-        sessions[activeTab].messages.slice(-5)
-      );
+      let responseText: string | undefined;
+
+      try {
+        const { data, error } = await supabase.functions.invoke('hf-chat', {
+          body: {
+            message: messageToSend,
+            context: getSystemPrompt(activeTab),
+            conversation_history: sessions[activeTab].messages.slice(-6)
+          }
+        });
+        if (!error && data?.response) {
+          responseText = data.response;
+        }
+      } catch (e) {
+        console.warn('hf-chat failed, falling back to local model:', e);
+      }
+
+      if (!responseText) {
+        responseText = await generateChatResponse(
+          messageToSend,
+          getSystemPrompt(activeTab),
+          sessions[activeTab].messages.slice(-6)
+        );
+      }
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: responseText,
+        content: responseText || getFallbackResponse(activeTab, messageToSend),
         timestamp: new Date()
       };
 

@@ -36,3 +36,6 @@ verify_jwt = false
 
 [functions.setup-cron-job]
 verify_jwt = false
+
+[functions.hf-chat]
+verify_jwt = false

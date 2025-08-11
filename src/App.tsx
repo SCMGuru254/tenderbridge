@@ -32,6 +32,13 @@ const AIAgents = lazy(() => import("./pages/AIAgents"));
 const DocumentGenerator = lazy(() => import("./pages/DocumentGenerator"));
 const ATSChecker = lazy(() => import("./components/ATSChecker").then(m => ({ default: m.ATSChecker })));
 const ChatAssistant = lazy(() => import("./pages/ChatAssistant"));
+const Jobs = lazy(() => import("./pages/Jobs"));
+const SupplyChainInsights = lazy(() => import("./pages/SupplyChainInsights"));
+const PostJob = lazy(() => import("./pages/PostJob"));
+const JobsAlerts = lazy(() => import("./pages/jobs/alerts"));
+const JobsAnalytics = lazy(() => import("./pages/jobs/analytics"));
+const JobsApplications = lazy(() => import("./pages/jobs/applications"));
+const JobsRecommendations = lazy(() => import("./pages/jobs/recommendations"));
 // Additional pages
 const Blog = lazy(() => import("./pages/Blog"));
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -95,7 +102,7 @@ const App = () => (
                   <Route index element={<Index />} />
                   <Route path="landing" element={<Landing />} />
                   <Route path="index" element={<Index />} />
-                  <Route path="jobs" element={<Index />} />
+                  <Route path="jobs" element={<Jobs />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="onboarding" element={<Onboarding />} />
                   <Route path="auth" element={<Auth />} />
@@ -118,6 +125,12 @@ const App = () => (
                   <Route path="document-generator" element={<DocumentGenerator />} />
                   <Route path="ats-checker" element={<ATSChecker />} />
                   <Route path="chat-assistant" element={<ChatAssistant />} />
+                  <Route path="supply-chain-insights" element={<SupplyChainInsights />} />
+                  <Route path="post-job" element={<PostJob />} />
+                  <Route path="jobs/alerts" element={<JobsAlerts />} />
+                  <Route path="jobs/analytics" element={<JobsAnalytics />} />
+                  <Route path="jobs/applications" element={<JobsApplications />} />
+                  <Route path="jobs/recommendations" element={<JobsRecommendations />} />
                   {/* Additional pages */}
                   <Route path="blog" element={<Blog />} />
                   <Route path="analytics" element={<Analytics />} />
