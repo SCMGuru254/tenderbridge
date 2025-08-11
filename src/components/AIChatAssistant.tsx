@@ -17,7 +17,7 @@ import {
   BookOpen,
   RotateCcw
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { generateChatResponse } from '@/services/localAI';
 import { toast } from 'sonner';
 
 interface Message {
@@ -133,23 +133,16 @@ export const AIChatAssistant = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat-ai', {
-        body: {
-          message: messageToSend,
-          context: getSystemPrompt(activeTab),
-          conversation_history: sessions[activeTab].messages.slice(-5)
-        }
-      });
-
-      if (error) {
-        console.error('AI Chat Error:', error);
-        throw error;
-      }
+      const responseText = await generateChatResponse(
+        messageToSend,
+        getSystemPrompt(activeTab),
+        sessions[activeTab].messages.slice(-5)
+      );
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response || 'I apologize, but I encountered an error processing your request. Please try again.',
+        content: responseText,
         timestamp: new Date()
       };
 
