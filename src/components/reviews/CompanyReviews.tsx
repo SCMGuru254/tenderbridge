@@ -6,10 +6,36 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ReviewForm } from "./ReviewForm.tsx";
 import { ReviewList } from "./ReviewList.tsx";
 import { ReviewStats } from "./ReviewStats.tsx";
+
 export const CompanyReviews = () => {
   const { companyId } = useParams();
   const { user } = useAuth();
   const [isAddingReview, setIsAddingReview] = useState(false);
+  const [reviews] = useState<any[]>([]);
+  const [loading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch reviews for the company
+  // const fetchReviews = async () => {
+  //   setLoading(true);
+  //   // TODO: Replace with actual fetch logic
+  //   setLoading(false);
+  // };
+
+  // Handlers for voting/reporting
+  const handleVote = async () => {
+    // TODO: Implement vote logic
+  };
+
+  // Handler for submitting a review
+  const handleSubmitReview = async () => {
+    // TODO: Implement submit logic
+    setIsAddingReview(false);
+    // fetchReviews();
+  };
+
+  // Only pass companyId if defined
+  const safeCompanyId = companyId || '';
 
   return (
     <div className="space-y-6">
@@ -27,7 +53,7 @@ export const CompanyReviews = () => {
         <div className="lg:col-span-1">
           <Card>
             <CardContent className="p-6">
-              <ReviewStats companyId={companyId} />
+              <ReviewStats companyId={safeCompanyId} />
             </CardContent>
           </Card>
         </div>
@@ -38,14 +64,20 @@ export const CompanyReviews = () => {
             <Card>
               <CardContent className="p-6">
                 <ReviewForm 
-                  companyId={companyId} 
+                  onSubmit={handleSubmitReview}
                   onCancel={() => setIsAddingReview(false)}
-                  onSuccess={() => setIsAddingReview(false)}
                 />
               </CardContent>
             </Card>
           ) : (
-            <ReviewList companyId={companyId} />
+            <ReviewList 
+              reviews={reviews}
+              loading={loading}
+              onVote={handleVote}
+              currentPage={currentPage}
+              totalPages={1}
+              onPageChange={setCurrentPage}
+            />
           )}
         </div>
       </div>

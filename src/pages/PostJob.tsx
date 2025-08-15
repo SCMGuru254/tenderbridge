@@ -180,10 +180,7 @@ const PostJob = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Hiring Timeline */}
                 <div>
-                  <label className="block mb-1 text-sm font-medium">Expected Time to Fill Position</label>
                   <Select
                     value={formData.hiring_timeline}
                     onValueChange={(val) => setFormData({ ...formData, hiring_timeline: val, hiring_timeline_custom: "" })}

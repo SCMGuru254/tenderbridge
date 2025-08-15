@@ -41,7 +41,7 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
     try {
       setIsRefreshing(true);
       const loadingMsg = getLoadingMessage();
-      setRefreshStatus(loadingMsg);
+  setRefreshStatus(loadingMsg ?? "Loading...");
       
       toast({
         title: "Fetching Job Opportunities",
@@ -49,8 +49,8 @@ export const JobRefreshButton = ({ onClick }: JobRefreshButtonProps) => {
       });
 
       const sourcesToScrape = selectedSource === "all" 
-        ? sources.filter(s => s.id !== "all").map(s => s.id)
-        : [selectedSource];
+        ? sources.filter(s => s.id !== "all" && s.id !== "").map(s => s.id)
+        : [selectedSource].filter(id => id !== "");
 
       console.log("Scraping sources:", sourcesToScrape);
 

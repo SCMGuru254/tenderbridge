@@ -96,22 +96,7 @@ export const CompanyReviewsPage = () => {
     }
   };
 
-  const handleReport = async (reviewId: string, reason: string, details?: string) => {
-    try {
-      await reviewService.reportReview({ review_id: reviewId, reason, details });
-      toast({
-        title: 'Success',
-        description: 'Thank you for your report. We will review it shortly.',
-      });
-    } catch (error) {
-      console.error('Error reporting review:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit report. Please try again.',
-        variant: 'destructive'
-      });
-    }
-  };
+
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -121,9 +106,9 @@ export const CompanyReviewsPage = () => {
           {user && (
             <Button
               className="w-full mt-4"
-              onClick={() => setShowForm(true)}
+              onClick={() => setShowForm(!showForm)}
             >
-              Write a Review
+              {showForm ? 'Hide Review Form' : 'Write a Review'}
             </Button>
           )}
         </div>
@@ -162,7 +147,7 @@ export const CompanyReviewsPage = () => {
             </div>
           </div>
 
-          {showForm && (
+          {user && showForm && (
             <div className="mb-8">
               <ReviewForm
                 onSubmit={handleSubmitReview}
@@ -175,7 +160,6 @@ export const CompanyReviewsPage = () => {
             reviews={reviews}
             loading={loading}
             onVote={handleVote}
-            onReport={handleReport}
             currentPage={page}
             totalPages={Math.ceil(totalReviews / 10)}
             onPageChange={setPage}

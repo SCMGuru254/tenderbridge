@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { FileUploader } from '@/components/shared/FileUploader';
 import { aiService } from '@/services/aiService';
-import type { ResumeAnalysis, SkillMatch, IndustryMatch } from '@/types/ai';
+import type { ResumeAnalysis } from '@/types/ai';
 
 export const AgentResumeAnalyzer = () => {
   const { toast } = useToast();
@@ -77,12 +77,12 @@ export const AgentResumeAnalyzer = () => {
             <div>
               <h4 className="font-semibold mb-2">Key Skills</h4>
               <div className="flex flex-wrap gap-2">
-                {analysis.skills.map((skill: SkillMatch, i: number) => (
+                {analysis.skills.map((skill: any, i: number) => (
                   <span
                     key={i}
                     className="px-2 py-1 bg-primary/10 rounded-full text-sm"
                   >
-                    {skill.skill} - {skill.proficiency}
+                    {typeof skill === 'string' ? skill : `${skill.skill} - ${skill.proficiency ?? ''}`}
                   </span>
                 ))}
               </div>
@@ -96,10 +96,10 @@ export const AgentResumeAnalyzer = () => {
             <div>
               <h4 className="font-semibold mb-2">Industry Match</h4>
               <div className="space-y-2">
-                {analysis.industryMatches.map((match: IndustryMatch, i: number) => (
+                {analysis.industryMatches.map((match: any, i: number) => (
                   <div key={i} className="flex justify-between">
-                    <span>{match.industry}</span>
-                    <span className="font-medium">{match.score}%</span>
+                    <span>{match.industry ?? match}</span>
+                    <span className="font-medium">{match.score ? `${match.score}%` : ''}</span>
                   </div>
                 ))}
               </div>

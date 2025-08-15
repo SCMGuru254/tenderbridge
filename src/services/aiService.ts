@@ -13,9 +13,9 @@ class AIService {
       if (uploadError) throw uploadError;
 
       // Get file URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(fileName);
+  // const { data: { publicUrl } } = supabase.storage
+  //   .from('documents')
+  //   .getPublicUrl(fileName);
 
       // Simulated AI analysis response
       const analysis: ResumeAnalysis = {

@@ -7,9 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+
 interface ReviewProps {
   review: any;
-  onVote: () => void;
+  onVote: (reviewId: string, helpful: boolean) => Promise<void>;
 }
 
 export const Review = ({ review, onVote }: ReviewProps) => {
@@ -25,16 +26,7 @@ export const Review = ({ review, onVote }: ReviewProps) => {
 
     setIsVoting(true);
     try {
-      const { error } = await supabase
-        .from('review_helpful_votes')
-        .upsert({
-          review_id: review.id,
-          user_id: user.id,
-          helpful
-        });
-
-      if (error) throw error;
-      onVote();
+      await onVote(review.id, helpful);
     } catch (error) {
       console.error('Error voting on review:', error);
       toast.error('Failed to record vote');

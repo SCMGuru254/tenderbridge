@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/use-toast';
+// import { useToast } from '@/components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 import {
   TrendingUp,
   Calendar,
@@ -19,7 +20,7 @@ import {
 
 export default function HireMySkill() {
   const [activeTab, setActiveTab] = useState('marketplace');
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -49,21 +50,21 @@ export default function HireMySkill() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-secondary/50">
                   <CardContent className="pt-6">
-                    <div className="text-2xl font-bold mb-2">$75/hr</div>
+                    <div className="text-2xl font-bold mb-2">KSH 75/hr</div>
                     <div className="text-sm text-muted-foreground">Cold Storage Management</div>
                     <Badge className="mt-2">High Demand</Badge>
                   </CardContent>
                 </Card>
                 <Card className="bg-secondary/50">
                   <CardContent className="pt-6">
-                    <div className="text-2xl font-bold mb-2">$65/hr</div>
+                    <div className="text-2xl font-bold mb-2">KSH 65/hr</div>
                     <div className="text-sm text-muted-foreground">Logistics Optimization</div>
                     <Badge variant="outline" className="mt-2">Stable</Badge>
                   </CardContent>
                 </Card>
                 <Card className="bg-secondary/50">
                   <CardContent className="pt-6">
-                    <div className="text-2xl font-bold mb-2">$85/hr</div>
+                    <div className="text-2xl font-bold mb-2">KSH 85/hr</div>
                     <div className="text-sm text-muted-foreground">Blockchain Supply Chain</div>
                     <Badge className="mt-2 bg-orange-500">Trending</Badge>
                   </CardContent>
@@ -192,19 +193,24 @@ export default function HireMySkill() {
         </TabsContent>
       </Tabs>
 
-      <div className="fixed bottom-6 right-6">
-        <Button 
-          size="lg"
-          className="shadow-lg"
-          onClick={() => {
-            toast({
-              title: "Coming Soon!",
-              description: "This feature will be available in the next update.",
-            });
-          }}
-        >
-          List Your Skills
-        </Button>
+      {/* Add Skill Form */}
+      <div className="max-w-xl mx-auto mt-12 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-4">Add Your Skill</h2>
+        <form className="space-y-4">
+          <div>
+            <Label htmlFor="skill">Skill Name</Label>
+            <Input id="skill" name="skill" placeholder="e.g. Supply Chain Analytics" required />
+          </div>
+          <div>
+            <Label htmlFor="rate">Rate (KSH/hr)</Label>
+            <Input id="rate" name="rate" type="number" min="0" placeholder="e.g. 500" required />
+          </div>
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" name="description" placeholder="Describe your skill and experience..." rows={3} />
+          </div>
+          <Button type="submit" className="w-full">Add Skill</Button>
+        </form>
       </div>
     </div>
   );

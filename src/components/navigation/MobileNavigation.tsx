@@ -23,6 +23,8 @@ const MobileNavigation = () => {
   const navigationItems = [
     { to: "/", label: "Home", icon: Home },
     { to: "/jobs", label: "Jobs", icon: Briefcase },
+    { to: "/hire-my-skill", label: "Hire My Skill", icon: Briefcase },
+    { to: "/company-reviews", label: "Company Reviews", icon: Building2 },
     { to: "/discussions", label: "Discussions", icon: MessageSquare },
     { to: "/companies", label: "Companies", icon: Building2 },
     { to: "/company-signup", label: "Company Signup", icon: Building2 },

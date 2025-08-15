@@ -39,7 +39,7 @@ class DocumentService {
     const isAllowedType = this.allowedFileTypes.some((type: string) => 
       type === `*.${fileExt}` || 
       type === `.${fileExt}` || 
-      (type.includes('/*') && fileType.startsWith(type.split('/')[0]))
+  (typeof type === 'string' && type.includes('/*') && String(fileType).startsWith(type.split('/')[0]))
     );
 
     if (!isAllowedType) {
@@ -52,7 +52,7 @@ class DocumentService {
     // Upload to storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('documents')
-      .upload(filename, file);
+      .upload(filename, file as File);
 
     if (uploadError) throw uploadError;
 

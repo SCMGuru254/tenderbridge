@@ -290,7 +290,7 @@ export const SalaryAnalyzerComplete = () => {
                   <SelectValue placeholder="Select position" />
                 </SelectTrigger>
                 <SelectContent>
-                  {positions.map((position) => (
+                  {positions.filter(position => position.value !== "").map((position) => (
                     <SelectItem key={position.value} value={position.value}>
                       {position.label}
                     </SelectItem>
@@ -306,7 +306,7 @@ export const SalaryAnalyzerComplete = () => {
                   <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
-                  {locations.map((location) => (
+                  {locations.filter(location => location.value !== "").map((location) => (
                     <SelectItem key={location.value} value={location.value}>
                       {location.label}
                     </SelectItem>
@@ -322,7 +322,7 @@ export const SalaryAnalyzerComplete = () => {
                   <SelectValue placeholder="Select experience" />
                 </SelectTrigger>
                 <SelectContent>
-                  {experienceLevels.map((level) => (
+                  {experienceLevels.filter(level => level.value !== "").map((level) => (
                     <SelectItem key={level.value} value={level.value}>
                       {level.label}
                     </SelectItem>

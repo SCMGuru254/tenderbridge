@@ -1,21 +1,10 @@
-import { TrendingUp } from 'lucide-react';
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  User, 
-  Briefcase, 
-  MessageSquare, 
-  TrendingUp, 
-  Clock,
-  Eye,
-  Heart,
-  Award
-} from 'lucide-react';
+import { User, Briefcase, MessageSquare, TrendingUp, Clock, Eye, Heart, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 

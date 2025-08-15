@@ -7,7 +7,6 @@ interface ReviewListProps {
   reviews: Array<any>;
   loading: boolean;
   onVote: (reviewId: string, helpful: boolean) => Promise<void>;
-  onReport: (reviewId: string, reason: string, details?: string) => Promise<void>;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -17,7 +16,6 @@ export const ReviewList = ({
   reviews,
   loading,
   onVote,
-  onReport,
   currentPage,
   totalPages,
   onPageChange,
@@ -52,7 +50,6 @@ export const ReviewList = ({
                 key={review.id} 
                 review={review}
                 onVote={onVote}
-                onReport={onReport}
               />
             ))}
           </div>

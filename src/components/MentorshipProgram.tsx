@@ -71,40 +71,25 @@ export const MentorshipProgram = () => {
     preferred_session_type: 'video'
   });
 
-  useEffect(() => {
-    if (user) {
-      loadMentors();
-      loadUserProfiles();
-    }
-  }, [user]);
-
+  // Load mentors from supabase
   const loadMentors = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('mentors')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            avatar_url,
-            company,
-            position
-          )
-        `)
-        .eq('is_active', true)
-        .order('rating', { ascending: false });
-
+        .select('*, profiles:profiles(full_name, avatar_url, company, position)');
       if (error) throw error;
       setMentors(data || []);
     } catch (error) {
       console.error('Error loading mentors:', error);
-      toast.error('Failed to load mentors');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Load user mentor/mentee profiles
   const loadUserProfiles = async () => {
     if (!user) return;
-
     setIsLoading(true);
     try {
       // Load mentor profile
@@ -113,7 +98,6 @@ export const MentorshipProgram = () => {
         .select('*')
         .eq('user_id', user.id)
         .single();
-
       if (mentorData) {
         setUserMentorProfile(mentorData);
         setMentorForm({
@@ -124,14 +108,12 @@ export const MentorshipProgram = () => {
           hourly_rate: mentorData.hourly_rate
         });
       }
-
       // Load mentee profile
       const { data: menteeData } = await supabase
         .from('mentees')
         .select('*')
         .eq('user_id', user.id)
         .single();
-
       if (menteeData) {
         setUserMenteeProfile(menteeData);
         setMenteeForm({
@@ -147,6 +129,13 @@ export const MentorshipProgram = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      loadMentors();
+      loadUserProfiles();
+    }
+  }, [user]);
 
   const handleBecomeMentor = async (e: React.FormEvent) => {
     e.preventDefault();

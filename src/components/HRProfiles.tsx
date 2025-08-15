@@ -64,41 +64,25 @@ export const HRProfiles = () => {
     timezone: 'UTC'
   });
 
-  useEffect(() => {
-    if (user) {
-      loadHRProfiles();
-      loadUserHRProfile();
-    }
-  }, [user]);
-
+  // Load all HR profiles
   const loadHRProfiles = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('hr_profiles')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            avatar_url,
-            company,
-            position,
-            email
-          )
-        `)
-        .eq('is_verified', true)
-        .order('rating', { ascending: false });
-
+        .select('*, profiles:profiles(full_name, avatar_url, company, position, email)');
       if (error) throw error;
       setHRProfiles(data || []);
     } catch (error) {
       console.error('Error loading HR profiles:', error);
       toast.error('Failed to load HR profiles');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadUserHRProfile = async () => {
     if (!user) return;
-
     setIsLoading(true);
     try {
       const { data } = await supabase
@@ -106,19 +90,18 @@ export const HRProfiles = () => {
         .select('*')
         .eq('user_id', user.id)
         .single();
-
       if (data) {
         setUserHRProfile(data);
         setHRForm({
-          services_offered: data.services_offered.join(', '),
-          specializations: data.specializations.join(', '),
-          years_experience: data.years_experience,
+          services_offered: data.services_offered?.join(', ') || '',
+          specializations: data.specializations?.join(', ') || '',
+          years_experience: data.years_experience || 0,
           hourly_rate: data.hourly_rate || 0,
           bio: data.bio || '',
-          certifications: data.certifications.join(', '),
-          languages_spoken: data.languages_spoken.join(', '),
-          preferred_contact_method: data.preferred_contact_method,
-          timezone: data.timezone
+          certifications: data.certifications?.join(', ') || '',
+          languages_spoken: data.languages_spoken?.join(', ') || '',
+          preferred_contact_method: data.preferred_contact_method || 'email',
+          timezone: data.timezone || 'UTC',
         });
       }
     } catch (error) {
@@ -127,6 +110,12 @@ export const HRProfiles = () => {
       setIsLoading(false);
     }
   };
+  // Load profiles on mount
+  useEffect(() => {
+    loadHRProfiles();
+    loadUserHRProfile();
+    // eslint-disable-next-line
+  }, [user]);
 
   const handleCreateHRProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,8 +171,8 @@ export const HRProfiles = () => {
       if (result.error) throw result.error;
 
       toast.success(userHRProfile ? 'HR profile updated!' : 'HR profile created! Verification pending.');
-      loadUserHRProfile();
-      loadHRProfiles();
+  loadUserHRProfile();
+  loadHRProfiles();
     } catch (error) {
       console.error('Error saving HR profile:', error);
       toast.error('Failed to save HR profile');
