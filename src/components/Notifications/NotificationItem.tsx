@@ -3,7 +3,9 @@ import { format } from 'date-fns';
 import { UserPlus, UserCheck, Shield, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import type { Notification, NotificationAction } from '@/types/notifications';
+import { Notification, NotificationType } from '@/types/notifications';
+
+type NotificationAction = 'accept' | 'reject' | 'dismiss';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -24,13 +26,13 @@ export const NotificationItem = ({ notification, onAction }: NotificationItemPro
 
   const renderIcon = () => {
     switch (notification.type) {
-      case 'connection_request':
+      case NotificationType.CONNECTION_REQUEST:
         return <UserPlus className="h-5 w-5" />;
-      case 'connection_accepted':
+      case NotificationType.CONNECTION_ACCEPTED:
         return <UserCheck className="h-5 w-5" />;
-      case 'role_change':
+      case NotificationType.ROLE_CHANGE:
         return <Shield className="h-5 w-5" />;
-      case 'profile_view':
+      case NotificationType.PROFILE_VIEW:
         return <Eye className="h-5 w-5" />;
       default:
         return null;
@@ -39,11 +41,11 @@ export const NotificationItem = ({ notification, onAction }: NotificationItemPro
 
   const renderContent = () => {
     switch (notification.type) {
-      case 'connection_request':
-        return (
+      case NotificationType.CONNECTION_REQUEST:
+        return notification.data ? (
           <>
             <p className="text-sm">
-              <span className="font-semibold">{notification.data.from_user_name}</span> wants to connect with you
+              <span className="font-semibold">{notification.data.userName}</span> wants to connect with you
             </p>
             <div className="flex gap-2 mt-2">
               <Button
@@ -63,28 +65,28 @@ export const NotificationItem = ({ notification, onAction }: NotificationItemPro
               </Button>
             </div>
           </>
-        );
+        ) : null;
 
-      case 'connection_accepted':
-        return (
+      case NotificationType.CONNECTION_ACCEPTED:
+        return notification.data ? (
           <p className="text-sm">
-            <span className="font-semibold">{notification.data.user_name}</span> accepted your connection request
+            <span className="font-semibold">{notification.data.userName}</span> accepted your connection request
           </p>
-        );
+        ) : null;
 
-      case 'role_change':
-        return (
+      case NotificationType.ROLE_CHANGE:
+        return notification.data ? (
           <p className="text-sm">
-            Your role has been {notification.data.action === 'INSERT' ? 'updated to' : 'removed from'} {notification.data.role}
+            Your role has been updated from {notification.data.oldRole} to {notification.data.newRole}
           </p>
-        );
+        ) : null;
 
-      case 'profile_view':
-        return (
+      case NotificationType.PROFILE_VIEW:
+        return notification.data ? (
           <p className="text-sm">
-            <span className="font-semibold">{notification.data.viewer_name}</span> viewed your profile
+            <span className="font-semibold">{notification.data.userName}</span> viewed your profile
           </p>
-        );
+        ) : null;
 
       default:
         return null;
@@ -92,16 +94,16 @@ export const NotificationItem = ({ notification, onAction }: NotificationItemPro
   };
 
   return (
-    <Card className={`p-4 ${!notification.read ? 'bg-primary/5' : ''}`}>
+    <Card className={`p-4 ${!notification.isRead ? 'bg-primary/5' : ''}`}>
       <div className="flex gap-3">
         <div className="mt-1">{renderIcon()}</div>
         <div className="flex-1">
           {renderContent()}
           <p className="text-xs text-muted-foreground mt-2">
-            {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
+            {format(new Date(notification.createdAt), 'MMM d, yyyy h:mm a')}
           </p>
         </div>
-        {!notification.read && (
+        {!notification.isRead && (
           <Button
             size="sm"
             variant="ghost"

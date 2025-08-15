@@ -7,7 +7,8 @@ import {
   Home,
   Briefcase,
   MessageSquare,
-  Building2
+  Building2,
+  TrendingUp
 } from 'lucide-react';
 import { MobileMoreMenu } from './MobileMoreMenu';
 
@@ -39,6 +40,18 @@ export function MobileNavigation() {
       label: 'Companies',
       icon: Building2,
       description: 'Browse companies'
+    },
+    {
+      href: '/supply-chain-insights',
+      label: 'Insights',
+      icon: TrendingUp,
+      description: 'Market intelligence and trends'
+    },
+    {
+      href: '/hire-my-skill',
+      label: 'Hire My Skill',
+      icon: Building2,
+      description: 'Marketplace for skills'
     }
   ];
 

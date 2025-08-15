@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ReviewStats } from '@/components/reviews/ReviewStats';
-import { ReviewForm } from '@/components/reviews/ReviewForm';
+import { ReviewForm, ReviewFormValues } from '@/components/reviews/ReviewForm';
+import type { ReviewData } from '@/services/reviewService';
 import { ReviewList } from '@/components/reviews/ReviewList';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +21,7 @@ export const CompanyReviewsPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<ReviewData[]>([]);
   const [totalReviews, setTotalReviews] = useState(0);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState('created_at');
@@ -57,12 +58,13 @@ export const CompanyReviewsPage = () => {
     }
   }, [companyId, page, sortBy, sortOrder]);
 
-  const handleSubmitReview = async (reviewData: any) => {
+  const handleSubmitReview = async (reviewData: ReviewFormValues) => {
     try {
       await reviewService.createReview({
         ...reviewData,
         company_id: companyId!,
-        reviewer_id: user!.id
+        reviewer_id: user!.id,
+        status: 'pending'
       });
       toast({
         title: 'Success',

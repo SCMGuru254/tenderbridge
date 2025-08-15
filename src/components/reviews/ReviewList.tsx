@@ -1,61 +1,28 @@
-import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Review } from './Review';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { Review } from "./Review.tsx";
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ReviewListProps {
-  companyId: string;
+  reviews: Array<any>;
+  loading: boolean;
+  onVote: (reviewId: string, helpful: boolean) => Promise<void>;
+  onReport: (reviewId: string, reason: string, details?: string) => Promise<void>;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-export const ReviewList = ({ companyId }: ReviewListProps) => {
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState('recent'); // 'recent', 'helpful', 'rating'
-  const [page, setPage] = useState(1);
-  const perPage = 10;
-
-  const loadReviews = async () => {
-    try {
-      let query = supabase
-        .from('company_reviews')
-        .select('*, reviewer:reviewer_id(full_name)')
-        .eq('company_id', companyId)
-        .eq('status', 'approved');
-
-      // Apply filters
-      switch (filter) {
-        case 'helpful':
-          query = query.order('helpful_votes', { ascending: false });
-          break;
-        case 'rating':
-          query = query.order('rating', { ascending: false });
-          break;
-        default: // recent
-          query = query.order('created_at', { ascending: false });
-      }
-
-      // Apply pagination
-      query = query
-        .range((page - 1) * perPage, page * perPage - 1);
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setReviews(data || []);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-      toast.error('Failed to load reviews');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadReviews();
-  }, [companyId, filter, page]);
-
-  if (isLoading) {
+export const ReviewList = ({
+  reviews,
+  loading,
+  onVote,
+  onReport,
+  currentPage,
+  totalPages,
+  onPageChange,
+}: ReviewListProps) => {
+  if (loading) {
     return (
       <Card className="p-6">
         <div className="animate-pulse space-y-4">
@@ -73,13 +40,52 @@ export const ReviewList = ({ companyId }: ReviewListProps) => {
 
   return (
     <div className="space-y-6">
-      {reviews.map((review) => (
-        <Review 
-          key={review.id} 
-          review={review}
-          onVote={loadReviews}
-        />
-      ))}
+      {reviews.length === 0 ? (
+        <Card className="p-6 text-center">
+          <p className="text-gray-500">No reviews found</p>
+        </Card>
+      ) : (
+        <>
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <Review 
+                key={review.id} 
+                review={review}
+                onVote={onVote}
+                onReport={onReport}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -1,16 +1,12 @@
-import { useEffect } from 'react';
-import { format } from 'date-fns';
-import { X } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { NotificationItem } from './NotificationItem';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotificationItem } from "./NotificationItem.tsx";
 import type { Notification } from '@/types/notifications';
 
 interface NotificationDrawerProps {
@@ -24,7 +20,7 @@ export const NotificationDrawer = ({
   onMarkAsRead,
   onClear,
 }: NotificationDrawerProps) => {
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <Sheet>
@@ -60,7 +56,7 @@ export const NotificationDrawer = ({
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
-                  onAction={(action) => {
+                  onAction={(action: 'accept' | 'reject' | 'dismiss') => {
                     if (action === 'dismiss') {
                       onMarkAsRead(notification.id);
                     }

@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { MobileNavigation } from "@/components/MobileNavigation";
-import { NotificationsManager } from "@/components/notifications/NotificationsManager";
 
 export const Layout = () => {
   

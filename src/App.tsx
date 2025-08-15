@@ -54,6 +54,7 @@ const SocialHub = lazy(() => import("./pages/SocialHub"));
 const PayPalPortal = lazy(() => import("./pages/PayPalPortal"));
 const FeaturedClients = lazy(() => import("./pages/FeaturedClients"));
 const Documents = lazy(() => import("./pages/Documents"));
+const HireMySkill = lazy(() => import("./pages/HireMySkill"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Feature flags from environment
+const featureFlags = {
+  enableAI: import.meta.env.VITE_ENABLE_AI_FEATURES === 'true',
+  enableDocuments: import.meta.env.VITE_ENABLE_DOCUMENT_MANAGEMENT === 'true',
+  enableMentorship: import.meta.env.VITE_ENABLE_MENTORSHIP === 'true',
+  enableHRDirectory: import.meta.env.VITE_ENABLE_HR_DIRECTORY === 'true',
+};
 
 // Register PWA service worker (disabled on preview domains to prevent chunk-loading issues)
 if ('serviceWorker' in navigator && !window.location.hostname.startsWith('preview--')) {
@@ -108,23 +117,31 @@ const App = () => (
                   <Route path="auth" element={<Auth />} />
                   <Route path="job/:id" element={<JobDetails />} />
                   <Route path="company-signup" element={<CompanySignup />} />
-                  <Route path="mentorship" element={<Mentorship />} />
+                  {featureFlags.enableMentorship && (
+                    <Route path="mentorship" element={<Mentorship />} />
+                  )}
                   <Route path="salary-analyzer" element={<SalaryAnalyzer />} />
                   <Route path="discussions" element={<DiscussionList />} />
                   <Route path="careers" element={<JoinOurTeam />} />
                   <Route path="interview-prep" element={<InterviewPrep />} />
                   <Route path="company-reviews" element={<CompanyReviews />} />
-                  <Route path="hr-directory" element={<HRDirectory />} />
+                  {featureFlags.enableHRDirectory && (
+                    <Route path="hr-directory" element={<HRDirectory />} />
+                  )}
                   <Route path="join-team" element={<Careers />} />
                   <Route path="companies" element={<Companies />} />
                   <Route path="profile" element={<Profile />} />
                   <Route path="rewards" element={<Rewards />} />
                   <Route path="payment-success" element={<PaymentSuccess />} />
                   <Route path="payment-cancel" element={<PaymentCancel />} />
-                  <Route path="ai-agents" element={<AIAgents />} />
-                  <Route path="document-generator" element={<DocumentGenerator />} />
-                  <Route path="ats-checker" element={<ATSChecker />} />
-                  <Route path="chat-assistant" element={<ChatAssistant />} />
+                  {featureFlags.enableAI && (
+                    <>
+                      <Route path="ai-agents" element={<AIAgents />} />
+                      <Route path="document-generator" element={<DocumentGenerator />} />
+                      <Route path="ats-checker" element={<ATSChecker />} />
+                      <Route path="chat-assistant" element={<ChatAssistant />} />
+                    </>
+                  )}
                   <Route path="supply-chain-insights" element={<SupplyChainInsights />} />
                   <Route path="post-job" element={<PostJob />} />
                   <Route path="jobs/alerts" element={<JobsAlerts />} />
@@ -138,6 +155,7 @@ const App = () => (
                   <Route path="affiliate" element={<Affiliate />} />
                   <Route path="privacy" element={<Privacy />} />
                   <Route path="terms" element={<Terms />} />
+                  <Route path="hire-my-skill" element={<HireMySkill />} />
                   <Route path="security" element={<Security />} />
                   <Route path="forms" element={<Forms />} />
                   <Route path="free-services" element={<FreeServices />} />
@@ -145,7 +163,9 @@ const App = () => (
                   <Route path="social-hub" element={<SocialHub />} />
                   <Route path="paypal-portal" element={<PayPalPortal />} />
                   <Route path="featured-clients" element={<FeaturedClients />} />
-                  <Route path="documents" element={<Documents />} />
+                  {featureFlags.enableDocuments && (
+                    <Route path="documents" element={<Documents />} />
+                  )}
                 </Route>
               </Routes>
             </Suspense>

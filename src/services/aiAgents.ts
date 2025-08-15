@@ -13,7 +13,14 @@ export class AIAgentService {
   }
 
   private initializeAgents() {
-    const roles: AgentRole[] = ['career_advisor', 'job_matcher', 'news_analyzer', 'social_media'];
+    const roles: AgentRole[] = [
+      'career_advisor',
+      'job_matcher',
+      'resume_analyzer',
+      'interview_coach',
+      'chat_assistant',
+      'news_analyzer'
+    ];
     
     roles.forEach(role => {
       const context: AgentContext = {

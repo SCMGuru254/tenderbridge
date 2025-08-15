@@ -15,7 +15,8 @@ const navItems = [
   { label: 'Discussions', href: '/discussions' },
   { label: 'Blog', href: '/blog' },
   { label: 'Post a Job', href: '/post-job' },
-  { label: 'Rewards', href: '/rewards' }
+  { label: 'Rewards', href: '/rewards' },
+  { label: 'Hire My Skill', href: '/hire-my-skill' }
 ];
 
 const Header = () => {

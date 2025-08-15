@@ -3,11 +3,9 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ReviewForm } from './ReviewForm';
-import { ReviewList } from './ReviewList';
-import { ReviewStats } from './ReviewStats';
-import { reviewCategories } from '@/config/reviews';
-
+import { ReviewForm } from "./ReviewForm.tsx";
+import { ReviewList } from "./ReviewList.tsx";
+import { ReviewStats } from "./ReviewStats.tsx";
 export const CompanyReviews = () => {
   const { companyId } = useParams();
   const { user } = useAuth();

@@ -1,5 +1,7 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @deno-types="https://raw.githubusercontent.com/denoland/deno/main/cli/dts/lib.deno.ns.d.ts"
+// @ts-ignore
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+// @ts-ignore
 import { HfInference } from "https://esm.sh/@huggingface/inference@2.3.2";
 
 const corsHeaders = {
@@ -7,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,14 +35,15 @@ serve(async (req) => {
 
     const prompt = `${sys}\n\n${historyText ? historyText + '\n' : ''}User: ${message}\nAssistant:`;
 
-    // Use a small, instruction-tuned model suitable for free-tier usage
+    // Use a small, efficient model with strict token limits
     const tg = await hf.textGeneration({
-      model: 'HuggingFaceH4/zephyr-7b-beta',
+      model: 'TinyLlama/TinyLlama-1.1B-Chat-v1.0',
       inputs: prompt,
       parameters: {
-        max_new_tokens: 220,
-        temperature: 0.7,
+        max_new_tokens: 200, // Reduced from 220 to ensure we stay within limits
+        temperature: 0.6, // Reduced for more focused responses
         do_sample: true,
+        early_stopping: true, // Add early stopping
         repetition_penalty: 1.1,
         return_full_text: false,
       }

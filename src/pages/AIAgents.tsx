@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
-import AgentDashboard from "@/components/ai-agents/AgentDashboard";
+import { FileText, Search, TrendingUp, Users, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { AgentDashboard } from "@/components/ai/AgentDashboard";
 import AgentJobMatcher from "@/components/ai-agents/AgentJobMatcher";
 import AgentCareerAdvisor from "@/components/ai-agents/AgentCareerAdvisor";
+import { AgentResumeAnalyzer } from "@/components/ai/AgentResumeAnalyzer";
 
-const AIAgents = () => {
+export default function AIAgents() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -21,6 +22,15 @@ const AIAgents = () => {
       color: "bg-blue-500",
       features: ["Smart matching", "Salary insights", "Skills analysis"],
       component: <AgentJobMatcher />
+    },
+    {
+      id: "resume-analyzer",
+      name: "Resume Analyzer",
+      description: "AI-powered resume analysis and optimization",
+      icon: FileText,
+      color: "bg-emerald-500",
+      features: ["ATS Compatibility", "Content Analysis", "Improvement Tips"],
+      component: <AgentResumeAnalyzer />
     },
     {
       id: "ats-checker",
@@ -39,15 +49,6 @@ const AIAgents = () => {
       color: "bg-purple-500",
       features: ["Career planning", "Skill recommendations", "Growth tracking"],
       component: <AgentCareerAdvisor />
-    },
-    {
-      id: "resume-analyzer",
-      name: "Resume Analyzer",
-      description: "Analyze and improve your resume with AI insights",
-      icon: Bot,
-      color: "bg-orange-500",
-      features: ["Content analysis", "Improvement suggestions", "Format optimization"],
-      component: <div className="p-6 text-center">Resume Analyzer coming soon...</div>
     },
     {
       id: "interview-coach",
@@ -85,6 +86,21 @@ const AIAgents = () => {
 
   if (selectedAgent) {
     const agent = agents.find(a => a.id === selectedAgent);
+    if (!agent) {
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedAgent(null)}
+            className="mb-4"
+          >
+            ← Back to AI Agents
+          </Button>
+          <p>Agent not found</p>
+        </div>
+      );
+    }
+
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -95,12 +111,12 @@ const AIAgents = () => {
           >
             ← Back to AI Agents
           </Button>
-          <h1 className="text-3xl font-bold mb-2">{agent?.name}</h1>
-          <p className="text-muted-foreground">{agent?.description}</p>
+          <h1 className="text-3xl font-bold mb-2">{agent.name}</h1>
+          <p className="text-muted-foreground">{agent.description}</p>
         </div>
         
         <div className="bg-white rounded-lg shadow-sm border">
-          {agent?.component}
+          {agent?.component ?? null}
         </div>
       </div>
     );
@@ -152,6 +168,7 @@ const AIAgents = () => {
               
               <div className="space-y-4">
                 {getCurrentSlideAgents().map((agent) => {
+                  if (!agent) return null;
                   const Icon = agent.icon;
                   return (
                     <Card 
@@ -174,7 +191,7 @@ const AIAgents = () => {
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {agent.features.map((feature, index) => (
+                          {agent.features?.map((feature, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
                               {feature}
                             </Badge>
@@ -240,5 +257,3 @@ const AIAgents = () => {
     </div>
   );
 };
-
-export default AIAgents;

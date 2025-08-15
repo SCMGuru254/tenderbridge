@@ -22,7 +22,7 @@ export interface AgentResponse {
   error?: string;
 }
 
-export type AgentRole = 'career_advisor' | 'job_matcher' | 'news_analyzer' | 'social_media';
+export type AgentRole = 'career_advisor' | 'job_matcher' | 'news_analyzer' | 'resume_analyzer' | 'interview_coach' | 'chat_assistant' | 'social_media';
 
 export interface AgentMessage {
   id: string;

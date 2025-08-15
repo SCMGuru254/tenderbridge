@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { NotificationsManager } from "@/components/notifications/NotificationsManager";
+import { NotificationsManager } from "@/components/Notifications/NotificationsManager";
 
 export default function Navbar() {
   const { user } = useAuth();

@@ -11,7 +11,10 @@ export const useNotifications = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadNotifications = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return [];
+    }
 
     try {
       const { data, error } = await supabase
@@ -22,11 +25,18 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
-      setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.read).length || 0);
+      const transformedData = data?.map(n => ({
+        ...n,
+        isRead: n.read,
+      })) || [];
+
+      setNotifications(transformedData);
+      setUnreadCount(transformedData.filter(n => !n.isRead).length);
+      return transformedData;
     } catch (error) {
       console.error('Error loading notifications:', error);
       toast.error('Failed to load notifications');
+      return [];
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +55,7 @@ export const useNotifications = () => {
       if (error) throw error;
 
       setNotifications(prev => 
-        prev.map(n => n.id === id ? { ...n, read: true } : n)
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
       );
       setUnreadCount(prev => prev - 1);
     } catch (error) {
@@ -67,7 +77,7 @@ export const useNotifications = () => {
       if (error) throw error;
 
       setNotifications(prev => 
-        prev.map(n => ({ ...n, read: true }))
+        prev.map(n => ({ ...n, isRead: true }))
       );
       setUnreadCount(0);
     } catch (error) {
@@ -119,7 +129,6 @@ export const useNotifications = () => {
             const newNotification = payload.new as Notification;
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
-            
             // Show toast for new notification
             toast.info('New notification received');
           }
@@ -130,6 +139,7 @@ export const useNotifications = () => {
         subscription.unsubscribe();
       };
     }
+    return undefined;
   }, [user, loadNotifications]);
 
   return {

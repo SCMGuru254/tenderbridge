@@ -8,12 +8,15 @@ interface ReviewStatsProps {
 }
 
 export const ReviewStats = ({ companyId }: ReviewStatsProps) => {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    averageRating: number;
+    totalReviews: number;
+    ratingDistribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+    categoryAverages: Record<string, number>;
+  }>({
     averageRating: 0,
     totalReviews: 0,
-    ratingDistribution: {
-      1: 0, 2: 0, 3: 0, 4: 0, 5: 0
-    },
+    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     categoryAverages: {
       work_life_balance: 0,
       salary_benefits: 0,
@@ -43,17 +46,33 @@ export const ReviewStats = ({ companyId }: ReviewStatsProps) => {
           const averageRating = sumRatings / totalReviews;
 
           // Calculate rating distribution
-          const distribution = reviews.reduce((acc: any, r) => {
-            acc[r.rating] = (acc[r.rating] || 0) + 1;
+          const distribution = reviews.reduce((acc: { 1: number; 2: number; 3: number; 4: number; 5: number }, r) => {
+            const rating = Math.round(r.rating) as 1 | 2 | 3 | 4 | 5;
+            acc[rating] = (acc[rating] || 0) + 1;
             return acc;
-          }, {});
+          }, { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
 
           // Calculate category averages
-          const categories = ['work_life_balance', 'salary_benefits', 'job_security', 'management', 'culture', 'career_growth'];
-          const categoryAverages = categories.reduce((acc: any, cat) => {
-            acc[cat] = reviews.reduce((sum: number, r: any) => sum + r[cat], 0) / totalReviews;
+          const categories = [
+            'work_life_balance', 
+            'salary_benefits', 
+            'job_security', 
+            'management', 
+            'culture', 
+            'career_growth'
+          ] as const;
+          
+          const categoryAverages = categories.reduce((acc, cat) => {
+            const validRatings = reviews
+              .map(r => r[cat])
+              .filter((rating): rating is number => typeof rating === 'number');
+            
+            acc[cat] = validRatings.length > 0
+              ? validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length
+              : 0;
+              
             return acc;
-          }, {});
+          }, {} as Record<typeof categories[number], number>);
 
           setStats({
             averageRating,
@@ -97,12 +116,12 @@ export const ReviewStats = ({ companyId }: ReviewStatsProps) => {
             <div className="w-8">{rating}</div>
             <Progress
               value={
-                (stats.ratingDistribution[rating] || 0) / stats.totalReviews * 100
+                (stats.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5] || 0) / stats.totalReviews * 100
               }
               className="h-2"
             />
             <div className="w-12 text-sm text-muted-foreground">
-              {stats.ratingDistribution[rating] || 0}
+              {stats.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5] || 0}
             </div>
           </div>
         ))}

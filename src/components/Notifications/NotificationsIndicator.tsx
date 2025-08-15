@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+// ...existing code...
 import { Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

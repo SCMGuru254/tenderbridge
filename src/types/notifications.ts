@@ -1,5 +1,24 @@
 
-export type NotificationType = 'system' | 'job_alert' | 'application_update' | 'job_match';
+export enum NotificationType {
+  SYSTEM = 'system',
+  JOB_ALERT = 'job_alert',
+  APPLICATION_UPDATE = 'application_update',
+  JOB_MATCH = 'job_match',
+  CONNECTION_REQUEST = 'connection_request',
+  CONNECTION_ACCEPTED = 'connection_accepted',
+  ROLE_CHANGE = 'role_change',
+  PROFILE_VIEW = 'profile_view'
+}
+
+export interface NotificationData {
+  userId?: string;
+  avatarUrl?: string;
+  connection_id?: string;
+  userName?: string;
+  oldRole?: string;
+  newRole?: string;
+  [key: string]: any;
+}
 
 export interface Notification {
   id: string;
@@ -9,5 +28,5 @@ export interface Notification {
   type: NotificationType;
   isRead: boolean;
   createdAt: string;
-  data?: Record<string, any>;
+  data?: NotificationData;
 }
