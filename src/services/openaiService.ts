@@ -6,7 +6,7 @@ class AIService {
 
   constructor() {
     // Use import.meta.env for Vite instead of process.env
-    const apiKey = import.meta.env.VITE_HUGGINGFACE_API_KEY || 'hf_your_api_key_here';
+    const apiKey = import.meta.env.VITE_HUGGING_FACE_ACCESS_TOKEN || 'hf_your_api_key_here';
     this.hf = new HfInference(apiKey);
   }
 

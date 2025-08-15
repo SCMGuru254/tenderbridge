@@ -84,7 +84,7 @@ serve(async (req) => {
     const response = await fetch("https://api-inference.huggingface.co/models/bigscience/bloomz-560m", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${Deno.env.get("HUGGINGFACE_API_KEY")}`,
+        "Authorization": `Bearer ${Deno.env.get("HUGGING_FACE_ACCESS_TOKEN")}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -135,10 +135,11 @@ ${INTERVIEW_BEST_PRACTICES.slice(0, 3).map(practice => `- ${practice}`).join("\n
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in interview-ai function:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: errorMessage,
       fallback: "I apologize, but I'm having trouble connecting to the AI service. " +
                 "Please remember to structure your answer using the STAR method and include specific examples from your experience."
     }), {

@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationsManager } from "@/components/notifications/NotificationsManager";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
+                <NotificationsManager />
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>

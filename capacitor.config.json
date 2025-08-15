@@ -1,6 +1,6 @@
 {
   "appId": "com.supplychainke.app",
-  "appName": "Supply-Chain_Ke",
+  "appName": "Supply_chain_Ke",
   "webDir": "dist",
   "bundledWebRuntime": false,
   "plugins": {
@@ -31,7 +31,7 @@
   "server": {
     "androidScheme": "https",
     "iosScheme": "https",
-    "hostname": "app.tenderbridge.com",
+    "hostname": "app.supplychainke.com",
     "cleartext": false
   },
   "android": {
@@ -49,7 +49,7 @@
     "webViewAllowFileAccess": true,
     "webViewAllowUniversalAccessFromFileURLs": true,
     "backgroundColor": "#ffffff",
-    "scheme": "tenderbridge",
+    "scheme": "supplychainke",
     "minimumVersion": "13.0",
     "preferredContentMode": "mobile"
   }
