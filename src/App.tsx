@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -118,7 +119,11 @@ const App = () => (
                   <Route path="job/:id" element={<JobDetails />} />
                   <Route path="company-signup" element={<CompanySignup />} />
                   {featureFlags.enableMentorship && (
-                    <Route path="mentorship" element={<Mentorship />} />
+                    <Route path="mentorship" element={
+                      <ProtectedRoute>
+                        <Mentorship />
+                      </ProtectedRoute>
+                    } />
                   )}
                   <Route path="salary-analyzer" element={<SalaryAnalyzer />} />
                   <Route path="discussions" element={<DiscussionList />} />
@@ -126,7 +131,11 @@ const App = () => (
                   <Route path="interview-prep" element={<InterviewPrep />} />
                   <Route path="company-reviews" element={<CompanyReviews />} />
                   {featureFlags.enableHRDirectory && (
-                    <Route path="hr-directory" element={<HRDirectory />} />
+                    <Route path="hr-directory" element={
+                      <ProtectedRoute>
+                        <HRDirectory />
+                      </ProtectedRoute>
+                    } />
                   )}
                   <Route path="join-team" element={<Careers />} />
                   <Route path="companies" element={<Companies />} />

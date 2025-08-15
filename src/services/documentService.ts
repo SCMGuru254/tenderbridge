@@ -36,11 +36,14 @@ class DocumentService {
     // Validate file type
     const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
     const fileType = typeof file.type === 'string' ? file.type : '';
-    const isAllowedType = this.allowedFileTypes.some((type: string) => 
-      type === `*.${fileExt}` || 
-      type === `.${fileExt}` || 
-  (typeof type === 'string' && type.includes('/*') && String(fileType).startsWith(type.split('/')[0]))
-    );
+    const isAllowedType = this.allowedFileTypes.some((type: string) => {
+      if (type === `*.${fileExt}` || type === `.${fileExt}`) return true;
+      if (typeof type === 'string' && type.includes('/*')) {
+  const mainType = typeof type === 'string' && type.split ? type.split('/')[0] : '';
+  return String(fileType || '').startsWith(String(mainType || ''));
+      }
+      return false;
+    });
 
     if (!isAllowedType) {
       throw new Error('File type not allowed');
