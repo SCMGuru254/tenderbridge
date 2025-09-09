@@ -125,7 +125,7 @@ export const AIChatAssistant = () => {
       ...prev,
       [activeTab]: {
         ...prev[activeTab],
-        messages: [...prev[activeTab].messages, userMessage]
+        messages: [...(prev[activeTab]?.messages || []), userMessage]
       }
     }));
 
@@ -141,7 +141,7 @@ export const AIChatAssistant = () => {
           body: {
             message: messageToSend,
             context: getSystemPrompt(activeTab),
-            conversation_history: sessions[activeTab].messages.slice(-6)
+            conversation_history: sessions[activeTab]?.messages?.slice(-6) || []
           }
         });
         if (!error && data?.response) {
@@ -155,7 +155,7 @@ export const AIChatAssistant = () => {
         responseText = await generateChatResponse(
           messageToSend,
           getSystemPrompt(activeTab),
-          sessions[activeTab].messages.slice(-6)
+          sessions[activeTab]?.messages?.slice(-6) || []
         );
       }
 
@@ -170,7 +170,7 @@ export const AIChatAssistant = () => {
         ...prev,
         [activeTab]: {
           ...prev[activeTab],
-          messages: [...prev[activeTab].messages, aiMessage]
+          messages: [...(prev[activeTab]?.messages || []), aiMessage]
         }
       }));
 
@@ -188,7 +188,7 @@ export const AIChatAssistant = () => {
         ...prev,
         [activeTab]: {
           ...prev[activeTab],
-          messages: [...prev[activeTab].messages, fallbackMessage]
+          messages: [...(prev[activeTab]?.messages || []), fallbackMessage]
         }
       }));
       
@@ -242,7 +242,7 @@ export const AIChatAssistant = () => {
       ...prev,
       [activeTab]: {
         ...prev[activeTab],
-        messages: [prev[activeTab].messages[0]]
+        messages: [prev[activeTab]?.messages?.[0]].filter(Boolean)
       }
     }));
   };

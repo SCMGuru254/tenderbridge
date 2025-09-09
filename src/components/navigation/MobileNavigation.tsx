@@ -47,19 +47,17 @@ const MobileNavigation = () => {
         <SheetHeader>
           <SheetTitle>Navigation</SheetTitle>
         </SheetHeader>
-        <nav className="mt-6 flex flex-row justify-between items-center gap-2">
+        <nav className="mt-6 space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className="flex flex-col items-center justify-center rounded-lg p-2 transition-colors hover:bg-accent hover:text-accent-foreground"
-                style={{ flex: 1, minWidth: 0 }}
+                className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                <Icon className="h-6 w-6" />
-                {/* Optionally, add a tooltip for accessibility */}
-                {/* <span className="sr-only">{item.label}</span> */}
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
               </NavLink>
             );
           })}
