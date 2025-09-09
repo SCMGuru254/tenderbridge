@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -409,6 +409,7 @@ export type Database = {
           created_at: string
           culture_rating: number | null
           employment_duration: string | null
+          helpful_votes: number | null
           id: string
           is_anonymous: boolean
           is_current_employee: boolean
@@ -416,7 +417,10 @@ export type Database = {
           management_rating: number | null
           pros: string | null
           rating: number
+          reported_count: number | null
           review_text: string
+          reviewer_id: string | null
+          status: string | null
           updated_at: string
           user_id: string
           work_life_balance_rating: number | null
@@ -429,6 +433,7 @@ export type Database = {
           created_at?: string
           culture_rating?: number | null
           employment_duration?: string | null
+          helpful_votes?: number | null
           id?: string
           is_anonymous?: boolean
           is_current_employee?: boolean
@@ -436,7 +441,10 @@ export type Database = {
           management_rating?: number | null
           pros?: string | null
           rating: number
+          reported_count?: number | null
           review_text: string
+          reviewer_id?: string | null
+          status?: string | null
           updated_at?: string
           user_id: string
           work_life_balance_rating?: number | null
@@ -449,6 +457,7 @@ export type Database = {
           created_at?: string
           culture_rating?: number | null
           employment_duration?: string | null
+          helpful_votes?: number | null
           id?: string
           is_anonymous?: boolean
           is_current_employee?: boolean
@@ -456,7 +465,10 @@ export type Database = {
           management_rating?: number | null
           pros?: string | null
           rating?: number
+          reported_count?: number | null
           review_text?: string
+          reviewer_id?: string | null
+          status?: string | null
           updated_at?: string
           user_id?: string
           work_life_balance_rating?: number | null
@@ -470,6 +482,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      connections: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: string
+          updated_at: string | null
+          user_id1: string | null
+          user_id2: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id1?: string | null
+          user_id2?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id1?: string | null
+          user_id2?: string | null
+        }
+        Relationships: []
       }
       discussion_bookmarks: {
         Row: {
@@ -840,6 +879,8 @@ export type Database = {
         Row: {
           availability_status: string
           bio: string | null
+          booking_calendly_url: string | null
+          booking_google_url: string | null
           certifications: string[] | null
           company_id: string | null
           created_at: string
@@ -860,6 +901,8 @@ export type Database = {
         Insert: {
           availability_status?: string
           bio?: string | null
+          booking_calendly_url?: string | null
+          booking_google_url?: string | null
           certifications?: string[] | null
           company_id?: string | null
           created_at?: string
@@ -880,6 +923,8 @@ export type Database = {
         Update: {
           availability_status?: string
           bio?: string | null
+          booking_calendly_url?: string | null
+          booking_google_url?: string | null
           certifications?: string[] | null
           company_id?: string | null
           created_at?: string
@@ -1448,6 +1493,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          read: boolean
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          read?: boolean
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          read?: boolean
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       paypal_payments: {
         Row: {
           amount: number
@@ -1783,6 +1855,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allowed_roles: string[]
           avatar_url: string | null
           bio: string | null
           career_goals: string | null
@@ -1803,8 +1876,11 @@ export type Database = {
           skills: string | null
           tagline: string | null
           updated_at: string
+          visibility: string
+          visible_fields: Json
         }
         Insert: {
+          allowed_roles?: string[]
           avatar_url?: string | null
           bio?: string | null
           career_goals?: string | null
@@ -1825,8 +1901,11 @@ export type Database = {
           skills?: string | null
           tagline?: string | null
           updated_at?: string
+          visibility?: string
+          visible_fields?: Json
         }
         Update: {
+          allowed_roles?: string[]
           avatar_url?: string | null
           bio?: string | null
           career_goals?: string | null
@@ -1847,6 +1926,8 @@ export type Database = {
           skills?: string | null
           tagline?: string | null
           updated_at?: string
+          visibility?: string
+          visible_fields?: Json
         }
         Relationships: []
       }
@@ -1893,6 +1974,76 @@ export type Database = {
             columns: ["catalog_item_id"]
             isOneToOne: false
             referencedRelation: "rewards_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_helpful_votes: {
+        Row: {
+          created_at: string | null
+          helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          helpful: boolean
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          helpful?: boolean
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "company_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_reports: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string | null
+          resolved_at: string | null
+          review_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          review_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          review_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "company_reviews"
             referencedColumns: ["id"]
           },
         ]
@@ -2275,39 +2426,70 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      visible_profiles: {
+        Row: {
+          profile_data: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_points: {
         Args: {
-          p_user_id: string
-          p_points: number
           p_description: string
-          p_source: string
+          p_points: number
           p_reference_id?: string
+          p_source: string
+          p_user_id: string
         }
         Returns: boolean
       }
       get_paginated_jobs: {
         Args: {
+          p_job_type?: string
           p_limit?: number
+          p_location?: string
           p_offset?: number
           p_search_term?: string
-          p_location?: string
-          p_job_type?: string
         }
         Returns: {
-          id: string
-          title: string
           company_name: string
-          location: string
-          description: string
-          job_type: string
           created_at: string
+          description: string
+          id: string
+          job_type: string
+          location: string
+          title: string
           total_count: number
         }[]
+      }
+      get_visible_profile_fields: {
+        Args: {
+          connection_status?: string
+          profile_record: Database["public"]["Tables"]["profiles"]["Row"]
+          viewer_id: string
+        }
+        Returns: Json
       }
       increment_vote_count: {
         Args: { application_id: string }
@@ -2315,10 +2497,14 @@ export type Database = {
       }
       process_redemption: {
         Args: {
-          p_user_id: string
           p_catalog_item_id: string
           p_request_data?: Json
+          p_user_id: string
         }
+        Returns: string
+      }
+      send_notification: {
+        Args: { p_data: Json; p_type: string; p_user_id: string }
         Returns: string
       }
     }
