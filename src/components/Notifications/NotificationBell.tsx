@@ -29,6 +29,7 @@ export const NotificationBell: React.FC = () => {
         subscription.unsubscribe();
       };
     }
+    return undefined;
   }, [user]);
 
   const loadUnreadCount = async () => {

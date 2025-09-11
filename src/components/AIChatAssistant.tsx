@@ -124,7 +124,7 @@ export const AIChatAssistant = () => {
     setSessions(prev => ({
       ...prev,
       [activeTab]: {
-        ...prev[activeTab],
+        ...prev[activeTab]!,
         messages: [...(prev[activeTab]?.messages || []), userMessage]
       }
     }));
@@ -169,7 +169,7 @@ export const AIChatAssistant = () => {
       setSessions(prev => ({
         ...prev,
         [activeTab]: {
-          ...prev[activeTab],
+          ...prev[activeTab]!,
           messages: [...(prev[activeTab]?.messages || []), aiMessage]
         }
       }));
@@ -187,7 +187,7 @@ export const AIChatAssistant = () => {
       setSessions(prev => ({
         ...prev,
         [activeTab]: {
-          ...prev[activeTab],
+          ...prev[activeTab]!,
           messages: [...(prev[activeTab]?.messages || []), fallbackMessage]
         }
       }));
@@ -241,8 +241,8 @@ export const AIChatAssistant = () => {
     setSessions(prev => ({
       ...prev,
       [activeTab]: {
-        ...prev[activeTab],
-        messages: [prev[activeTab]?.messages?.[0]].filter(Boolean)
+        ...prev[activeTab]!,
+        messages: prev[activeTab]?.messages?.[0] ? [prev[activeTab].messages[0]] : []
       }
     }));
   };

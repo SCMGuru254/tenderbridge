@@ -71,7 +71,7 @@ export const MentorshipBooking = ({ mentor, menteeProfile, onClose }: Mentorship
     try {
       const sessionDateTime = new Date(selectedDate);
       const [hours, minutes] = selectedTime.split(':').map(Number);
-      sessionDateTime.setHours(hours, minutes, 0, 0);
+      sessionDateTime.setHours(hours || 0, minutes || 0, 0, 0);
 
       const booking: BookingSession = {
         mentor_id: mentor.id,
@@ -100,7 +100,7 @@ export const MentorshipBooking = ({ mentor, menteeProfile, onClose }: Mentorship
     }
   };
 
-  const totalCost = (mentor.hourly_rate * duration) / 60;
+  const totalCost = ((mentor.hourly_rate || 0) * duration) / 60;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

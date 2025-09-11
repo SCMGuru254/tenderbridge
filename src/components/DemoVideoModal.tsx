@@ -69,15 +69,15 @@ export const DemoVideoModal = ({ isOpen, onClose }: DemoVideoModalProps) => {
           {/* Animated Demo Area */}
           <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden">
             <div 
-              className={`absolute inset-0 bg-gradient-to-br ${demoSteps[currentStep].bg} transition-all duration-1000 opacity-90`}
+              className={`absolute inset-0 bg-gradient-to-br ${demoSteps[currentStep]?.bg || 'from-gray-500 to-gray-600'} transition-all duration-1000 opacity-90`}
             />
             <div className="relative z-10 flex flex-col items-center justify-center h-full text-white p-8">
               <div className="text-center transform transition-all duration-500">
                 <h3 className="text-2xl lg:text-3xl font-bold mb-4 animate-fade-in">
-                  {demoSteps[currentStep].title}
+                  {demoSteps[currentStep]?.title || 'Loading...'}
                 </h3>
                 <p className="text-lg lg:text-xl opacity-90 animate-fade-in">
-                  {demoSteps[currentStep].content}
+                  {demoSteps[currentStep]?.content || 'Please wait...'}
                 </p>
               </div>
               
