@@ -16,11 +16,12 @@ export default function SkillEndorsements() {
   }
 
   // Group endorsements by skill
-  const endorsementsBySkill = receivedEndorsements.reduce((acc, endorsement) => {
-    if (!acc[endorsement.skill]) {
-      acc[endorsement.skill] = [];
+  const endorsementsBySkill = (receivedEndorsements || []).reduce((acc, endorsement) => {
+    const skill = endorsement?.skill;
+    if (skill && skill.trim()) {
+      if (!acc[skill]) acc[skill] = [];
+      acc[skill].push(endorsement);
     }
-    acc[endorsement.skill].push(endorsement);
     return acc;
   }, {} as Record<string, typeof receivedEndorsements>);
 

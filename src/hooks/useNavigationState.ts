@@ -18,6 +18,7 @@ export function useNavigationState(isMobile: boolean) {
         document.removeEventListener('click', handleClickOutside);
       };
     }
+    return;
   }, [isMobile, isMenuOpen]);
 
   const handleMenuItemClick = () => {

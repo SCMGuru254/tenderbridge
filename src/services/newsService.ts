@@ -133,6 +133,7 @@ export class NewsService {
 
       for (let i = 0; i < Math.min(items.length, 10); i++) {
         const item = items[i];
+        if (!item) continue;
         const title = item.getElementsByTagName("title")[0]?.textContent || 'Untitled';
         const content = item.getElementsByTagName("description")[0]?.textContent || '';
         const link = item.getElementsByTagName("link")[0]?.textContent || '';

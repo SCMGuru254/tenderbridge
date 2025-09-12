@@ -73,6 +73,8 @@ export const OnboardingAnimation = ({
   const currentStepData = enhancedSteps[currentStep];
   const progress = ((currentStep + 1) / enhancedSteps.length) * 100;
 
+  if (!currentStepData) return null;
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 

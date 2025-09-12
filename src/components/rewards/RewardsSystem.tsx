@@ -142,7 +142,8 @@ const RewardsSystem = () => {
     
     if (!nextLevel) return { progress: 100, nextLevel: 'Max Level' };
     
-    const progress = ((points - levels[currentLevel]) / (nextLevel - levels[currentLevel])) * 100;
+    const currentLevelValue = levels[currentLevel] || 0;
+    const progress = ((points - currentLevelValue) / (nextLevel - currentLevelValue)) * 100;
     return { progress, nextLevel };
   };
 

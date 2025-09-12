@@ -39,10 +39,7 @@ export function useAsyncEffect(
         if (onSuccess) onSuccess();
 
         if (typeof result === 'function') {
-          return () => {
-            cleanup?.();
-            result();
-          };
+          cleanupFn = result;
         }
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
@@ -58,11 +55,14 @@ export function useAsyncEffect(
       }
     };
 
+    let cleanupFn: (() => void) | undefined;
+
     runEffect();
 
     return () => {
       mounted = false;
       cleanup?.();
+      cleanupFn?.();
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, deps);

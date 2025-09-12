@@ -23,7 +23,7 @@ export const useInfiniteScroll = ({
     async (entries: IntersectionObserverEntry[]) => {
       const [target] = entries;
       
-      if (target.isIntersecting && hasNextPage && !isLoading && !isFetchingNextPage) {
+      if (target?.isIntersecting && hasNextPage && !isLoading && !isFetchingNextPage) {
         setIsFetchingNextPage(true);
         try {
           await fetchNextPage();
@@ -93,7 +93,7 @@ export const useInfiniteScrollWithManualTrigger = ({
     async (entries: IntersectionObserverEntry[]) => {
       const [target] = entries;
       
-      if (target.isIntersecting && hasNextPage && !isLoading && !isFetchingNextPage && autoLoadEnabled) {
+      if (target?.isIntersecting && hasNextPage && !isLoading && !isFetchingNextPage && autoLoadEnabled) {
         setIsFetchingNextPage(true);
         try {
           await fetchNextPage();

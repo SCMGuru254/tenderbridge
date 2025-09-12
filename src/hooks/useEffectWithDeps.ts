@@ -32,6 +32,7 @@ export function useAsyncEffect(
   useEffect(() => {
     const { cleanup } = options;
     let mounted = true;
+    let cleanupFn: (() => void) | undefined;
     
     (async () => {
       try {
@@ -39,10 +40,7 @@ export function useAsyncEffect(
         if (!mounted) return;
         
         if (typeof result === 'function') {
-          return () => {
-            cleanup?.();
-            result();
-          };
+          cleanupFn = result;
         }
       } catch (err) {
         console.error('Error in async effect:', err);
@@ -52,6 +50,7 @@ export function useAsyncEffect(
     return () => {
       mounted = false;
       cleanup?.();
+      cleanupFn?.();
     };
   }, deps);
 }

@@ -32,6 +32,7 @@ const PointsDisplay = () => {
         subscription.unsubscribe();
       };
     }
+    return;
   }, [user]);
 
   const fetchUserPoints = async () => {

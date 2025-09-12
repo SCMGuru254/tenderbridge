@@ -24,13 +24,13 @@ export function SwipeContainer({
   const threshold = 100; // minimum distance for swipe
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setStartX(e.touches[0].clientX);
+    setStartX(e.touches[0]?.clientX || 0);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!containerRef.current) return;
 
-    const currentX = e.touches[0].clientX;
+    const currentX = e.touches[0]?.clientX || 0;
     const diff = currentX - startX;
 
     // Limit the swipe distance

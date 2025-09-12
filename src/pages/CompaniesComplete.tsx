@@ -8,8 +8,6 @@ import { Star, Building2, MapPin, Users, Search, Plus, Eye } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { ReviewForm } from '@/components/reviews/ReviewForm';
-import { ReviewList } from '@/components/reviews/ReviewList';
 
 interface Company {
   id: string;
@@ -354,9 +352,17 @@ const CompaniesComplete = () => {
             </CardHeader>
             <CardContent>
               <p className="text-center py-4">Review form coming soon...</p>
-              <Button className="w-full" onClick={() => setShowReviewForm(false)}>
-                Close
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  className="flex-1" 
+                  onClick={() => handleSubmitReview({ rating: 5, review_text: 'Great company!' })}
+                >
+                  Submit Sample Review
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => setShowReviewForm(false)}>
+                  Close
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

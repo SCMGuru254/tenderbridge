@@ -261,10 +261,10 @@ const Onboarding = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>{steps[currentStep - 1].title}</CardTitle>
+            <CardTitle>{steps[currentStep - 1]?.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            {steps[currentStep - 1].content}
+            {steps[currentStep - 1]?.content}
 
             <div className="flex justify-between mt-8">
               <Button 

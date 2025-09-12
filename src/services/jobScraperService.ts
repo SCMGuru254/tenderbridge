@@ -85,7 +85,7 @@ export class JobScraperService {
         title: titles[Math.floor(Math.random() * titles.length)],
         company: companies[Math.floor(Math.random() * companies.length)],
         location: locations[Math.floor(Math.random() * locations.length)],
-        job_type: ['full-time', 'part-time', 'contract'][Math.floor(Math.random() * 3)],
+        job_type: (['full-time', 'part-time', 'contract'] as const)[Math.floor(Math.random() * 3)],
         description: this.generateJobDescription(),
         salary_min: Math.floor(Math.random() * 150000) + 50000,
         salary_max: Math.floor(Math.random() * 200000) + 150000,
@@ -110,7 +110,8 @@ export class JobScraperService {
       'Drive operational efficiency and cost optimization across our supply chain network.',
       'Manage vendor relationships and implement best practices in procurement and inventory management.'
     ];
-    return descriptions[Math.floor(Math.random() * descriptions.length)];
+    const selectedDescription = descriptions[Math.floor(Math.random() * descriptions.length)];
+    return selectedDescription || 'Exciting supply chain opportunity with growth potential.';
   }
 
   private generateRequirements(): string[] {

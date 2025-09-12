@@ -121,7 +121,7 @@ export default function ProfileEdit() {
     const validation = validateImageUpload(file);
     
     if (!validation.isValid) {
-      setUploadError(validation.errors[0]);
+      setUploadError(validation.errors[0] || 'Invalid file');
       return;
     }
     
@@ -144,7 +144,7 @@ export default function ProfileEdit() {
     const validation = validatePDFUpload(file);
     
     if (!validation.isValid) {
-      setUploadError(validation.errors[0]);
+      setUploadError(validation.errors[0] || 'Invalid file');
       return;
     }
     

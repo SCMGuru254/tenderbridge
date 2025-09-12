@@ -62,6 +62,7 @@ export function SiteNavigation() {
         document.removeEventListener('click', handleClickOutside);
       };
     }
+    return;
   }, [isMobile, isMenuOpen]);
 
   // Handle menu item click on mobile

@@ -22,8 +22,12 @@ export class EnhancedRateLimiter {
   }
 
   private getDurationInMs(durationStr: string): number {
-    const [value, unit] = durationStr.split(' ');
-    const timeValue = parseInt(value);
+    const parts = durationStr.split(' ');
+    if (parts.length !== 2) return 60000; // default to 1 minute
+    
+    const [value, unit] = parts;
+    const timeValue = parseInt(value || '60');
+    
     switch (unit) {
       case 's':
         return timeValue * 1000;

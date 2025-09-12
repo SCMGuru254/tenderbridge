@@ -8,7 +8,7 @@ export const calculateSimilarity = (embedding1: number[], embedding2: number[]):
     return 0;
   }
 
-  const dotProduct = embedding1.reduce((sum, val, i) => sum + val * embedding2[i], 0);
+  const dotProduct = embedding1.reduce((sum, val, i) => sum + val * (embedding2[i] || 0), 0);
   const norm1 = Math.sqrt(embedding1.reduce((sum, val) => sum + val * val, 0));
   const norm2 = Math.sqrt(embedding2.reduce((sum, val) => sum + val * val, 0));
 
@@ -20,7 +20,8 @@ export const calculateSimilarity = (embedding1: number[], embedding2: number[]):
  */
 export async function makeAPICall<T>(callback: () => Promise<T>): Promise<T | null> {
   try {
-    return await callback();
+    const result = await callback();
+    return result || null;
   } catch (error) {
     console.error(`API call error:`, error);
     return null;

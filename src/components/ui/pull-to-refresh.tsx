@@ -22,14 +22,14 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (window.scrollY === 0) {
-      startY.current = e.touches[0].clientY;
+      startY.current = e.touches[0]?.clientY || 0;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (startY.current === 0 || window.scrollY > 0) return;
 
-    const currentY = e.touches[0].clientY;
+    const currentY = e.touches[0]?.clientY || 0;
     const diff = currentY - startY.current;
 
     if (diff > 0) {

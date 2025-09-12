@@ -357,7 +357,7 @@ const OnboardingComplete = () => {
           
           {/* Progress Indicator */}
           <div className="flex items-center justify-between mb-4">
-            {steps.map((step, index) => (
+            {steps.map((_, index) => (
               <div key={index} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   index <= currentStep ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600'

@@ -55,15 +55,15 @@ export const useTouchEvents = (
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd({ x: 0, y: 0 });
     setTouchStart({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      x: e.targetTouches[0]?.clientX || 0,
+      y: e.targetTouches[0]?.clientY || 0
     });
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd({
-      x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      x: e.targetTouches[0]?.clientX || 0,
+      y: e.targetTouches[0]?.clientY || 0
     });
   };
 
@@ -129,10 +129,10 @@ export const useMobileGestures = () => {
   const handleTouchStart = (e: React.TouchEvent) => {
     setGestureState({
       isDragging: true,
-      startX: e.touches[0].clientX,
-      startY: e.touches[0].clientY,
-      currentX: e.touches[0].clientX,
-      currentY: e.touches[0].clientY
+      startX: e.touches[0]?.clientX || 0,
+      startY: e.touches[0]?.clientY || 0,
+      currentX: e.touches[0]?.clientX || 0,
+      currentY: e.touches[0]?.clientY || 0
     });
   };
 
@@ -141,8 +141,8 @@ export const useMobileGestures = () => {
 
     setGestureState(prev => ({
       ...prev,
-      currentX: e.touches[0].clientX,
-      currentY: e.touches[0].clientY
+      currentX: e.touches[0]?.clientX || 0,
+      currentY: e.touches[0]?.clientY || 0
     }));
   };
 
