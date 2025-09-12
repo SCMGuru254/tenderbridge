@@ -8,6 +8,7 @@ import { Star, Building2, MapPin, Users, Search, Plus, Eye } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { CompanyReviewForm } from '@/components/companies/CompanyReviewForm';
 
 interface Company {
   id: string;
@@ -90,28 +91,6 @@ const CompaniesComplete = () => {
     setActiveTab('company-detail');
   };
 
-  const handleSubmitReview = async (reviewData: any) => {
-    if (!user || !selectedCompany) return;
-
-    try {
-      const { error } = await supabase
-        .from('company_reviews')
-        .insert({
-          company_id: selectedCompany.id,
-          reviewer_id: user.id,
-          ...reviewData
-        });
-
-      if (error) throw error;
-      
-      toast.success('Review submitted successfully!');
-      setShowReviewForm(false);
-      fetchCompanyReviews(selectedCompany.id);
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error('Failed to submit review');
-    }
-  };
 
   const getVerificationBadge = (status: string) => {
     switch (status) {
@@ -345,26 +324,17 @@ const CompaniesComplete = () => {
 
       {/* Review Form Modal */}
       {showReviewForm && selectedCompany && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle>Write Review</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center py-4">Review form coming soon...</p>
-              <div className="flex gap-2">
-                <Button 
-                  className="flex-1" 
-                  onClick={() => handleSubmitReview({ rating: 5, review_text: 'Great company!' })}
-                >
-                  Submit Sample Review
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setShowReviewForm(false)}>
-                  Close
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="w-full max-w-2xl my-8">
+            <CompanyReviewForm
+              companyId={selectedCompany.id}
+              onSuccess={() => {
+                setShowReviewForm(false);
+                fetchCompanyReviews(selectedCompany.id);
+              }}
+              onCancel={() => setShowReviewForm(false)}
+            />
+          </div>
         </div>
       )}
     </div>
