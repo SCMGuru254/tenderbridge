@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { CompanyReviewForm } from '@/components/companies/CompanyReviewForm';
+import { CompanySignupForm } from '@/components/companies/CompanySignupForm';
 
 interface Company {
   id: string;
@@ -224,23 +225,12 @@ const CompaniesComplete = () => {
         </TabsContent>
 
         <TabsContent value="add-company" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Your Company</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Building2 className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Register Your Company</h3>
-                <p className="text-muted-foreground mb-6">
-                  Add your company to our directory and start receiving applications from qualified candidates.
-                </p>
-                <Button size="lg">
-                  Register Company
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CompanySignupForm 
+            onSuccess={() => {
+              fetchCompanies();
+              setActiveTab('browse');
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="company-detail" className="space-y-6">

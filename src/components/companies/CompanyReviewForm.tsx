@@ -256,6 +256,23 @@ export function CompanyReviewForm({ companyId, onSuccess, onCancel }: CompanyRev
             <Label htmlFor="is_anonymous">Post anonymously</Label>
           </div>
 
+          {/* Privacy & Disclaimer */}
+          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+            <h4 className="font-medium mb-2 text-blue-900 dark:text-blue-100">Privacy & Disclaimer</h4>
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>• Your review will be publicly visible and may be shared</li>
+              <li>• Reviews are moderated and may be removed if they violate our guidelines</li>
+              <li>• Anonymous reviews will not display your name or profile information</li>
+              <li>• All reviews must be based on genuine experience with the company</li>
+              <li>• Defamatory, false, or misleading content is prohibited</li>
+            </ul>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+              By submitting this review, you confirm it's based on your genuine experience and agree to our{' '}
+              <a href="/terms" className="text-primary underline">Terms of Service</a> and{' '}
+              <a href="/privacy" className="text-primary underline">Privacy Policy</a>.
+            </p>
+          </div>
+
           {/* Submit Buttons */}
           <div className="flex gap-3 pt-4">
             <Button 
