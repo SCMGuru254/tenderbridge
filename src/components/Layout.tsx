@@ -10,10 +10,8 @@ export const Layout = () => {
       <main className="pt-16 pb-20 md:pb-4">
         <Outlet />
       </main>
-      {/* Only show mobile navigation on mobile devices */}
-      <div className="block md:hidden">
-        <MobileNavigation />
-      </div>
+      {/* Show mobile navigation on all pages for mobile devices */}
+      <MobileNavigation />
     </div>
   );
 };

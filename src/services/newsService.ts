@@ -19,7 +19,7 @@ export interface SupplyChainNews {
 
 export class NewsService {
   private baseUrl = 'https://newsapi.org/v2';
-  private apiKey = process.env.NEWS_API_KEY || '';
+  private apiKey = import.meta.env.VITE_NEWS_API_KEY || '';
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   async getNews(): Promise<SupplyChainNews[]> {
