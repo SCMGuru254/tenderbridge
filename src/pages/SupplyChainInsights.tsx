@@ -30,8 +30,8 @@ export default function SupplyChainInsights() {
       
       if (newsData.length === 0) {
         // If no news, trigger the fetch function
-        const success = await newsService.fetchAndStoreNews();
-        if (success) {
+        const result = await newsService.fetchRealNews();
+        if (result.success) {
           // Try to get news again after fetch
           const freshNews = await newsService.getNews();
           setNews(freshNews);
@@ -52,8 +52,8 @@ export default function SupplyChainInsights() {
   const handleRefresh = async () => {
     try {
       setRefreshing(true);
-      const success = await newsService.fetchAndStoreNews();
-      if (success) {
+      const result = await newsService.fetchRealNews();
+      if (result.success) {
         // Refetch news data
         const freshNews = await newsService.getNews();
         setNews(freshNews);

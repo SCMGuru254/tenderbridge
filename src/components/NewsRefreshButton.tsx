@@ -12,7 +12,7 @@ interface NewsRefreshButtonProps {
 export const NewsRefreshButton = ({ onRefreshComplete }: NewsRefreshButtonProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
-  const { fetchSupplyChainNews } = useNewsAPI();
+const { fetchSupplyChainNews } = useNewsAPI();
 
   const refreshNews = async () => {
     try {

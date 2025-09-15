@@ -67,51 +67,7 @@ async function parseRSS(url: string, sourceName: string) {
   }
 }
 
-// Fallback news when RSS feeds fail
-const getFallbackNews = () => {
-  return [
-    {
-      title: "Kenya's Port of Mombasa Reports 10% Increase in Cargo Volume",
-      content: "The Port of Mombasa has reported a significant 10% increase in cargo volume in the first quarter of 2025 compared to the same period last year. This growth is attributed to improvements in operational efficiency and increased trade activity in the East African region.",
-      source_url: "https://www.portmombasa.go.ke/news",
-      published_at: new Date().toISOString(),
-      source_name: "Kenya Ports Authority",
-      tags: ["Ports", "Logistics", "Kenya", "East Africa"]
-    },
-    {
-      title: "New Cold Chain Infrastructure Project Launched in Nairobi",
-      content: "A major cold chain infrastructure project has been launched in Nairobi to improve the distribution of perishable goods across Kenya. The project aims to reduce post-harvest losses and enhance food security through improved temperature-controlled logistics networks.",
-      source_url: "https://www.coldchainkenya.org",
-      published_at: new Date().toISOString(),
-      source_name: "Cold Chain Kenya Initiative",
-      tags: ["Cold Chain", "Food Security", "Infrastructure", "Kenya"]
-    },
-    {
-      title: "E-commerce Boom Drives Last-Mile Logistics Innovation in Kenya",
-      content: "The rapid growth of e-commerce in Kenya is driving significant innovation in last-mile delivery solutions. Local startups are developing innovative approaches to address the unique challenges of urban and rural delivery in the Kenyan context.",
-      source_url: "https://www.ecommerceafrica.com",
-      published_at: new Date().toISOString(),
-      source_name: "E-commerce Africa",
-      tags: ["E-commerce", "Last Mile Delivery", "Innovation", "Kenya"]
-    },
-    {
-      title: "Sustainable Supply Chain Practices Gaining Momentum Among Kenyan Businesses",
-      content: "A growing number of Kenyan businesses are adopting sustainable supply chain practices, from reducing packaging waste to implementing renewable energy solutions in warehousing and transportation. This trend is driven by both environmental concerns and potential cost savings.",
-      source_url: "https://www.sustainableafrica.org",
-      published_at: new Date().toISOString(),
-      source_name: "Sustainable Business Africa",
-      tags: ["Sustainability", "Corporate Responsibility", "Green Logistics", "Kenya"]
-    },
-    {
-      title: "Kenya's Standard Gauge Railway Significantly Reduces Freight Transport Time",
-      content: "Kenya's Standard Gauge Railway (SGR) has reported a significant reduction in freight transport time between Mombasa and Nairobi, cutting the journey from over 24 hours by road to just 8 hours by rail. This improvement is boosting supply chain efficiency for businesses across the region.",
-      source_url: "https://www.krc.co.ke/news",
-      published_at: new Date().toISOString(),
-      source_name: "Kenya Railways Corporation",
-      tags: ["Rail Transport", "Infrastructure", "Freight", "Kenya"]
-    }
-  ];
-};
+// No fallback news - only real data sources
 
 serve(async (req) => {
   try {
@@ -138,10 +94,20 @@ serve(async (req) => {
       allNewsItems = [...allNewsItems, ...newsItems];
     }
     
-    // Use fallback if we couldn't fetch any news
+    // Only proceed if we have real news from RSS feeds
     if (allNewsItems.length === 0) {
-      console.log("Using fallback news data");
-      allNewsItems = getFallbackNews();
+      console.log("No real news data available from RSS feeds");
+      return new Response(
+        JSON.stringify({
+          success: true,
+          count: 0,
+          message: "No real news data available from RSS feeds at this time"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200
+        }
+      );
     }
     
     // Insert news items into the database

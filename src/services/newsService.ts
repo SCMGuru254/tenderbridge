@@ -18,8 +18,7 @@ export interface SupplyChainNews {
 }
 
 export class NewsService {
-  private baseUrl = 'https://newsapi.org/v2';
-  private apiKey = import.meta.env.VITE_NEWS_API_KEY || '';
+  // Using edge functions for real news data - no direct API calls from client
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   async getNews(): Promise<SupplyChainNews[]> {
@@ -55,54 +54,24 @@ export class NewsService {
     }
   }
 
-  async fetchAndStoreNews(): Promise<{ success: boolean; count: number; message?: string }> {
+  async fetchRealNews(): Promise<{ success: boolean; count: number; message?: string }> {
     try {
-      performanceMonitor.startMeasure('fetch-store-news');
-
-      if (!this.apiKey) {
-        throw new Error('News API key not configured');
-      }
-
-      const keywords = ['supply chain', 'logistics', 'procurement', 'inventory management'];
-      const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+      performanceMonitor.startMeasure('fetch-real-news');
       
-      const response = await fetch(
-        `${this.baseUrl}/everything?q="${randomKeyword}"&language=en&sortBy=publishedAt&pageSize=10&apiKey=${this.apiKey}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`News API error: ${response.status}`);
-      }
-
-      const newsData = await response.json();
-
-      if (!newsData.articles || newsData.articles.length === 0) {
-        return { success: true, count: 0, message: 'No new articles found' };
-      }
-
-      const articles = newsData.articles.map((article: any) => ({
-        title: article.title,
-        content: article.description || article.content || '',
-        source_name: article.source?.name || 'Unknown',
-        source_url: article.url,
-        published_date: article.publishedAt,
-        tags: this.extractTags(article.title + ' ' + (article.description || ''))
-      }));
-
-      const { data, error } = await supabase
-        .from('supply_chain_news')
-        .insert(articles)
-        .select();
+      // Call the news-api-integration edge function for real news data
+      const { data, error } = await supabase.functions.invoke('news-api-integration', {
+        body: { searchTerm: '', limit: 50 }
+      });
 
       if (error) throw error;
 
       cache.delete('news'); // Invalidate cache
-      analytics.trackUserAction('news-store-success', `count:${data?.length || 0}`);
+      analytics.trackUserAction('news-fetch-success', `count:${data?.count || 0}`);
 
       return { 
         success: true, 
-        count: data?.length || 0,
-        message: `Successfully stored ${data?.length || 0} news articles`
+        count: data?.count || 0,
+        message: data?.message || 'Successfully fetched real news data'
       };
 
     } catch (error) {
@@ -115,64 +84,40 @@ export class NewsService {
         message: errorObj.message
       };
     } finally {
-      performanceMonitor.endMeasure('fetch-store-news');
+      performanceMonitor.endMeasure('fetch-real-news');
     }
   }
 
-  async fetchRSSFeed(url: string): Promise<SupplyChainNews[]> {
+  async fetchSupplyChainRSS(): Promise<{ success: boolean; count: number; message?: string }> {
     try {
-      performanceMonitor.startMeasure('fetch-rss');
+      performanceMonitor.startMeasure('fetch-supply-chain-rss');
       
-      const response = await fetch(url);
-      const text = await response.text();
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
-      
-      const items = xmlDoc.getElementsByTagName("item");
-      const news: SupplyChainNews[] = [];
+      // Call the scrape-news edge function for real RSS news data
+      const { data, error } = await supabase.functions.invoke('scrape-news');
 
-      for (let i = 0; i < Math.min(items.length, 10); i++) {
-        const item = items[i];
-        if (!item) continue;
-        const title = item.getElementsByTagName("title")[0]?.textContent || 'Untitled';
-        const content = item.getElementsByTagName("description")[0]?.textContent || '';
-        const link = item.getElementsByTagName("link")[0]?.textContent || '';
-        const pubDate = item.getElementsByTagName("pubDate")[0]?.textContent || new Date().toISOString();
-        
-        news.push({
-          id: `rss-${Date.now()}-${i}`,
-          title,
-          content,
-          source_name: xmlDoc.getElementsByTagName("title")[0]?.textContent || 'RSS Feed',
-          source_url: link,
-          published_date: pubDate,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          tags: this.extractTags(title + ' ' + content)
-        });
-      }
+      if (error) throw error;
 
-      analytics.trackUserAction('rss-fetch-success', `count:${news.length}`);
-      return news;
+      cache.delete('news'); // Invalidate cache
+      analytics.trackUserAction('rss-fetch-success', `count:${data?.count || 0}`);
+
+      return { 
+        success: true, 
+        count: data?.count || 0,
+        message: data?.message || 'Successfully fetched RSS news data'
+      };
+
     } catch (error) {
       const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
-      errorHandler.handleError(errorObj, 'NETWORK');
+      errorHandler.handleError(errorObj, 'SERVER');
       analytics.trackError(errorObj);
-      return [];
+      return { 
+        success: false, 
+        count: 0, 
+        message: errorObj.message
+      };
     } finally {
-      performanceMonitor.endMeasure('fetch-rss');
+      performanceMonitor.endMeasure('fetch-supply-chain-rss');
     }
-  }
-
-  private extractTags(text: string): string[] {
-    const keywords = [
-      'supply chain', 'logistics', 'procurement', 'inventory', 'warehousing',
-      'transportation', 'manufacturing', 'distribution', 'sustainability',
-      'technology', 'automation', 'AI', 'blockchain', 'IoT', 'Kenya', 'Africa'
-    ];
-
-    const lowerText = text.toLowerCase();
-    return keywords.filter(keyword => lowerText.includes(keyword));
   }
 
   async analyzeNews(newsItem: { title: string; content: string }): Promise<any> {
