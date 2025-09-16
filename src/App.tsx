@@ -16,7 +16,8 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Auth = lazy(() => import("./pages/Auth"));
 const JobDetails = lazy(() => import("./pages/JobDetails"));
 const CompanySignup = lazy(() => import("./components/companies/CompanySignup"));
-const Mentorship = lazy(() => import("./components/Mentorship").then(m => ({ default: m.Mentorship })));
+const Mentorship = lazy(() => import("./pages/Mentorship"));
+const Courses = lazy(() => import("./pages/Courses"));
 const SalaryAnalyzer = lazy(() => import("./components/SalaryAnalyzer").then(m => ({ default: m.SalaryAnalyzer })));
 const DiscussionList = lazy(() => import("./components/DiscussionList").then(m => ({ default: m.DiscussionList })));
 const JoinOurTeam = lazy(() => import("./components/JoinOurTeam").then(m => ({ default: m.JoinOurTeam })));
@@ -165,6 +166,7 @@ const App = () => (
                   <Route path="privacy" element={<Privacy />} />
                   <Route path="terms" element={<Terms />} />
                   <Route path="hire-my-skill" element={<HireMySkill />} />
+                  <Route path="courses" element={<Courses />} />
                   <Route path="security" element={<Security />} />
                   <Route path="forms" element={<Forms />} />
                   <Route path="free-services" element={<FreeServices />} />

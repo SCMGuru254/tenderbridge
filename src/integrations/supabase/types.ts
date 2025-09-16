@@ -510,6 +510,172 @@ export type Database = {
         }
         Relationships: []
       }
+      course_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      course_enrollments: {
+        Row: {
+          completion_date: string | null
+          course_id: string
+          created_at: string | null
+          enrollment_date: string | null
+          id: string
+          payment_status: string | null
+          rating: number | null
+          review: string | null
+          status: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completion_date?: string | null
+          course_id: string
+          created_at?: string | null
+          enrollment_date?: string | null
+          id?: string
+          payment_status?: string | null
+          rating?: number | null
+          review?: string | null
+          status?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completion_date?: string | null
+          course_id?: string
+          created_at?: string | null
+          enrollment_date?: string | null
+          id?: string
+          payment_status?: string | null
+          rating?: number | null
+          review?: string | null
+          status?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          category_id: string | null
+          certificate_provided: boolean | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          current_students: number | null
+          description: string
+          duration_hours: number | null
+          end_date: string | null
+          format: string | null
+          id: string
+          image_url: string | null
+          instructor_id: string
+          level: string | null
+          location: string | null
+          materials_included: string[] | null
+          max_students: number | null
+          objectives: string[] | null
+          price: number | null
+          registration_deadline: string | null
+          requirements: string[] | null
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          certificate_provided?: boolean | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          current_students?: number | null
+          description: string
+          duration_hours?: number | null
+          end_date?: string | null
+          format?: string | null
+          id?: string
+          image_url?: string | null
+          instructor_id: string
+          level?: string | null
+          location?: string | null
+          materials_included?: string[] | null
+          max_students?: number | null
+          objectives?: string[] | null
+          price?: number | null
+          registration_deadline?: string | null
+          requirements?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          certificate_provided?: boolean | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          current_students?: number | null
+          description?: string
+          duration_hours?: number | null
+          end_date?: string | null
+          format?: string | null
+          id?: string
+          image_url?: string | null
+          instructor_id?: string
+          level?: string | null
+          location?: string | null
+          materials_included?: string[] | null
+          max_students?: number | null
+          objectives?: string[] | null
+          price?: number | null
+          registration_deadline?: string | null
+          requirements?: string[] | null
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "course_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussion_bookmarks: {
         Row: {
           created_at: string

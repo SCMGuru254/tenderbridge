@@ -15,6 +15,9 @@ import {
 import { toast } from "sonner";
 import CompanyCard from "@/components/companies/CompanyCard";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CompanySignupForm } from "@/components/companies/CompanySignupForm";
+import { Plus } from "lucide-react";
 
 export interface Company {
   id: string;
@@ -28,6 +31,7 @@ export interface Company {
 export default function Companies() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
   
   const { data: companies, isLoading, error } = useQuery({
     queryKey: ['companies'],
@@ -99,6 +103,27 @@ export default function Companies() {
               ))}
             </SelectContent>
           </Select>
+
+          <Dialog open={isAddCompanyOpen} onOpenChange={setIsAddCompanyOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Company
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add a Company</DialogTitle>
+              </DialogHeader>
+              <CompanySignupForm 
+                onSuccess={() => {
+                  setIsAddCompanyOpen(false);
+                  window.location.reload();
+                }}
+                onCancel={() => setIsAddCompanyOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
