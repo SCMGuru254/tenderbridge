@@ -165,9 +165,9 @@ const OnboardingComplete = () => {
       
       // Redirect based on user type
       if (formData.user_type === 'recruiter') {
-        navigate('/dashboard');
+        navigate('/welcome');
       } else {
-        navigate('/jobs');
+        navigate('/welcome');
       }
       
     } catch (error) {

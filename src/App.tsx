@@ -13,6 +13,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
+const WelcomeDashboard = lazy(() => import("./pages/WelcomeDashboard"));
 const Auth = lazy(() => import("./pages/Auth"));
 const JobDetails = lazy(() => import("./pages/JobDetails"));
 const CompanySignup = lazy(() => import("./components/companies/CompanySignup"));
@@ -116,6 +117,7 @@ const App = () => (
                   <Route path="jobs" element={<Jobs />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="onboarding" element={<Onboarding />} />
+                  <Route path="welcome" element={<WelcomeDashboard />} />
                   <Route path="auth" element={<Auth />} />
                   <Route path="job/:id" element={<JobDetails />} />
                   <Route path="company-signup" element={<CompanySignup />} />

@@ -247,10 +247,10 @@ export const MentorshipProgram = () => {
           <GraduationCap className="h-8 w-8 text-primary" />
           Mentorship Program
         </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Connect with industry experts or share your knowledge with the next generation of supply chain professionals.
-        </p>
-      </div>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Connect with industry experts or share your knowledge with the next generation of supply chain professionals.
+          </p>
+        </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
