@@ -166,7 +166,7 @@ export default function SupplyChainInsights() {
                           </a>
                         </CardTitle>
                         <CardDescription>
-                          {formatDistanceToNow(new Date(item.published_date), { addSuffix: true })}
+                          {item.published_date ? formatDistanceToNow(new Date(item.published_date), { addSuffix: true }) : 'Recently'}
                         </CardDescription>
                       </div>
                       <Badge variant="secondary">{item.source_name}</Badge>

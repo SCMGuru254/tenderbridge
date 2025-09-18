@@ -19,7 +19,11 @@ const Auth = () => {
   const [socialLoading, setSocialLoading] = useState(false);
   const navigate = useNavigate();
 
+  const [isLoading, setIsLoading] = useState(true);
+  
   useEffect(() => {
+    // Set initial loading state
+    setIsLoading(true);
     checkAuthState();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -90,6 +94,9 @@ const Auth = () => {
 
     const checkAuthState = async () => {
     try {
+      // Add a small delay to prevent flash
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         // Check if user has completed onboarding
@@ -114,6 +121,8 @@ const Auth = () => {
       }
     } catch (error) {
       console.error('Error checking auth state:', error);
+    } finally {
+      setIsLoading(false);
     }
   };  const handleSignIn = async () => {
     setLoading(true);
@@ -248,15 +257,27 @@ const Auth = () => {
     }
   };
 
+  if (isLoading || loading || socialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <img src={appLogo} alt="SupplyChain KE" className="w-24 h-24 mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen relative flex items-center justify-center">
       {/* Background Image with Blur */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
         style={{ 
           backgroundImage: `url(${chairsBg})`,
           backgroundColor: '#0284c7',
-          backgroundBlendMode: 'multiply'
+          backgroundBlendMode: 'multiply',
+          opacity: loading ? 0 : 1
         }}
       />
       

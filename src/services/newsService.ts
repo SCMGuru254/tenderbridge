@@ -20,6 +20,7 @@ export interface SupplyChainNews {
 export class NewsService {
   // Using edge functions for real news data - no direct API calls from client
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly NEWS_RETENTION_DAYS = 7; // Keep news for 7 days
 
   async getNews(): Promise<SupplyChainNews[]> {
     try {
@@ -58,9 +59,20 @@ export class NewsService {
     try {
       performanceMonitor.startMeasure('fetch-real-news');
       
-      // Call the news-api-integration edge function for real news data
+      // Call the news-api-integration edge function for real news data with RSS feeds
       const { data, error } = await supabase.functions.invoke('news-api-integration', {
-        body: { searchTerm: '', limit: 50 }
+        body: { 
+          searchTerm: '', 
+          limit: 50,
+          rssFeeds: [
+            'https://www.allthingssupplychain.com/feed/',
+            'https://www.supplychainbrain.com/rss/articles',
+            'https://www.scmdojo.com/feed/',
+            'https://www.supplychaintoday.com/feed/',
+            'https://www.supplychainshaman.com/feed/',
+            'https://scmresearch.org/feed/'
+          ]
+        }
       });
 
       if (error) throw error;
@@ -170,6 +182,59 @@ export class NewsService {
       .filter(category => category.keywords.some(keyword => lowerText.includes(keyword)))
       .map(category => category.name);
   }
+
+  async cleanupOldNews(): Promise<{ success: boolean; count: number; message?: string }> {
+    try {
+      performanceMonitor.startMeasure('cleanup-old-news');
+      
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - this.NEWS_RETENTION_DAYS);
+
+      const { data, error } = await supabase
+        .from('supply_chain_news')
+        .delete()
+        .lt('published_date', cutoffDate.toISOString())
+        .select();
+
+      if (error) throw error;
+
+      analytics.trackUserAction('news-cleanup', `deleted:${data?.length || 0}`);
+
+      return { 
+        success: true, 
+        count: data?.length || 0,
+        message: `Successfully deleted ${data?.length || 0} old news items`
+      };
+
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error('Unknown error occurred');
+      errorHandler.handleError(errorObj, 'SERVER');
+      analytics.trackError(errorObj);
+      return { 
+        success: false, 
+        count: 0, 
+        message: errorObj.message
+      };
+    } finally {
+      performanceMonitor.endMeasure('cleanup-old-news');
+    }
+  }
+
+  // Schedule automatic cleanup every 24 hours
+  scheduleNewsCleanup(): void {
+    setInterval(() => {
+      this.cleanupOldNews().then(result => {
+        if (result.success) {
+          console.log(`Scheduled cleanup: ${result.message}`);
+        } else {
+          console.error(`Cleanup failed: ${result.message}`);
+        }
+      });
+    }, 24 * 60 * 60 * 1000); // Run every 24 hours
+  }
 }
 
 export const newsService = new NewsService();
+
+// Initialize scheduled cleanup
+newsService.scheduleNewsCleanup();

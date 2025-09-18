@@ -1,73 +1,152 @@
-
-import { NavLink } from "react-router-dom";
+import { NavLink } from 'react-router-dom';
+import { Menu, Star, StarOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { 
   Sheet, 
   SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
+  SheetHeader,
+  SheetTitle,
   SheetTrigger 
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useNavigation } from '@/contexts/NavigationContext';
 import { 
-  Menu, 
-  Home, 
-  Briefcase, 
-  MessageSquare, 
-  Building2,
-  BookOpen,
-  Bot,
-  Search,
-  Users
-} from "lucide-react";
+  navigationCategories, 
+  MenuItem,
+  NavigationCategory,
+  getBottomNavigationItems 
+} from '@/config/navigation';
 
-const MobileNavigation = () => {
-  const navigationItems = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/jobs", label: "Jobs", icon: Briefcase },
-    { to: "/hire-my-skill", label: "Hire My Skill", icon: Briefcase },
-    { to: "/mentorship", label: "Mentorship", icon: BookOpen },
-    { to: "/courses", label: "Courses", icon: BookOpen },
-    { to: "/hr-directory", label: "HR Directory", icon: Users },
-    { to: "/company-reviews", label: "Company Reviews", icon: Building2 },
-    { to: "/discussions", label: "Discussions", icon: MessageSquare },
-    { to: "/companies", label: "Companies", icon: Building2 },
-    { to: "/company-signup", label: "Company Signup", icon: Building2 },
-    { to: "/supply-chain-insights", label: "Insights", icon: BookOpen },
-    { to: "/salary-analyzer", label: "Salary Analyzer", icon: BookOpen },
-    { to: "/post-job", label: "Post Job", icon: BookOpen },
-    { to: "/chat-assistant", label: "Chat Assistant", icon: Bot },
-    { to: "/interview-prep", label: "Interview Prep", icon: Search },
-    { to: "/ai-agents", label: "AI Agents", icon: Bot },
-  ];
+interface MobileNavigationProps {
+  className?: string;
+}
+
+const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
+  const { user } = useAuth();
+  const featureFlags = useFeatureFlags();
+  const { 
+    state,
+    toggleDrawer,
+    addFavorite,
+    removeFavorite,
+    isFavorite,
+    isCategoryHidden
+  } = useNavigation();
+  const bottomNavItems = getBottomNavigationItems();
+
+  // Function to check if an item should be visible based on feature flags and roles
+  const isItemVisible = (item: MenuItem): boolean => {
+    if (item.featureFlag && !featureFlags[item.featureFlag as keyof typeof featureFlags]) {
+      return false;
+    }
+    if (item.requiredRole && !user) {
+      return false;
+    }
+    return true;
+  };
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="h-5 w-5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left" className="w-64">
-        <SheetHeader>
-          <SheetTitle>Navigation</SheetTitle>
-        </SheetHeader>
-        <nav className="mt-6 space-y-2">
-          {navigationItems.map((item) => {
+    <>
+      {/* Bottom Navigation Bar */}
+      <nav className={cn(
+        "fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border md:hidden",
+        className
+      )}>
+        <div className="flex items-center justify-around py-2 px-1">
+          {bottomNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
-                key={item.to}
-                to={item.to}
-                className="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                key={item.href}
+                to={item.href}
+                className={({ isActive }) =>
+                  cn(
+                    "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5",
+                    "text-xs font-medium transition-colors",
+                    "touch-manipulation", // Better touch targets
+                    "relative py-1",
+                    isActive
+                      ? "text-primary after:absolute after:h-0.5 after:w-1/2 after:-bottom-[1px] after:bg-primary after:rounded-full"
+                      : "text-muted-foreground hover:text-foreground"
+                  )
+                }
               >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                <Icon className="h-5 w-5 mb-0.5" />
+                <span className="truncate">{item.title}</span>
               </NavLink>
             );
           })}
-        </nav>
-      </SheetContent>
-    </Sheet>
+          
+          {/* Side Drawer Menu */}
+          <Sheet open={state.isDrawerOpen} onOpenChange={toggleDrawer}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" className="flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
+                <Menu className="h-6 w-6 mb-0.5" />
+                <span>More</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <nav className="mt-6 space-y-6">
+                {navigationCategories
+                  .filter(category => !isCategoryHidden(category.name))
+                  .map((category: NavigationCategory) => (
+                    <div key={category.name}>
+                      <h3 className="px-3 text-sm font-medium text-muted-foreground mb-2">
+                        {category.name}
+                      </h3>
+                      <div className="space-y-1">
+                        {category.items
+                          .filter(isItemVisible)
+                          .map((item: MenuItem) => (
+                          <div key={item.href} className="flex items-center">
+                            <NavLink
+                              to={item.href}
+                              className={({ isActive }) =>
+                                cn(
+                                  "flex-1 flex items-center space-x-3 rounded-lg px-3 py-2",
+                                  "text-sm font-medium transition-colors",
+                                  "hover:bg-accent hover:text-accent-foreground",
+                                  isActive ? "bg-accent text-accent-foreground" : "text-foreground"
+                                )
+                              }
+                            >
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </NavLink>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="ml-2"
+                              onClick={() => {
+                                if (isFavorite(item.href)) {
+                                  removeFavorite(item.href);
+                                } else {
+                                  addFavorite(item.href);
+                                }
+                              }}
+                            >
+                              {isFavorite(item.href) ? (
+                                <Star className="h-4 w-4 text-yellow-400" />
+                              ) : (
+                                <StarOff className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
+    </>
   );
 };
 

@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SplashScreen } from "@/components/SplashScreen";
 import { Layout } from "@/components/Layout";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { AuthProviderFull } from "@/contexts/AuthContextFull";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -77,6 +79,7 @@ const PayPalPortal = lazy(() => import("./pages/PayPalPortal"));
 const FeaturedClients = lazy(() => import("./pages/FeaturedClients"));
 const Documents = lazy(() => import("./pages/Documents"));
 const HireMySkill = lazy(() => import("./pages/HireMySkill"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,16 +124,23 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProviderFull>
-        <TooltipProvider delayDuration={300}>
-          <BrowserRouter>
-            <Suspense fallback={<LoadingSpinner />}>
+const App = () => {
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
+
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProviderFull>
+          <NavigationProvider>
+            <TooltipProvider delayDuration={300}>
+              <BrowserRouter>
+              {isSplashVisible && (
+                <SplashScreen onFinish={() => setIsSplashVisible(false)} />
+              )}
+              <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Index />} />
+                  <Route index element={<Landing />} />
                   <Route path="landing" element={<Landing />} />
                   <Route path="index" element={<Index />} />
                   <Route path="jobs" element={<Jobs />} />
@@ -198,6 +208,7 @@ const App = () => (
                   {featureFlags.enableDocuments && (
                     <Route path="documents" element={<Documents />} />
                   )}
+                  <Route path="settings" element={<Settings />} />
                 </Route>
               </Routes>
             </Suspense>
@@ -206,6 +217,7 @@ const App = () => (
       </AuthProviderFull>
     </QueryClientProvider>
   </ErrorBoundary>
-);
+  );
+}
 
 export default App;

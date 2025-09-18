@@ -1,47 +1,43 @@
-
 import { NavLink } from 'react-router-dom';
-import { Home, Briefcase, MessageSquare, Building2, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { MenuItem, navigationCategories, getBottomNavigationItems } from '@/config/navigation';
 
-const BottomNavigation = () => {
-  const { mainNav } = useNavigation();
+interface Props {
+  className?: string;
+}
 
-  const primaryNavItems = [
-    { icon: Home, label: 'Home', to: '/dashboard' },
-    { icon: Briefcase, label: 'Jobs', to: '/jobs' },
-    { icon: MessageSquare, label: 'Discussions', to: '/discussions' },
-    { icon: Building2, label: 'Companies', to: '/companies' },
-  ];
-
-  const moreItems = mainNav.filter(item => 
-    item.visible && 
-    !primaryNavItems.some(primary => primary.to === item.href)
-  );
-
+const BottomNavigation: React.FC<Props> = ({ className }) => {
+  const { user } = useAuth();
+  const featureFlags = useFeatureFlags();
+  const bottomNavItems = getBottomNavigationItems();
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
-      <div className="flex items-center justify-around py-3 px-2">
-        {primaryNavItems.map((item) => {
+    <nav className={cn("fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border md:hidden", className)}>
+      <div className="flex items-center justify-around py-2 px-1">
+        {bottomNavItems.map((item: MenuItem) => {
           const Icon = item.icon;
           return (
             <NavLink
-              key={item.to}
-              to={item.to}
+              key={item.href}
+              to={item.href}
               className={({ isActive }) =>
                 cn(
                   "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5",
                   "text-xs font-medium transition-colors",
                   "touch-manipulation", // Better touch targets
+                  "relative py-1",
                   isActive
-                    ? "text-primary"
+                    ? "text-primary after:absolute after:h-0.5 after:w-1/2 after:-bottom-[1px] after:bg-primary after:rounded-full"
                     : "text-muted-foreground hover:text-foreground"
                 )
               }
             >
-              <Icon className="h-6 w-6 mb-1.5" />
-              <span className="truncate">{item.label}</span>
+              <Icon className="h-5 w-5 mb-0.5" />
+              <span className="truncate">{item.title}</span>
             </NavLink>
           );
         })}
@@ -51,26 +47,43 @@ const BottomNavigation = () => {
             <Menu className="h-6 w-6 mb-1.5" />
             <span>More</span>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4 p-4">
-              {moreItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    className="flex items-center space-x-3 p-4 rounded-lg bg-card hover:bg-accent transition-colors"
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{item.title}</span>
-                  </NavLink>
-                );
-              })}
+          <SheetContent side="bottom" className="h-[85vh] p-0">
+            <div className="grid gap-2 p-4 overflow-y-auto">
+              {navigationCategories.map((category) => (
+                <div key={category.name} className="grid gap-2">
+                  <h3 className="font-medium text-sm text-muted-foreground mb-1">
+                    {category.name}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.items
+                      .filter(item => {
+                        if (item.featureFlag && !featureFlags[item.featureFlag as keyof typeof featureFlags]) return false;
+                        if (item.requiredRole && !user) return false;
+                        return true;
+                      })
+                      .map((item: MenuItem) => (
+                        <NavLink
+                          key={item.href}
+                          to={item.href}
+                          className="flex flex-col p-4 rounded-lg bg-card hover:bg-accent/50 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3 mb-1">
+                            <item.icon className="h-5 w-5 text-primary" />
+                            <span className="font-medium">{item.title}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground pl-8">
+                            {item.description}
+                          </span>
+                        </NavLink>
+                      ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </SheetContent>
         </Sheet>
       </div>
-    </div>
+    </nav>
   );
 };
 
