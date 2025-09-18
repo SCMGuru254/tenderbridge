@@ -54,7 +54,7 @@ export class ErrorHandler {
     toast.error(errorMessages[error.type] || error.message);
   }
 
-  private logError(error: AppError): void {
+  private async logError(error: AppError): Promise<void> {
     console.error('Error:', {
       type: error.type,
       message: error.message,
@@ -64,7 +64,26 @@ export class ErrorHandler {
 
     // In production, this would send to your error tracking service
     if (process.env.NODE_ENV === 'production') {
-      // TODO: Implement error tracking service integration
+      // Send error to error tracking service
+      if (process.env.VITE_SENTRY_DSN && error instanceof Error) {
+        const { captureException, withScope } = await import('@sentry/react');
+        
+        withScope((scope) => {
+          scope.setLevel('error');
+          scope.setContext('error_details', {
+            path: window.location.pathname,
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+          });
+          
+          if (error instanceof Error) {
+            scope.setExtra('error_message', error.message);
+            scope.setExtra('error_stack', error.stack);
+          }
+          
+          captureException(error);
+        });
+      }
     }
   }
 

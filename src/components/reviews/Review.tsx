@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Flag } from 'lucide-react';
+import { Flag } from 'lucide-react';
+import { ReviewVoteButtons } from './ReviewVoteButtons';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,29 @@ import { toast } from 'sonner';
 
 
 interface ReviewProps {
-  review: any;
+  review: {
+    id: string;
+    title: string;
+    anonymous: boolean;
+    reviewer?: { full_name: string };
+    position: string;
+    location: string;
+    rating: number;
+    review_text: string;
+    pros?: string;
+    cons?: string;
+    work_life_balance: number;
+    salary_benefits: number;
+    job_security: number;
+    management: number;
+    culture: number;
+    career_growth: number;
+    created_at: string;
+    votes?: Array<{
+      vote_type: 'upvote' | 'downvote';
+      user_id: string;
+    }>;
+  };
   onVote: (reviewId: string, helpful: boolean) => Promise<void>;
 }
 
@@ -62,6 +85,10 @@ export const Review = ({ review, onVote }: ReviewProps) => {
     }
   };
 
+  const displayName = review.anonymous || !review.reviewer
+    ? 'Anonymous'
+    : review.reviewer.full_name;
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -70,7 +97,7 @@ export const Review = ({ review, onVote }: ReviewProps) => {
             <div>
               <h3 className="text-lg font-semibold">{review.title}</h3>
               <p className="text-sm text-muted-foreground">
-                {review.anonymous ? 'Anonymous' : review.reviewer.full_name} • {review.position} • {review.location}
+                {displayName} • {review.position} • {review.location}
               </p>
             </div>
             <div className="text-right">
@@ -131,25 +158,14 @@ export const Review = ({ review, onVote }: ReviewProps) => {
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleVote(true)}
-                disabled={isVoting}
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                Helpful ({review.helpful_votes})
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleVote(false)}
-                disabled={isVoting}
-              >
-                <ThumbsDown className="h-4 w-4" />
-              </Button>
-            </div>
+            <ReviewVoteButtons
+              reviewId={review.id}
+              upvotes={review.votes?.filter(v => v.vote_type === 'upvote').length || 0}
+              downvotes={review.votes?.filter(v => v.vote_type === 'downvote').length || 0}
+              userVote={review.votes?.find(v => v.user_id === user?.id)?.vote_type || null}
+              onVote={(_reviewId, helpful) => handleVote(helpful)}
+              disabled={isVoting}
+            />
             <Button
               variant="ghost"
               size="sm"
