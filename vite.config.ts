@@ -44,6 +44,8 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
+        maximumFileSizeToCacheInBytes: 50 * 1024 * 1024, // 50 MB
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.supabase\.co\/.*/i,
@@ -92,23 +94,33 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': [
-            'react',
-            'react-dom',
-            '@sentry/react',
-            'date-fns',
-            'lucide-react'
-          ],
-          'supabase': [
-            '@supabase/supabase-js'
-          ],
-          'ui': [
-            '@/components/ui'
-          ],
+        manualChunks(id) {
+          // Put node_modules code in chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('react')) {
+              return 'vendor-react';
+            }
+            if (id.includes('lucide')) {
+              return 'vendor-icons';
+            }
+            return 'vendor'; // all other node_modules
+          }
+          // Group auth-related code together
+          if (id.includes('/auth') || id.includes('/Auth')) {
+            return 'auth';
+          }
+          // Group UI components together
+          if (id.includes('/components/ui/')) {
+            return 'ui';
+          }
         },
+        inlineDynamicImports: false,
       },
     },
   },

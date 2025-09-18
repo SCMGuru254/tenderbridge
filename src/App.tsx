@@ -14,7 +14,26 @@ const Landing = lazy(() => import("./pages/Landing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const WelcomeDashboard = lazy(() => import("./pages/WelcomeDashboard"));
-const Auth = lazy(() => import("./pages/Auth"));
+const Auth = lazy(() => import("./pages/Auth").catch(error => {
+  console.error("Failed to load Auth component:", error);
+  // Return a simple fallback component
+  return {
+    default: () => (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Unable to load authentication</h2>
+          <p className="text-gray-600 mb-4">Please try refreshing the page</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  };
+}));
 const JobDetails = lazy(() => import("./pages/JobDetails"));
 const CompanySignup = lazy(() => import("./components/companies/CompanySignup"));
 const Mentorship = lazy(() => import("./pages/Mentorship"));

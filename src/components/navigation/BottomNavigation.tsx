@@ -22,7 +22,7 @@ const BottomNavigation = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border md:hidden">
-      <div className="flex items-center justify-around py-2 px-4 pb-safe-area-inset-bottom">
+      <div className="flex items-center justify-around py-3 px-2">
         {primaryNavItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -31,23 +31,24 @@ const BottomNavigation = () => {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  "flex flex-col items-center justify-center p-2 min-w-0 flex-1",
+                  "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5",
                   "text-xs font-medium transition-colors",
+                  "touch-manipulation", // Better touch targets
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 )
               }
             >
-              <Icon className="h-5 w-5 mb-1" />
+              <Icon className="h-6 w-6 mb-1.5" />
               <span className="truncate">{item.label}</span>
             </NavLink>
           );
         })}
         
         <Sheet>
-          <SheetTrigger className="flex flex-col items-center justify-center p-2 min-w-0 flex-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Menu className="h-5 w-5 mb-1" />
+          <SheetTrigger className="flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
+            <Menu className="h-6 w-6 mb-1.5" />
             <span>More</span>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
