@@ -10,10 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Star, 
   Building2, 
-  Calendar,
-  ThumbsUp,
-  MessageSquare
+  Calendar
 } from 'lucide-react';
+import { ReviewInteractions } from '@/components/reviews/ReviewInteractions';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -174,22 +173,15 @@ const CompanyReviews = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground mb-4">
                     <span>
                       By {review.is_anonymous ? 'Anonymous' : 'Verified User'} • 
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <ThumbsUp className="h-4 w-4 mr-1" />
-                        Helpful
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        Comment
-                      </Button>
-                    </div>
                   </div>
+
+                  {/* Review Interactions */}
+                  <ReviewInteractions reviewId={review.id} />
                 </CardContent>
               </Card>
             ))}

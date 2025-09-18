@@ -2144,6 +2144,51 @@ export type Database = {
           },
         ]
       }
+      review_comments: {
+        Row: {
+          comment_text: string
+          created_at: string | null
+          id: string
+          parent_comment_id: string | null
+          review_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          review_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          review_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "review_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "company_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_helpful_votes: {
         Row: {
           created_at: string | null
@@ -2166,6 +2211,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "company_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          liked: boolean | null
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          liked?: boolean | null
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          liked?: boolean | null
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_likes_review_id_fkey"
             columns: ["review_id"]
             isOneToOne: false
             referencedRelation: "company_reviews"
@@ -2466,6 +2543,83 @@ export type Database = {
           source_posted_at?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      skill_poll_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          poll_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          poll_id: string
+          user_id: string
+          vote_type?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          poll_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "skill_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_polls: {
+        Row: {
+          budget_range: string | null
+          created_at: string | null
+          demand_level: string
+          description: string | null
+          employer_id: string
+          expires_at: string | null
+          id: string
+          poll_type: string
+          skill_name: string
+          updated_at: string | null
+          urgency_days: number | null
+          votes_count: number | null
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string | null
+          demand_level?: string
+          description?: string | null
+          employer_id: string
+          expires_at?: string | null
+          id?: string
+          poll_type?: string
+          skill_name: string
+          updated_at?: string | null
+          urgency_days?: number | null
+          votes_count?: number | null
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string | null
+          demand_level?: string
+          description?: string | null
+          employer_id?: string
+          expires_at?: string | null
+          id?: string
+          poll_type?: string
+          skill_name?: string
+          updated_at?: string | null
+          urgency_days?: number | null
+          votes_count?: number | null
         }
         Relationships: []
       }

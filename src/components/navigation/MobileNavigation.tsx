@@ -16,7 +16,8 @@ import {
   Building2,
   BookOpen,
   Bot,
-  Search
+  Search,
+  Users
 } from "lucide-react";
 
 const MobileNavigation = () => {
@@ -26,6 +27,7 @@ const MobileNavigation = () => {
     { to: "/hire-my-skill", label: "Hire My Skill", icon: Briefcase },
     { to: "/mentorship", label: "Mentorship", icon: BookOpen },
     { to: "/courses", label: "Courses", icon: BookOpen },
+    { to: "/hr-directory", label: "HR Directory", icon: Users },
     { to: "/company-reviews", label: "Company Reviews", icon: Building2 },
     { to: "/discussions", label: "Discussions", icon: MessageSquare },
     { to: "/companies", label: "Companies", icon: Building2 },
