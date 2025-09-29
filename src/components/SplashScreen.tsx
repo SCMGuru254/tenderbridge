@@ -18,15 +18,18 @@ export const SplashScreen = ({ onFinish, minDuration = 2000 }: SplashScreenProps
     return () => clearTimeout(timer);
   }, [minDuration, onFinish]);
 
-  if (!isVisible) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-500">
+    <div 
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-all duration-500 ${
+        !isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+    >
       <div className="text-center">
         <img 
           src={appLogo} 
           alt="SupplyChain KE" 
           className="w-24 h-24 mx-auto mb-6 animate-fade-in" 
+          style={{ opacity: isVisible ? 1 : 0, transition: 'opacity 0.5s ease-in-out' }}
         />
         <h1 className="text-xl font-bold text-gray-900 mb-2 animate-fade-in-up delay-300">
           SupplyChain KE

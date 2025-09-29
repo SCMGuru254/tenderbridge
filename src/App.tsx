@@ -140,7 +140,7 @@ const App = () => {
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Landing />} />
+                  <Route index element={<SupplyChainInsights />} />
                   <Route path="landing" element={<Landing />} />
                   <Route path="index" element={<Index />} />
                   <Route path="jobs" element={<Jobs />} />
@@ -214,9 +214,10 @@ const App = () => {
             </Suspense>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProviderFull>
-    </QueryClientProvider>
-  </ErrorBoundary>
+        </NavigationProvider>
+        </AuthProviderFull>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

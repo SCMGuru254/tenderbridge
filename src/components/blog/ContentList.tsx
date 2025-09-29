@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, User } from "lucide-react";
+import { formatRelativeTime } from "@/utils/dateFormatters";
 
 export interface ContentListProps {
   activeTab: string;
@@ -76,9 +77,13 @@ const ContentList = ({ activeTab, searchTerm, selectedTags, handleCreatePost }: 
               </Badge>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1" title={new Date(item.created_at).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}>
                 <Clock className="h-4 w-4" />
-                <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                <span>{formatRelativeTime(item.created_at)}</span>
               </div>
               {item.author && (
                 <div className="flex items-center gap-1">

@@ -12,7 +12,6 @@ import {
   MessageSquare,
   LineChart,
   Lightbulb,
-  BookOpen,
   Network,
   Search,
   Bookmark,
@@ -45,6 +44,7 @@ export const bottomNavigation = [
   { icon: Briefcase, label: 'Jobs', to: '/jobs', showInBottomNav: true },
   { icon: GraduationCap, label: 'Learn', to: '/courses', showInBottomNav: true },
   { icon: Building2, label: 'Companies', to: '/companies', showInBottomNav: true },
+  { icon: Lightbulb, label: 'OBS', to: '/supply-chain-insights', showInBottomNav: true }
 ];
 
 export const navigationCategories: NavigationCategory[] = [
@@ -54,7 +54,7 @@ export const navigationCategories: NavigationCategory[] = [
       {
         title: 'Courses',
         description: 'Browse supply chain courses',
-        icon: BookOpen,
+        icon: GraduationCap,
         href: '/courses',
         category: 'learning',
         showInBottomNav: true
@@ -228,8 +228,8 @@ export const getBottomNavigationItems = (): MenuItem[] => {
     .flatMap(category => category.items)
     .filter(item => item.showInBottomNav);
 
-  // Ensure we don't have more than 5 items in the bottom nav
-  return bottomNavItems.slice(0, 4);
+  // Show up to 5 items in the bottom nav
+  return bottomNavItems.slice(0, 5);
 };
 
 // Helper function to get menu items based on user roles and feature flags

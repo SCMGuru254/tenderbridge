@@ -1,0 +1,14 @@
+{
+  "imports": {
+    "rss-parser": "npm:rss-parser@3.13.0"
+  },
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env index.ts",
+    "deploy": "deno deploy"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  }
+}
