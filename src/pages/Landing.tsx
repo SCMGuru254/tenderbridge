@@ -33,10 +33,10 @@ const Landing = () => {
   ];
 
   const stats = [
-    { number: "5,000+", label: "Active Job Seekers" },
-    { number: "500+", label: "Partner Companies" },
-    { number: "95%", label: "Success Rate" },
-    { number: "24/7", label: "Support Available" }
+    { number: "2,000+", label: "Job Seekers on LinkedIn" },
+    { number: "AI-Powered", label: "Job Matching" },
+    { number: "Fast", label: "Support Response" },
+    { number: "Free", label: "To Get Started" }
   ];
 
   return (
