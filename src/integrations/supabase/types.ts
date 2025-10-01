@@ -147,6 +147,33 @@ export type Database = {
           },
         ]
       }
+      anonymous_settings: {
+        Row: {
+          created_at: string | null
+          default_anonymous: boolean | null
+          id: string
+          preferred_anonymous_name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_anonymous?: boolean | null
+          id?: string
+          preferred_anonymous_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_anonymous?: boolean | null
+          id?: string
+          preferred_anonymous_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       application_notifications: {
         Row: {
           applicant_id: string | null
@@ -402,6 +429,8 @@ export type Database = {
       }
       company_reviews: {
         Row: {
+          anonymous_display_name: string | null
+          anonymous_identifier: string | null
           career_growth_rating: number | null
           company_id: string
           compensation_rating: number | null
@@ -411,6 +440,7 @@ export type Database = {
           employment_duration: string | null
           helpful_votes: number | null
           id: string
+          is_active: boolean | null
           is_anonymous: boolean
           is_current_employee: boolean
           job_position: string | null
@@ -426,6 +456,8 @@ export type Database = {
           work_life_balance_rating: number | null
         }
         Insert: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           career_growth_rating?: number | null
           company_id: string
           compensation_rating?: number | null
@@ -435,6 +467,7 @@ export type Database = {
           employment_duration?: string | null
           helpful_votes?: number | null
           id?: string
+          is_active?: boolean | null
           is_anonymous?: boolean
           is_current_employee?: boolean
           job_position?: string | null
@@ -450,6 +483,8 @@ export type Database = {
           work_life_balance_rating?: number | null
         }
         Update: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           career_growth_rating?: number | null
           company_id?: string
           compensation_rating?: number | null
@@ -459,6 +494,7 @@ export type Database = {
           employment_duration?: string | null
           helpful_votes?: number | null
           id?: string
+          is_active?: boolean | null
           is_anonymous?: boolean
           is_current_employee?: boolean
           job_position?: string | null
@@ -516,6 +552,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -523,6 +560,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -530,6 +568,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -707,28 +746,40 @@ export type Database = {
       }
       discussion_comments: {
         Row: {
+          anonymous_display_name: string | null
+          anonymous_identifier: string | null
           content: string
           created_at: string
           discussion_id: string
           id: string
+          is_active: boolean | null
+          is_anonymous: boolean | null
           parent_comment_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           content: string
           created_at?: string
           discussion_id: string
           id?: string
+          is_active?: boolean | null
+          is_anonymous?: boolean | null
           parent_comment_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           content?: string
           created_at?: string
           discussion_id?: string
           id?: string
+          is_active?: boolean | null
+          is_anonymous?: boolean | null
           parent_comment_id?: string | null
           updated_at?: string
           user_id?: string
@@ -813,28 +864,58 @@ export type Database = {
       }
       discussions: {
         Row: {
+          anonymous_display_name: string | null
+          anonymous_identifier: string | null
           author_id: string
+          category: string
           content: string
           created_at: string
           id: string
+          is_active: boolean | null
+          is_anonymous: boolean | null
+          is_locked: boolean | null
+          status: string | null
+          tags: string[] | null
           title: string
           updated_at: string
+          user_id: string | null
+          view_count: number | null
         }
         Insert: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           author_id: string
+          category?: string
           content: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
+          is_anonymous?: boolean | null
+          is_locked?: boolean | null
+          status?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
+          user_id?: string | null
+          view_count?: number | null
         }
         Update: {
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           author_id?: string
+          category?: string
           content?: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
+          is_anonymous?: boolean | null
+          is_locked?: boolean | null
+          status?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
+          user_id?: string | null
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -1638,6 +1719,59 @@ export type Database = {
         }
         Relationships: []
       }
+      news_items: {
+        Row: {
+          content: string
+          created_at: string | null
+          guid: string | null
+          id: string
+          image_url: string | null
+          published_at: string | null
+          rss_feed_id: string | null
+          source: string | null
+          source_url: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          guid?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          rss_feed_id?: string | null
+          source?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          guid?: string | null
+          id?: string
+          image_url?: string | null
+          published_at?: string | null
+          rss_feed_id?: string | null
+          source?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_items_rss_feed_id_fkey"
+            columns: ["rss_feed_id"]
+            isOneToOne: false
+            referencedRelation: "rss_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           active: boolean
@@ -2022,6 +2156,8 @@ export type Database = {
       profiles: {
         Row: {
           allowed_roles: string[]
+          anonymous_display_name: string | null
+          anonymous_identifier: string | null
           avatar_url: string | null
           bio: string | null
           career_goals: string | null
@@ -2033,6 +2169,7 @@ export type Database = {
           experience_level: string | null
           full_name: string | null
           id: string
+          is_anonymous_allowed: boolean | null
           linkedin_url: string | null
           location: string | null
           notify_on_view: boolean | null
@@ -2047,6 +2184,8 @@ export type Database = {
         }
         Insert: {
           allowed_roles?: string[]
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           avatar_url?: string | null
           bio?: string | null
           career_goals?: string | null
@@ -2058,6 +2197,7 @@ export type Database = {
           experience_level?: string | null
           full_name?: string | null
           id: string
+          is_anonymous_allowed?: boolean | null
           linkedin_url?: string | null
           location?: string | null
           notify_on_view?: boolean | null
@@ -2072,6 +2212,8 @@ export type Database = {
         }
         Update: {
           allowed_roles?: string[]
+          anonymous_display_name?: string | null
+          anonymous_identifier?: string | null
           avatar_url?: string | null
           bio?: string | null
           career_goals?: string | null
@@ -2083,6 +2225,7 @@ export type Database = {
           experience_level?: string | null
           full_name?: string | null
           id?: string
+          is_anonymous_allowed?: boolean | null
           linkedin_url?: string | null
           location?: string | null
           notify_on_view?: boolean | null
@@ -2149,8 +2292,10 @@ export type Database = {
           comment_text: string
           created_at: string | null
           id: string
+          is_anonymous: boolean | null
           parent_comment_id: string | null
           review_id: string
+          status: string | null
           updated_at: string | null
           user_id: string
         }
@@ -2158,8 +2303,10 @@ export type Database = {
           comment_text: string
           created_at?: string | null
           id?: string
+          is_anonymous?: boolean | null
           parent_comment_id?: string | null
           review_id: string
+          status?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -2167,8 +2314,10 @@ export type Database = {
           comment_text?: string
           created_at?: string | null
           id?: string
+          is_anonymous?: boolean | null
           parent_comment_id?: string | null
           review_id?: string
+          status?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -2429,6 +2578,45 @@ export type Database = {
           source?: string
           transaction_type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      rss_feeds: {
+        Row: {
+          active: boolean | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          fetch_error: string | null
+          id: string
+          last_fetched_at: string | null
+          title: string
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          active?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          fetch_error?: string | null
+          id?: string
+          last_fetched_at?: string | null
+          title: string
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          active?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          fetch_error?: string | null
+          id?: string
+          last_fetched_at?: string | null
+          title?: string
+          updated_at?: string | null
+          url?: string
         }
         Relationships: []
       }
@@ -2784,6 +2972,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit: {
+        Args: {
+          action_type: string
+          max_actions: number
+          user_id: string
+          window_minutes: number
+        }
+        Returns: boolean
+      }
       get_paginated_jobs: {
         Args: {
           p_job_type?: string
@@ -2810,6 +3007,10 @@ export type Database = {
           viewer_id: string
         }
         Returns: Json
+      }
+      has_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
       }
       increment_vote_count: {
         Args: { application_id: string }
