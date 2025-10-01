@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthRedirect } from "@/components/AuthRedirect";
 import { Suspense, lazy, useState } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -140,8 +141,16 @@ const App = () => {
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<SupplyChainInsights />} />
-                  <Route path="landing" element={<Landing />} />
+                  <Route index element={
+                    <AuthRedirect>
+                      <Landing />
+                    </AuthRedirect>
+                  } />
+                  <Route path="landing" element={
+                    <AuthRedirect>
+                      <Landing />
+                    </AuthRedirect>
+                  } />
                   <Route path="index" element={<Index />} />
                   <Route path="jobs" element={<Jobs />} />
                   <Route path="dashboard" element={<Dashboard />} />

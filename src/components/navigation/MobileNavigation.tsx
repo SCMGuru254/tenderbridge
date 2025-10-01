@@ -55,7 +55,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
         className
       )}>
         <div className="flex items-center justify-around py-2 px-1">
-          {bottomNavItems.map((item) => {
+          {bottomNavItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -65,7 +65,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
                   cn(
                     "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5",
                     "text-xs font-medium transition-colors",
-                    "touch-manipulation", // Better touch targets
+                    "touch-manipulation",
                     "relative py-1",
                     isActive
                       ? "text-primary after:absolute after:h-0.5 after:w-1/2 after:-bottom-[1px] after:bg-primary after:rounded-full"
@@ -74,7 +74,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
                 }
               >
                 <Icon className="h-5 w-5 mb-0.5" />
-                <span className="truncate">{item.title}</span>
+                <span className="truncate text-[10px]">{item.title}</span>
               </NavLink>
             );
           })}

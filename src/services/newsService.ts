@@ -36,7 +36,7 @@ export class NewsService {
         .from('supply_chain_news')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (error) throw error;
 
@@ -63,14 +63,13 @@ export class NewsService {
       const { data, error } = await supabase.functions.invoke('news-api-integration', {
         body: { 
           searchTerm: '', 
-          limit: 50,
+          limit: 100,
           rssFeeds: [
             'https://www.allthingssupplychain.com/feed/',
             'https://www.supplychainbrain.com/rss/articles',
             'https://www.scmdojo.com/feed/',
             'https://www.supplychaintoday.com/feed/',
-            'https://www.supplychainshaman.com/feed/',
-            'https://scmresearch.org/feed/'
+            'https://www.supplychainshaman.com/feed/'
           ]
         }
       });
