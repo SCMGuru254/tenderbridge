@@ -100,17 +100,36 @@ export default function HireMySkill() {
 
   const loadProfessionalSkills = async () => {
     try {
-      // Load from existing skills or create mock data for demonstration
-      const mockSkills = [
-        { id: '1', skill_name: 'Cold Storage Management', hourly_rate: 75, experience_years: 8, description: 'Expert in temperature-controlled supply chain' },
-        { id: '2', skill_name: 'Logistics Optimization', hourly_rate: 65, experience_years: 6, description: 'Route planning and delivery optimization' },
-        { id: '3', skill_name: 'Blockchain Supply Chain', hourly_rate: 85, experience_years: 4, description: 'Implementing blockchain for supply chain transparency' },
-        { id: '4', skill_name: 'Green Supply Chain Management', hourly_rate: 70, experience_years: 5, description: 'Sustainable and eco-friendly supply chain practices' },
-        { id: '5', skill_name: 'Digital Twin Implementation', hourly_rate: 90, experience_years: 3, description: 'Creating digital replicas of supply chain systems' }
-      ];
-      setProfessionalSkills(mockSkills);
+      const { data, error } = await supabase
+        .from('professional_profiles')
+        .select(`
+          *,
+          skills:professional_skills(
+            *,
+            skill:skills(name)
+          ),
+          profiles:user_id(full_name, avatar_url, company, position)
+        `)
+        .eq('is_available', true)
+        .limit(20);
+
+      if (error) throw error;
+
+      // Transform to match UI expectations
+      const transformedSkills = (data || []).flatMap(profile => 
+        (profile.skills || []).map((skillRel: any) => ({
+          id: skillRel.id,
+          skill_name: skillRel.skill?.name || 'Unknown Skill',
+          hourly_rate: profile.hourly_rate || 50,
+          experience_years: skillRel.years_experience || profile.experience_years || 0,
+          description: profile.summary || `${skillRel.proficiency_level} level professional`
+        }))
+      );
+
+      setProfessionalSkills(transformedSkills);
     } catch (error) {
       console.error('Error loading professional skills:', error);
+      toast.error('Failed to load professional skills');
     }
   };
 
@@ -179,21 +198,84 @@ export default function HireMySkill() {
       return;
     }
 
-    // For now, just show success message - in real app would save to database
-    toast.success('Skill added successfully!');
-    setSkillForm({
-      skill_name: '',
-      hourly_rate: 0,
-      experience_years: 0,
-      description: ''
-    });
-    
-    // Add to local state for demo purposes
-    const newSkill = {
-      id: Date.now().toString(),
-      ...skillForm
-    };
-    setProfessionalSkills(prev => [newSkill, ...prev]);
+    try {
+      // First, check if user has a professional profile
+      const { data: existingProfile } = await supabase
+        .from('professional_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      let profileId = existingProfile?.id;
+
+      // Create profile if doesn't exist
+      if (!profileId) {
+        const { data: newProfile, error: profileError } = await supabase
+          .from('professional_profiles')
+          .insert({
+            user_id: user.id,
+            title: 'Supply Chain Professional',
+            summary: skillForm.description,
+            hourly_rate: skillForm.hourly_rate,
+            experience_years: skillForm.experience_years,
+            is_available: true
+          })
+          .select()
+          .single();
+
+        if (profileError) throw profileError;
+        profileId = newProfile.id;
+      }
+
+      // Find or create skill
+      const { data: existingSkill } = await supabase
+        .from('skills')
+        .select('id')
+        .eq('name', skillForm.skill_name)
+        .single();
+
+      let skillId = existingSkill?.id;
+
+      if (!skillId) {
+        const { data: newSkill, error: skillError } = await supabase
+          .from('skills')
+          .insert({
+            name: skillForm.skill_name,
+            category: 'General',
+            description: skillForm.description
+          })
+          .select()
+          .single();
+
+        if (skillError) throw skillError;
+        skillId = newSkill.id;
+      }
+
+      // Link skill to profile
+      const { error: linkError } = await supabase
+        .from('professional_skills')
+        .insert({
+          profile_id: profileId,
+          skill_id: skillId,
+          proficiency_level: 'intermediate',
+          years_experience: skillForm.experience_years
+        });
+
+      if (linkError) throw linkError;
+
+      toast.success('Professional skill added to marketplace!');
+      setSkillForm({
+        skill_name: '',
+        hourly_rate: 0,
+        experience_years: 0,
+        description: ''
+      });
+      
+      loadProfessionalSkills();
+    } catch (error: any) {
+      console.error('Error adding skill:', error);
+      toast.error(error.message || 'Failed to add skill');
+    }
   };
 
   const getTrendingSkills = () => {
@@ -213,10 +295,10 @@ export default function HireMySkill() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto">
-          <TabsTrigger value="marketplace">Talent Marketplace</TabsTrigger>
-          <TabsTrigger value="polls">Skill Demand Polls</TabsTrigger>
-          <TabsTrigger value="insights">Market Insights</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto h-auto flex-wrap">
+          <TabsTrigger value="marketplace" className="text-xs sm:text-sm px-2 py-2">Talent Marketplace</TabsTrigger>
+          <TabsTrigger value="polls" className="text-xs sm:text-sm px-2 py-2">Skill Demand</TabsTrigger>
+          <TabsTrigger value="insights" className="text-xs sm:text-sm px-2 py-2">Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="marketplace" className="space-y-6">

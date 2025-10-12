@@ -80,6 +80,7 @@ const PayPalPortal = lazy(() => import("./pages/PayPalPortal"));
 const FeaturedClients = lazy(() => import("./pages/FeaturedClients"));
 const Documents = lazy(() => import("./pages/Documents"));
 const HireMySkill = lazy(() => import("./pages/HireMySkill"));
+const TrainingEvents = lazy(() => import("./pages/TrainingEvents"));
 const Settings = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient({
@@ -207,6 +208,7 @@ const App = () => {
                   <Route path="terms" element={<Terms />} />
                   <Route path="hire-my-skill" element={<HireMySkill />} />
                   <Route path="courses" element={<Courses />} />
+                  <Route path="training-events" element={<TrainingEvents />} />
                   <Route path="security" element={<Security />} />
                   <Route path="forms" element={<Forms />} />
                   <Route path="free-services" element={<FreeServices />} />
