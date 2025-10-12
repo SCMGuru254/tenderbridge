@@ -6,7 +6,7 @@ import {
   Menu,
   Home,
   Briefcase,
-  MessageSquare,
+  GraduationCap,
   Building2,
   TrendingUp
 } from 'lucide-react';
@@ -18,7 +18,7 @@ export function MobileNavigation() {
 
   const mobileNavItems = [
     {
-      href: '/',
+      href: '/dashboard',
       label: 'Home',
       icon: Home,
       description: 'Home page'
@@ -30,10 +30,10 @@ export function MobileNavigation() {
       description: 'Find jobs'
     },
     {
-      href: '/discussions',
-      label: 'Discussions',
-      icon: MessageSquare,
-      description: 'Community discussions'
+      href: '/courses',
+      label: 'Learn',
+      icon: GraduationCap,
+      description: 'Browse courses'
     },
     {
       href: '/companies',
@@ -46,12 +46,6 @@ export function MobileNavigation() {
       label: 'Insights',
       icon: TrendingUp,
       description: 'Market intelligence and trends'
-    },
-    {
-      href: '/hire-my-skill',
-      label: 'Hire My Skill',
-      icon: Building2,
-      description: 'Marketplace for skills'
     }
   ];
 
