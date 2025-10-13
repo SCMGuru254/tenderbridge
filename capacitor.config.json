@@ -28,6 +28,10 @@
       ]
     }
   },
+  "server": {
+    "url": "https://58a11674-f67e-4727-b58a-1c6e2834f792.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
   "android": {
     "allowMixedContent": false,
     "captureInput": true,
