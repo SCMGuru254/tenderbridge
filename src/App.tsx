@@ -2,10 +2,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthRedirect } from "@/components/AuthRedirect";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { SplashScreen } from "@/components/SplashScreen";
 import { Layout } from "@/components/Layout";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { AuthProviderFull } from "@/contexts/AuthContextFull";
@@ -127,8 +126,6 @@ const LoadingSpinner = () => (
 );
 
 const App = () => {
-  const [isSplashVisible, setIsSplashVisible] = useState(true);
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -136,9 +133,6 @@ const App = () => {
           <NavigationProvider>
             <TooltipProvider delayDuration={300}>
               <BrowserRouter>
-              {isSplashVisible && (
-                <SplashScreen onFinish={() => setIsSplashVisible(false)} />
-              )}
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Layout />}>
