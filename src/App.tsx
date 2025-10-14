@@ -127,7 +127,16 @@ const LoadingSpinner = () => (
 );
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash on first load, not on every page navigation
+    const hasShownSplash = sessionStorage.getItem('splash_shown');
+    return !hasShownSplash;
+  });
+
+  const handleSplashFinish = () => {
+    sessionStorage.setItem('splash_shown', 'true');
+    setShowSplash(false);
+  };
 
   return (
     <ErrorBoundary>
@@ -135,7 +144,7 @@ const App = () => {
         <AuthProviderFull>
           <NavigationProvider>
             <TooltipProvider delayDuration={300}>
-              {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} minDuration={2500} />}
+              {showSplash && <SplashScreen onFinish={handleSplashFinish} minDuration={2500} />}
               <BrowserRouter>
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>
