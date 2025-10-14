@@ -5,16 +5,19 @@
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 3000,
       "launchAutoHide": true,
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#1a1a1a",
       "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP",
+      "androidScaleType": "FIT_CENTER",
       "showSpinner": true,
       "splashFullScreen": true,
       "splashImmersive": true,
-      "iosSpinnerStyle": "small",
-      "spinnerColor": "#4338CA"
+      "iosSpinnerStyle": "large",
+      "spinnerColor": "#4338CA",
+      "androidSpinnerStyle": "large",
+      "fadeInDuration": 1000,
+      "fadeOutDuration": 500
     },
     "StatusBar": {
       "backgroundColor": "#ffffff",
@@ -29,8 +32,8 @@
     }
   },
   "server": {
-    "url": "https://58a11674-f67e-4727-b58a-1c6e2834f792.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
+    "androidScheme": "capacitor",
+    "iosScheme": "capacitor"
   },
   "android": {
     "allowMixedContent": false,
