@@ -7,19 +7,23 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// News source URLs
+// News source URLs - Updated with working RSS feeds
 const NEWS_SOURCES = [
   {
-    name: "Supply Chain Digital",
-    url: "https://www.supplychaindigital.com/rss/region/africa"
+    name: "Supply Chain Dive",
+    url: "https://www.supplychaindive.com/feeds/news/"
   },
   {
-    name: "Logistics Update Africa",
-    url: "https://www.logupdateafrica.com/rss/category/supply-chain"
+    name: "Supply Chain Brain",
+    url: "https://www.supplychainbrain.com/rss/topic/1-latest-content"
   },
   {
-    name: "African Business",
-    url: "https://african.business/category/sectors/logistics/feed/"
+    name: "Logistics Management",
+    url: "https://www.logisticsmgmt.com/rss/topic/1-latest-content"
+  },
+  {
+    name: "Inbound Logistics",
+    url: "https://www.inboundlogistics.com/cms/feed/"
   }
 ];
 

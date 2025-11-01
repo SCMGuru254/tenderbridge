@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import chairsBg from "@/assets/chairs-bg.jpg";
+import hrBg from "@/assets/hr-background.png";
 import appLogo from "@/assets/app-icon.png";
 
 const Auth = () => {
@@ -270,14 +270,12 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center">
-      {/* Background Image with Blur */}
+      {/* Background Image */}
       <div 
         className="fixed inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-500"
         style={{ 
-          backgroundImage: `url(${chairsBg})`,
-          backgroundColor: '#0284c7',
-          backgroundBlendMode: 'multiply',
-          opacity: loading ? 0 : 1
+          backgroundImage: `url(${hrBg})`,
+          opacity: loading ? 0.9 : 1
         }}
       />
       

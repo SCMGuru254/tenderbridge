@@ -286,19 +286,19 @@ export default function HireMySkill() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <div className="text-center max-w-3xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold mb-4">Hire My Skill</h1>
-        <p className="text-muted-foreground text-lg">
+    <div className="container mx-auto py-8 px-4 space-y-8">
+      <div className="text-center max-w-3xl mx-auto mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold mb-3">Hire My Skill</h1>
+        <p className="text-muted-foreground text-base md:text-lg">
           The future of supply chain talent marketplace - where skills meet opportunities in real-time
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto h-auto flex-wrap">
-          <TabsTrigger value="marketplace" className="text-xs sm:text-sm px-2 py-2">Talent Marketplace</TabsTrigger>
-          <TabsTrigger value="polls" className="text-xs sm:text-sm px-2 py-2">Skill Demand</TabsTrigger>
-          <TabsTrigger value="insights" className="text-xs sm:text-sm px-2 py-2">Insights</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto">
+          <TabsTrigger value="marketplace" className="text-sm px-3 py-2">Talent Marketplace</TabsTrigger>
+          <TabsTrigger value="polls" className="text-sm px-3 py-2">Skill Demand</TabsTrigger>
+          <TabsTrigger value="insights" className="text-sm px-3 py-2">Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="marketplace" className="space-y-6">
@@ -315,12 +315,12 @@ export default function HireMySkill() {
                 {professionalSkills.slice(0, 6).map((skill) => (
                   <Card key={skill.id} className="bg-secondary/50 hover:shadow-lg transition-shadow">
                     <CardContent className="pt-6">
-                      <div className="text-2xl font-bold mb-2">KSH {skill.hourly_rate}/hr</div>
-                      <div className="text-sm text-muted-foreground mb-2">{skill.skill_name}</div>
-                      <div className="text-xs text-muted-foreground mb-3">
+                      <div className="text-2xl font-bold mb-2 text-foreground">KSH {skill.hourly_rate}/hr</div>
+                      <div className="text-base font-semibold text-foreground mb-2">{skill.skill_name}</div>
+                      <div className="text-sm text-muted-foreground mb-3">
                         {skill.experience_years} years experience
                       </div>
-                      <p className="text-xs line-clamp-2 mb-3">{skill.description}</p>
+                      <p className="text-sm line-clamp-2 mb-3 text-foreground/90">{skill.description}</p>
                       <Button size="sm" className="w-full">Contact Professional</Button>
                     </CardContent>
                   </Card>
