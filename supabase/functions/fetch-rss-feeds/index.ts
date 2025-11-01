@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import Parser from 'rss-parser'
+import Parser from 'npm:rss-parser@3.13.0'
 
 interface FeedItem {
   title?: string
