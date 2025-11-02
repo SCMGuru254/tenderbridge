@@ -6,62 +6,50 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export const SplashScreen = ({ onFinish, minDuration = 2000 }: SplashScreenProps) => {
-  const [isVisible, setIsVisible] = useState(true);
+export const SplashScreen = ({ onFinish, minDuration = 1500 }: SplashScreenProps) => {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Start fade out animation slightly before finishing
+    // Always call onFinish immediately to prevent blocking
+    const immediateFinish = setTimeout(() => {
+      onFinish?.();
+    }, 0);
+
+    // Start fade out animation
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
-    }, minDuration - 500);
+    }, Math.max(minDuration - 300, 500));
 
-    // Complete and unmount
-    const finishTimer = setTimeout(() => {
-      setIsVisible(false);
-      onFinish?.();
-    }, minDuration);
-
-    // Failsafe: force unmount after max duration
-    const failsafeTimer = setTimeout(() => {
-      setIsVisible(false);
-      onFinish?.();
-    }, 5000);
-
+    // Cleanup
     return () => {
+      clearTimeout(immediateFinish);
       clearTimeout(fadeTimer);
-      clearTimeout(finishTimer);
-      clearTimeout(failsafeTimer);
     };
   }, [minDuration, onFinish]);
 
-  if (!isVisible) return null;
-
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 transition-opacity duration-300 pointer-events-none ${
         fadeOut ? 'opacity-0' : 'opacity-100'
       }`}
+      style={{ display: fadeOut ? 'none' : 'flex' }}
     >
       <div className="text-center">
         <img 
           src={appLogo} 
           alt="SupplyChain KE" 
-          className="w-24 h-24 mx-auto mb-6 animate-pulse" 
+          className="w-20 h-20 mx-auto mb-4 animate-pulse" 
+          loading="eager"
           onError={(e) => {
-            // Fallback if image fails to load
             e.currentTarget.style.display = 'none';
           }}
         />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-xl font-bold text-gray-900 mb-1">
           SupplyChain KE
         </h1>
-        <p className="text-sm text-gray-600 mb-8">
+        <p className="text-sm text-gray-600">
           Your Professional Supply Chain Network
         </p>
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        </div>
       </div>
     </div>
   );
