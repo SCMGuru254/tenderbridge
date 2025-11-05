@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Users } from 'lucide-react';
 import { EnhancedProfileCard } from './EnhancedProfileCard';
 import { Profile } from '@/types/profiles';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { followUser, unfollowUser, getFollowing, getFollowers } from '@/services/followService';
 import { toast } from 'sonner';

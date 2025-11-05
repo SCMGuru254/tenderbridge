@@ -9,7 +9,7 @@ import { Calendar, MapPin, Users, DollarSign, Video, Clock, Plus } from 'lucide-
 import { TrainingEventForm } from '@/components/training/TrainingEventForm';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TrainingEvent {
   id: string;

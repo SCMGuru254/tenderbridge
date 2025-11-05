@@ -1,5 +1,4 @@
-
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContextFull';
 
 export const useUser = () => {
   const { user, loading } = useAuth();

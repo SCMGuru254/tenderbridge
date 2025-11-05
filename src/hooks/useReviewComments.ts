@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAnonymousContent } from '@/hooks/useAnonymousContent';
 import type { ReviewComment } from '@/types/features';

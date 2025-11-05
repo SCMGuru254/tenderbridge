@@ -8,7 +8,7 @@ import { ReviewList } from "./ReviewList.tsx";
 import { ReviewStats } from "./ReviewStats.tsx";
 import { ReviewFilters } from "./ReviewFilters";
 import type { ReviewFilters as ReviewFiltersType } from "./ReviewFilters";
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/useToast';
 import { checkRateLimit } from '@/utils/rateLimit';
 

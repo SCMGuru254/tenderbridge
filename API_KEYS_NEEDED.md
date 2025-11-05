@@ -3,20 +3,6 @@
 
 Below is a list of API keys that need to be added to Supabase for the full functionality of the SupplyChain_KE platform:
 
-## Core Functionality
-
-1. **OpenAI API Key**
-   - Purpose: Powers the AI agents for job matching, news analysis, and career advice
-   - URL to get key: https://platform.openai.com/api-keys
-   - Secret name in Supabase: `OPENAI_API_KEY`
-
-2. **LinkedIn API Credentials**
-   - Purpose: Job scraping and social sharing functionality
-   - URL to get keys: https://www.linkedin.com/developers/
-   - Secret names in Supabase:
-     - `LINKEDIN_CLIENT_ID`
-     - `LINKEDIN_CLIENT_SECRET`
-
 ## News and Content
 
 3. **News API Key**
