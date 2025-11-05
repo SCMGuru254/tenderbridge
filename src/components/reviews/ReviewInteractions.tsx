@@ -79,7 +79,7 @@ export const ReviewInteractions = ({
         .from('review_comments')
         .select(`
           *,
-          profiles:profiles(full_name, avatar_url)
+          profiles(full_name, avatar_url)
         `)
         .eq('review_id', reviewId)
         .order('created_at', { ascending: true });

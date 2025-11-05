@@ -36,7 +36,7 @@ export class NewsService {
         .from('supply_chain_news')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100); // Limit to 100 most recent items
 
       if (error) throw error;
 

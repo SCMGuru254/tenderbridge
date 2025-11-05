@@ -70,7 +70,7 @@ export const HRProfiles = () => {
     try {
       const { data, error } = await supabase
         .from('hr_profiles')
-        .select('*, profiles:profiles(full_name, avatar_url, company, position, email)');
+        .select('*, profiles(full_name, avatar_url, company, position, email)');
       if (error) throw error;
       setHRProfiles(data || []);
     } catch (error) {

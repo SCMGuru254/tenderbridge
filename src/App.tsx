@@ -72,6 +72,7 @@ const Affiliate = lazy(() => import("./pages/Affiliate"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Security = lazy(() => import("./pages/Security"));
+const RLSTest = lazy(() => import("./pages/RLSTest"));
 const Forms = lazy(() => import("./pages/Forms"));
 const FreeServices = lazy(() => import("./pages/FreeServices"));
 const Faq = lazy(() => import("./pages/Faq"));
@@ -216,6 +217,7 @@ const App = () => {
                   <Route path="courses" element={<Courses />} />
                   <Route path="training-events" element={<TrainingEvents />} />
                   <Route path="security" element={<Security />} />
+                  <Route path="rls-test" element={<RLSTest />} />
                   <Route path="forms" element={<Forms />} />
                   <Route path="free-services" element={<FreeServices />} />
                   <Route path="faq" element={<Faq />} />

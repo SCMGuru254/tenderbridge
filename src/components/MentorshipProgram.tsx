@@ -77,7 +77,7 @@ export const MentorshipProgram = () => {
     try {
       const { data, error } = await supabase
         .from('mentors')
-        .select('*, profiles:profiles(full_name, avatar_url, company, position)');
+        .select('*, profiles(full_name, avatar_url, company, position)');
       if (error) throw error;
       setMentors(data || []);
     } catch (error) {
