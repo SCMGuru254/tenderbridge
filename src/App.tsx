@@ -83,6 +83,7 @@ const Documents = lazy(() => import("./pages/Documents"));
 const HireMySkill = lazy(() => import("./pages/HireMySkill"));
 const TrainingEvents = lazy(() => import("./pages/TrainingEvents"));
 const Settings = lazy(() => import("./pages/Settings"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -228,6 +229,11 @@ const App = () => {
                     <Route path="documents" element={<Documents />} />
                   )}
                   <Route path="settings" element={<Settings />} />
+                  <Route path="admin" element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } />
                 </Route>
               </Routes>
             </Suspense>
