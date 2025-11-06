@@ -186,23 +186,19 @@ export class NewsService {
     try {
       performanceMonitor.startMeasure('cleanup-old-news');
       
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - this.NEWS_RETENTION_DAYS);
-
-      const { data, error } = await supabase
-        .from('supply_chain_news')
-        .delete()
-        .lt('published_date', cutoffDate.toISOString())
-        .select();
+      // Call the automated cleanup edge function
+      const { data, error } = await supabase.functions.invoke('cleanup-old-news', {
+        body: { retention_days: this.NEWS_RETENTION_DAYS }
+      });
 
       if (error) throw error;
 
-      analytics.trackUserAction('news-cleanup', `deleted:${data?.length || 0}`);
+      analytics.trackUserAction('news-cleanup', `deleted:${data?.deleted_count || 0}`);
 
       return { 
         success: true, 
-        count: data?.length || 0,
-        message: `Successfully deleted ${data?.length || 0} old news items`
+        count: data?.deleted_count || 0,
+        message: data?.message || `Successfully deleted ${data?.deleted_count || 0} old news items`
       };
 
     } catch (error) {
