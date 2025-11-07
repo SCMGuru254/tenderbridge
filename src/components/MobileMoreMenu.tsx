@@ -94,7 +94,7 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
           <SheetTitle>More Options</SheetTitle>
         </SheetHeader>
         
-        <div className="grid grid-cols-2 gap-4 mt-6 pb-6 overflow-y-auto">
+        <div className="grid grid-cols-2 gap-4 mt-6 pb-6 max-h-[calc(80vh-100px)] overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (

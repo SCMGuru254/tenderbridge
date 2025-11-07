@@ -70,12 +70,13 @@ export const HRProfiles = () => {
     try {
       const { data, error } = await supabase
         .from('hr_profiles')
-        .select('*, profiles(full_name, avatar_url, company, position, email)');
+        .select('*, profiles(full_name, avatar_url, company, position, email)')
+        .eq('availability_status', 'available');
       if (error) throw error;
       setHRProfiles(data || []);
     } catch (error) {
       console.error('Error loading HR profiles:', error);
-      toast.error('Failed to load HR profiles');
+      setHRProfiles([]);
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +115,9 @@ export const HRProfiles = () => {
   // Load profiles on mount
   useEffect(() => {
     loadHRProfiles();
-    loadUserHRProfile();
+    if (user) {
+      loadUserHRProfile();
+    }
     // eslint-disable-next-line
   }, [user]);
 

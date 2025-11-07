@@ -77,11 +77,13 @@ export const MentorshipProgram = () => {
     try {
       const { data, error } = await supabase
         .from('mentors')
-        .select('*, profiles(full_name, avatar_url, company, position)');
+        .select('*, profiles(full_name, avatar_url, company, position)')
+        .eq('is_active', true);
       if (error) throw error;
       setMentors(data || []);
     } catch (error) {
       console.error('Error loading mentors:', error);
+      setMentors([]);
     } finally {
       setIsLoading(false);
     }
@@ -131,8 +133,8 @@ export const MentorshipProgram = () => {
   };
 
   useEffect(() => {
+    loadMentors();
     if (user) {
-      loadMentors();
       loadUserProfiles();
     }
   }, [user]);
