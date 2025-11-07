@@ -19,6 +19,7 @@ export default function Navbar() {
             <Link to="/supply-chain-insights"><Button variant="ghost">Insights</Button></Link>
             <Link to="/salary-analyzer"><Button variant="ghost">Salary</Button></Link>
             <Link to="/chat-assistant"><Button variant="ghost">Assistant</Button></Link>
+            <Link to="/hire-my-skill"><Button variant="ghost">Hire My Skill</Button></Link>
             <Link to="/post-job"><Button variant="ghost">Post Job</Button></Link>
           </div>
 
