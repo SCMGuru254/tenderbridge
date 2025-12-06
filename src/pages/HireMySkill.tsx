@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,21 +7,26 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   TrendingUp,
-  Brain,
-  Sparkles,
   DollarSign,
   Users,
-  BarChart,
-  Vote,
   Plus,
   ThumbsUp,
-  ArrowUp
+  Search,
+  Clock,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  User,
+  Award
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 interface SkillPoll {
   id: string;
@@ -38,24 +43,65 @@ interface SkillPoll {
   user_voted?: boolean;
 }
 
-interface ProfessionalSkill {
+interface ProfessionalProfile {
   id: string;
-  skill_name: string;
-  hourly_rate: number;
-  experience_years: number;
-  description?: string;
+  user_id: string;
+  title: string;
+  summary?: string;
+  hourly_rate?: number;
+  experience_years?: number;
+  is_available: boolean;
+  skills: Array<{
+    id: string;
+    skill_name: string;
+    proficiency_level: string;
+    years_experience?: number;
+  }>;
+  user?: {
+    full_name?: string;
+    avatar_url?: string;
+    location?: string;
+  };
+}
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  budget_min?: number;
+  budget_max?: number;
+  duration_estimate?: string;
+  status: string;
+  created_at: string;
+  client?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+  required_skills: Array<{
+    skill_name: string;
+    minimum_proficiency: string;
+  }>;
 }
 
 export default function HireMySkill() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('marketplace');
+  const [activeTab, setActiveTab] = useState('professionals');
   const [skillPolls, setSkillPolls] = useState<SkillPoll[]>([]);
-  const [professionalSkills, setProfessionalSkills] = useState<ProfessionalSkill[]>([]);
+  const [professionals, setProfessionals] = useState<ProfessionalProfile[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [skillFilter, setSkillFilter] = useState('all');
+  const [budgetRange] = useState([0, 500]);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [durationFilter, setDurationFilter] = useState('all');
 
   // Form states
   const [skillForm, setSkillForm] = useState({
     skill_name: '',
-    hourly_rate: 0,
+    hourly_rate: 50,
     experience_years: 0,
     description: ''
   });
@@ -70,66 +116,137 @@ export default function HireMySkill() {
   });
 
   useEffect(() => {
-    loadSkillPolls();
-    loadProfessionalSkills();
-  }, [user]);
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadSkillPolls(),
+        loadProfessionals(),
+        loadProjects()
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadSkillPolls = async () => {
     try {
       const { data, error } = await supabase
         .from('skill_polls')
-        .select(`
-          *,
-          skill_poll_votes!inner(user_id)
-        `)
+        .select('*')
         .order('votes_count', { ascending: false });
 
       if (error) throw error;
-      
-      // Mark polls where current user has voted
-      const pollsWithVoteStatus = (data || []).map(poll => ({
-        ...poll,
-        user_voted: poll.skill_poll_votes?.some((vote: any) => vote.user_id === user?.id)
-      }));
-      
-      setSkillPolls(pollsWithVoteStatus);
+      setSkillPolls(data || []);
     } catch (error) {
       console.error('Error loading skill polls:', error);
     }
   };
 
-  const loadProfessionalSkills = async () => {
+  const loadProfessionals = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: profiles, error } = await supabase
         .from('professional_profiles')
         .select(`
-          *,
-          skills:professional_skills(
-            *,
-            skill:skills(name)
-          ),
-          profiles:user_id(full_name, avatar_url, company, position)
+          id, user_id, title, summary, hourly_rate, experience_years, is_available,
+          professional_skills (
+            id, proficiency_level, years_experience,
+            skills (name)
+          )
         `)
         .eq('is_available', true)
         .limit(20);
 
       if (error) throw error;
 
-      // Transform to match UI expectations
-      const transformedSkills = (data || []).flatMap(profile => 
-        (profile.skills || []).map((skillRel: any) => ({
-          id: skillRel.id,
-          skill_name: skillRel.skill?.name || 'Unknown Skill',
-          hourly_rate: profile.hourly_rate || 50,
-          experience_years: skillRel.years_experience || profile.experience_years || 0,
-          description: profile.summary || `${skillRel.proficiency_level} level professional`
-        }))
-      );
+      // Transform data with user info
+      const transformedProfiles: ProfessionalProfile[] = [];
+      
+      for (const profile of profiles || []) {
+        // Fetch user profile separately
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url, location')
+          .eq('id', profile.user_id)
+          .single();
 
-      setProfessionalSkills(transformedSkills);
+        transformedProfiles.push({
+          id: profile.id,
+          user_id: profile.user_id,
+          title: profile.title,
+          summary: profile.summary,
+          hourly_rate: profile.hourly_rate,
+          experience_years: profile.experience_years,
+          is_available: profile.is_available,
+          skills: ((profile.professional_skills as any[]) || []).map((ps: any) => ({
+            id: ps.id,
+            skill_name: ps.skills?.name || 'Unknown',
+            proficiency_level: ps.proficiency_level,
+            years_experience: ps.years_experience
+          })),
+          user: userProfile || undefined
+        });
+      }
+
+      setProfessionals(transformedProfiles);
     } catch (error) {
-      console.error('Error loading professional skills:', error);
-      toast.error('Failed to load professional skills');
+      console.error('Error loading professionals:', error);
+    }
+  };
+
+  const loadProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          id, title, description, budget_min, budget_max, duration_estimate, status, created_at, client_id,
+          project_skills (
+            minimum_proficiency,
+            skills (name)
+          )
+        `)
+        .eq('status', 'open')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      // Transform projects with client info
+      const transformedProjects: Project[] = [];
+      
+      for (const project of data || []) {
+        // Fetch client profile
+        const { data: clientProfile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', project.client_id)
+          .single();
+
+        transformedProjects.push({
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          budget_min: project.budget_min,
+          budget_max: project.budget_max,
+          duration_estimate: project.duration_estimate,
+          status: project.status,
+          created_at: project.created_at,
+          client: clientProfile || undefined,
+          required_skills: ((project.project_skills as any[]) || []).map((ps: any) => ({
+            skill_name: ps.skills?.name || 'Unknown',
+            minimum_proficiency: ps.minimum_proficiency
+          }))
+        });
+      }
+
+      setProjects(transformedProjects);
+    } catch (error) {
+      console.error('Error loading projects:', error);
     }
   };
 
@@ -266,360 +383,533 @@ export default function HireMySkill() {
       toast.success('Professional skill added to marketplace!');
       setSkillForm({
         skill_name: '',
-        hourly_rate: 0,
+        hourly_rate: 50,
         experience_years: 0,
         description: ''
       });
       
-      loadProfessionalSkills();
+      loadProfessionals();
     } catch (error: any) {
       console.error('Error adding skill:', error);
       toast.error(error.message || 'Failed to add skill');
     }
   };
 
-  const getTrendingSkills = () => {
-    return skillPolls
-      .filter(poll => poll.poll_type === 'trending')
-      .sort((a, b) => b.votes_count - a.votes_count)
-      .slice(0, 5);
-  };
+  const filteredProfessionals = professionals.filter(pro => {
+    const matchesSearch = !searchTerm || 
+      pro.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pro.skills.some(s => s.skill_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesBudget = !pro.hourly_rate || (pro.hourly_rate >= (budgetRange[0] ?? 0) && pro.hourly_rate <= (budgetRange[1] ?? 500));
+    const matchesSkill = skillFilter === 'all' || pro.skills.some(s => s.skill_name.toLowerCase().includes(skillFilter.toLowerCase()));
+    return matchesSearch && matchesBudget && matchesSkill;
+  });
+
+  const filteredProjects = projects.filter(proj => {
+    const matchesSearch = !searchTerm || 
+      proj.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proj.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || proj.status === statusFilter;
+    const matchesDuration = durationFilter === 'all' || proj.duration_estimate === durationFilter;
+    return matchesSearch && matchesStatus && matchesDuration;
+  });
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading marketplace...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-8 px-4 space-y-8">
+    <div className="container mx-auto py-8 px-4 space-y-8 pb-24">
+      {/* Hero Section */}
       <div className="text-center max-w-3xl mx-auto mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-3">Hire My Skill</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Hire My Skill
+        </h1>
         <p className="text-muted-foreground text-base md:text-lg">
-          The future of supply chain talent marketplace - where skills meet opportunities in real-time
+          Connect with top supply chain professionals or find your next opportunity
         </p>
+        
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-4 mt-6 max-w-md mx-auto">
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="text-2xl font-bold text-primary">{professionals.length}</div>
+            <div className="text-xs text-muted-foreground">Professionals</div>
+          </div>
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="text-2xl font-bold text-primary">{projects.length}</div>
+            <div className="text-xs text-muted-foreground">Open Projects</div>
+          </div>
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="text-2xl font-bold text-primary">{skillPolls.length}</div>
+            <div className="text-xs text-muted-foreground">Skill Demands</div>
+          </div>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid grid-cols-3 w-full max-w-3xl mx-auto">
-          <TabsTrigger value="marketplace" className="text-sm px-3 py-2">Talent Marketplace</TabsTrigger>
-          <TabsTrigger value="polls" className="text-sm px-3 py-2">Skill Demand</TabsTrigger>
-          <TabsTrigger value="insights" className="text-sm px-3 py-2">Insights</TabsTrigger>
+      {/* CTA for logged-in users */}
+      {user && (
+        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-lg">Ready to showcase your skills?</h3>
+                <p className="text-muted-foreground text-sm">Create your professional profile and start getting hired</p>
+              </div>
+              <Link to="/hire-my-skill/profile">
+                <Button className="gap-2">
+                  <User className="h-4 w-4" />
+                  Manage My Profile
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid grid-cols-4 w-full max-w-2xl mx-auto">
+          <TabsTrigger value="professionals" className="text-xs sm:text-sm px-2 py-2 gap-1">
+            <Users className="h-4 w-4 hidden sm:block" />
+            Professionals
+          </TabsTrigger>
+          <TabsTrigger value="projects" className="text-xs sm:text-sm px-2 py-2 gap-1">
+            <Briefcase className="h-4 w-4 hidden sm:block" />
+            Projects
+          </TabsTrigger>
+          <TabsTrigger value="demand" className="text-xs sm:text-sm px-2 py-2 gap-1">
+            <TrendingUp className="h-4 w-4 hidden sm:block" />
+            Demand
+          </TabsTrigger>
+          <TabsTrigger value="add" className="text-xs sm:text-sm px-2 py-2 gap-1">
+            <Plus className="h-4 w-4 hidden sm:block" />
+            Add Skill
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="marketplace" className="space-y-6">
-          {/* Real-time Skills Marketplace */}
+        {/* Professionals Tab */}
+        <TabsContent value="professionals" className="space-y-6">
+          {/* Filters */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Live Skills Marketplace
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {professionalSkills.slice(0, 6).map((skill) => (
-                  <Card key={skill.id} className="bg-secondary/50 hover:shadow-lg transition-shadow">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold mb-2 text-foreground">KSH {skill.hourly_rate}/hr</div>
-                      <div className="text-base font-semibold text-foreground mb-2">{skill.skill_name}</div>
-                      <div className="text-sm text-muted-foreground mb-3">
-                        {skill.experience_years} years experience
-                      </div>
-                      <p className="text-sm line-clamp-2 mb-3 text-foreground/90">{skill.description}</p>
-                      <Button size="sm" className="w-full">Contact Professional</Button>
-                    </CardContent>
-                  </Card>
-                ))}
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search skills or professionals..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Select value={skillFilter} onValueChange={setSkillFilter}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Skill" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Skills</SelectItem>
+                      <SelectItem value="logistics">Logistics</SelectItem>
+                      <SelectItem value="procurement">Procurement</SelectItem>
+                      <SelectItem value="analytics">Analytics</SelectItem>
+                      <SelectItem value="warehousing">Warehousing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="hidden md:flex items-center gap-2 px-3 border rounded-lg">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      KSH {budgetRange[0]} - {budgetRange[1]}/hr
+                    </span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Add Your Skill Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5 text-primary" />
-                Add Your Professional Skill
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddSkill} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="skill_name">Skill Name</Label>
-                    <Input
-                      id="skill_name"
-                      value={skillForm.skill_name}
-                      onChange={(e) => setSkillForm({...skillForm, skill_name: e.target.value})}
-                      placeholder="e.g. Supply Chain Analytics"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hourly_rate">Hourly Rate (KSH)</Label>
-                    <Input
-                      id="hourly_rate"
-                      type="number"
-                      min="0"
-                      value={skillForm.hourly_rate}
-                      onChange={(e) => setSkillForm({...skillForm, hourly_rate: parseInt(e.target.value) || 0})}
-                      placeholder="e.g. 500"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="experience_years">Years of Experience</Label>
-                  <Input
-                    id="experience_years"
-                    type="number"
-                    min="0"
-                    value={skillForm.experience_years}
-                    onChange={(e) => setSkillForm({...skillForm, experience_years: parseInt(e.target.value) || 0})}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Skill Description</Label>
-                  <Textarea
-                    id="description"
-                    value={skillForm.description}
-                    onChange={(e) => setSkillForm({...skillForm, description: e.target.value})}
-                    placeholder="Describe your expertise and what you offer..."
-                    rows={3}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full">Add My Skill to Marketplace</Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="polls" className="space-y-6">
-          {/* Create New Poll */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Vote className="h-5 w-5 text-primary" />
-                Create Skill Demand Poll
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleCreatePoll} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="poll_skill_name">Skill Name</Label>
-                    <Input
-                      id="poll_skill_name"
-                      value={pollForm.skill_name}
-                      onChange={(e) => setPollForm({...pollForm, skill_name: e.target.value})}
-                      placeholder="e.g. AI Supply Chain Optimization"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="demand_level">Demand Level</Label>
-                    <Select value={pollForm.demand_level} onValueChange={(value) => setPollForm({...pollForm, demand_level: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low Demand</SelectItem>
-                        <SelectItem value="medium">Medium Demand</SelectItem>
-                        <SelectItem value="high">High Demand</SelectItem>
-                        <SelectItem value="urgent">Urgent Need</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="poll_type">Poll Type</Label>
-                    <Select value={pollForm.poll_type} onValueChange={(value) => setPollForm({...pollForm, poll_type: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="demand">Current Demand</SelectItem>
-                        <SelectItem value="trending">Trending Skill</SelectItem>
-                        <SelectItem value="forecast">Future Forecast</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="budget_range">Budget Range</Label>
-                    <Input
-                      id="budget_range"
-                      value={pollForm.budget_range}
-                      onChange={(e) => setPollForm({...pollForm, budget_range: e.target.value})}
-                      placeholder="e.g. KSH 50-80/hour"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="poll_description">Description</Label>
-                  <Textarea
-                    id="poll_description"
-                    value={pollForm.description}
-                    onChange={(e) => setPollForm({...pollForm, description: e.target.value})}
-                    placeholder="Describe what you're looking for and project requirements..."
-                    rows={3}
-                  />
-                </div>
-
-                <Button type="submit" className="w-full">Create Poll</Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Active Polls */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Active Skill Demand Polls
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {skillPolls.map((poll) => (
-                  <Card key={poll.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="font-semibold text-lg">{poll.skill_name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge 
-                              variant={poll.demand_level === 'urgent' ? 'destructive' : 'secondary'}
-                            >
-                              {poll.demand_level} demand
-                            </Badge>
-                            <Badge variant="outline">{poll.poll_type}</Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm font-medium">
-                            <ArrowUp className="h-4 w-4 text-green-500" />
-                            {poll.votes_count} votes
-                          </div>
-                          {poll.budget_range && (
-                            <div className="text-sm text-muted-foreground">{poll.budget_range}</div>
-                          )}
-                        </div>
+          {/* Professionals Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProfessionals.length === 0 ? (
+              <div className="col-span-full text-center py-12">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="font-semibold text-lg mb-2">No professionals found</h3>
+                <p className="text-muted-foreground text-sm">Try adjusting your filters or check back later</p>
+              </div>
+            ) : (
+              filteredProfessionals.map((pro) => (
+                <Card key={pro.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={pro.user?.avatar_url} />
+                        <AvatarFallback>{pro.user?.full_name?.charAt(0) || 'P'}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate">{pro.user?.full_name || 'Professional'}</h3>
+                        <p className="text-sm text-muted-foreground truncate">{pro.title}</p>
                       </div>
+                      <Badge variant="secondary" className="shrink-0">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        Available
+                      </Badge>
+                    </div>
 
-                      {poll.description && (
-                        <p className="text-sm text-muted-foreground mb-3">{poll.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {pro.summary || 'Experienced professional ready to help with your projects.'}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {pro.skills.slice(0, 3).map((skill, idx) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {skill.skill_name}
+                        </Badge>
+                      ))}
+                      {pro.skills.length > 3 && (
+                        <Badge variant="outline" className="text-xs">+{pro.skills.length - 3}</Badge>
                       )}
+                    </div>
 
-                      <div className="flex justify-between items-center">
-                        <div className="text-xs text-muted-foreground">
-                          Expires: {new Date(poll.expires_at).toLocaleDateString()}
-                        </div>
-                        <Button
-                          onClick={() => handleVoteOnPoll(poll.id)}
-                          disabled={poll.user_voted}
-                          size="sm"
-                          variant={poll.user_voted ? "outline" : "default"}
-                        >
-                          <ThumbsUp className="h-4 w-4 mr-1" />
-                          {poll.user_voted ? 'Voted' : 'Vote Interested'}
-                        </Button>
+                    <Separator className="my-3" />
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="h-4 w-4" />
+                          KSH {pro.hourly_rate || 50}/hr
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {pro.experience_years || 0}y exp
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <Button size="sm">Contact</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
 
-                {skillPolls.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Vote className="h-12 w-12 mx-auto mb-4" />
-                    <p>No active polls yet. Create the first one!</p>
+        {/* Projects Tab */}
+        <TabsContent value="projects" className="space-y-6">
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search projects..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                )}
+                </div>
+                <div className="flex gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={durationFilter} onValueChange={setDurationFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder="Duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any Duration</SelectItem>
+                      <SelectItem value="1 week">1 Week</SelectItem>
+                      <SelectItem value="2 weeks">2 Weeks</SelectItem>
+                      <SelectItem value="1 month">1 Month</SelectItem>
+                      <SelectItem value="3 months">3+ Months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="insights" className="space-y-6">
-          {/* Trending Skills from Polls */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" />
-                Real-time Trending Skills
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {getTrendingSkills().map((poll, index) => (
-                  <div key={poll.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-medium">{poll.skill_name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {poll.votes_count} votes • {poll.demand_level} demand
+          {/* Projects List */}
+          <div className="space-y-4">
+            {filteredProjects.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Briefcase className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold text-lg mb-2">No open projects</h3>
+                  <p className="text-muted-foreground text-sm">Check back later or post your own project</p>
+                </CardContent>
+              </Card>
+            ) : (
+              filteredProjects.map((project) => (
+                <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-4 md:p-6">
+                    <div className="flex flex-col md:flex-row md:items-start gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-lg">{project.title}</h3>
+                          <Badge variant={project.status === 'open' ? 'default' : 'secondary'}>
+                            {project.status}
+                          </Badge>
                         </div>
+                        
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          {project.description}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1 mb-4">
+                          {project.required_skills.map((skill, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {skill.skill_name} ({skill.minimum_proficiency})
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4" />
+                            KSH {project.budget_min || 0} - {project.budget_max || 0}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {project.duration_estimate || 'Flexible'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            Posted {new Date(project.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={project.client?.avatar_url} />
+                            <AvatarFallback>{project.client?.full_name?.charAt(0) || 'C'}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{project.client?.full_name || 'Client'}</span>
+                        </div>
+                        <Button>Submit Proposal</Button>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="ml-2">
-                      +{Math.floor(Math.random() * 50)}% growth
-                    </Badge>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Demand Tab */}
+        <TabsContent value="demand" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Skill Demand Polls
+              </CardTitle>
+              <CardDescription>
+                See what skills are in demand and vote on trends
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {skillPolls.length === 0 ? (
+                  <div className="text-center py-8">
+                    <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                    <h3 className="font-semibold mb-2">No active polls</h3>
+                    <p className="text-muted-foreground text-sm">Be the first to create a skill demand poll</p>
                   </div>
-                ))}
-                
-                {getTrendingSkills().length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Brain className="h-12 w-12 mx-auto mb-4" />
-                    <p>No trending data yet. Vote on polls to generate insights!</p>
-                  </div>
+                ) : (
+                  skillPolls.map((poll) => (
+                    <Card key={poll.id} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-lg">{poll.skill_name}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge 
+                                variant={poll.demand_level === 'urgent' ? 'destructive' : 'secondary'}
+                              >
+                                {poll.demand_level} demand
+                              </Badge>
+                              <Badge variant="outline">{poll.poll_type}</Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-2xl font-bold text-primary">{poll.votes_count}</div>
+                            <div className="text-xs text-muted-foreground">votes</div>
+                          </div>
+                        </div>
+                        
+                        {poll.description && (
+                          <p className="text-sm text-muted-foreground mb-3">{poll.description}</p>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            {poll.budget_range && `Budget: ${poll.budget_range}`}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleVoteOnPoll(poll.id)}
+                          >
+                            <ThumbsUp className="h-4 w-4 mr-2" />
+                            Vote
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Market Intelligence */}
+          {/* Create Poll Form */}
+          {user && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5 text-primary" />
+                  Create Skill Demand Poll
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreatePoll} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="poll_skill_name">Skill Name</Label>
+                      <Input
+                        id="poll_skill_name"
+                        value={pollForm.skill_name}
+                        onChange={(e) => setPollForm({...pollForm, skill_name: e.target.value})}
+                        placeholder="e.g. AI Supply Chain Optimization"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="demand_level">Demand Level</Label>
+                      <Select value={pollForm.demand_level} onValueChange={(value) => setPollForm({...pollForm, demand_level: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Demand</SelectItem>
+                          <SelectItem value="medium">Medium Demand</SelectItem>
+                          <SelectItem value="high">High Demand</SelectItem>
+                          <SelectItem value="urgent">Urgent Need</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="poll_description">Description</Label>
+                    <Textarea
+                      id="poll_description"
+                      value={pollForm.description}
+                      onChange={(e) => setPollForm({...pollForm, description: e.target.value})}
+                      placeholder="Describe what you're looking for..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full">Create Poll</Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Add Skill Tab */}
+        <TabsContent value="add" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Live Market Intelligence
+                <Award className="h-5 w-5 text-primary" />
+                Add Your Professional Skill
               </CardTitle>
+              <CardDescription>
+                Showcase your expertise and start getting hired
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <DollarSign className="h-8 w-8 text-primary mb-2" />
-                    <h3 className="font-semibold mb-1">Average Rate</h3>
-                    <div className="text-2xl font-bold">KSH 73/hr</div>
-                    <p className="text-sm text-muted-foreground">
-                      +8% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <Users className="h-8 w-8 text-primary mb-2" />
-                    <h3 className="font-semibold mb-1">Active Professionals</h3>
-                    <div className="text-2xl font-bold">{professionalSkills.length}</div>
-                    <p className="text-sm text-muted-foreground">
-                      Verified skills available
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <BarChart className="h-8 w-8 text-primary mb-2" />
-                    <h3 className="font-semibold mb-1">Market Activity</h3>
-                    <div className="text-2xl font-bold">{skillPolls.length}</div>
-                    <p className="text-sm text-muted-foreground">
-                      Active demand polls
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+            <CardContent>
+              {!user ? (
+                <div className="text-center py-8">
+                  <User className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="font-semibold mb-2">Sign in required</h3>
+                  <p className="text-muted-foreground text-sm mb-4">Please sign in to add your skills</p>
+                  <Link to="/auth">
+                    <Button>Sign In</Button>
+                  </Link>
+                </div>
+              ) : (
+                <form onSubmit={handleAddSkill} className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="skill_name">Skill Name</Label>
+                      <Input
+                        id="skill_name"
+                        value={skillForm.skill_name}
+                        onChange={(e) => setSkillForm({...skillForm, skill_name: e.target.value})}
+                        placeholder="e.g. Supply Chain Analytics"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="hourly_rate">Hourly Rate (KSH)</Label>
+                      <Input
+                        id="hourly_rate"
+                        type="number"
+                        min="0"
+                        value={skillForm.hourly_rate}
+                        onChange={(e) => setSkillForm({...skillForm, hourly_rate: parseInt(e.target.value) || 0})}
+                        placeholder="e.g. 500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="experience_years">Years of Experience</Label>
+                    <Input
+                      id="experience_years"
+                      type="number"
+                      min="0"
+                      value={skillForm.experience_years}
+                      onChange={(e) => setSkillForm({...skillForm, experience_years: parseInt(e.target.value) || 0})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Skill Description</Label>
+                    <Textarea
+                      id="description"
+                      value={skillForm.description}
+                      onChange={(e) => setSkillForm({...skillForm, description: e.target.value})}
+                      placeholder="Describe your expertise and what you offer..."
+                      rows={3}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">Add My Skill to Marketplace</Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

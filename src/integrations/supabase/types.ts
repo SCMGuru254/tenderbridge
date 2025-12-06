@@ -975,6 +975,41 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          attendance_status: string | null
+          event_id: string
+          id: string
+          payment_status: string | null
+          registration_date: string | null
+          user_id: string
+        }
+        Insert: {
+          attendance_status?: string | null
+          event_id: string
+          id?: string
+          payment_status?: string | null
+          registration_date?: string | null
+          user_id: string
+        }
+        Update: {
+          attendance_status?: string | null
+          event_id?: string
+          id?: string
+          payment_status?: string | null
+          registration_date?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "training_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       featured_clients: {
         Row: {
           ad_views_purchased: number | null
@@ -2117,6 +2152,105 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_profiles: {
+        Row: {
+          availability: string | null
+          certifications: string[] | null
+          created_at: string | null
+          education: string | null
+          experience_years: number | null
+          github_url: string | null
+          hourly_rate: number | null
+          id: string
+          is_available: boolean | null
+          linkedin_url: string | null
+          portfolio_url: string | null
+          summary: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+        }
+        Insert: {
+          availability?: string | null
+          certifications?: string[] | null
+          created_at?: string | null
+          education?: string | null
+          experience_years?: number | null
+          github_url?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          linkedin_url?: string | null
+          portfolio_url?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+        }
+        Update: {
+          availability?: string | null
+          certifications?: string[] | null
+          created_at?: string | null
+          education?: string | null
+          experience_years?: number | null
+          github_url?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_available?: boolean | null
+          linkedin_url?: string | null
+          portfolio_url?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      professional_skills: {
+        Row: {
+          created_at: string | null
+          id: string
+          proficiency_level: string
+          profile_id: string
+          skill_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          proficiency_level: string
+          profile_id: string
+          skill_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          proficiency_level?: string
+          profile_id?: string
+          skill_id?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_skills_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_views: {
         Row: {
           id: string
@@ -2237,6 +2371,255 @@ export type Database = {
           updated_at?: string
           visibility?: string
           visible_fields?: Json
+        }
+        Relationships: []
+      }
+      project_contracts: {
+        Row: {
+          agreed_rate: number
+          client_id: string
+          created_at: string | null
+          end_date: string | null
+          id: string
+          payment_terms: string | null
+          professional_id: string
+          project_id: string
+          proposal_id: string
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          agreed_rate: number
+          client_id: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_terms?: string | null
+          professional_id: string
+          project_id: string
+          proposal_id: string
+          start_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          agreed_rate?: number
+          client_id?: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_terms?: string | null
+          professional_id?: string
+          project_id?: string
+          proposal_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_contracts_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_contracts_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "project_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_proposals: {
+        Row: {
+          availability_start: string | null
+          cover_letter: string
+          created_at: string | null
+          estimated_hours: number | null
+          id: string
+          professional_id: string
+          project_id: string
+          proposed_rate: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          availability_start?: string | null
+          cover_letter: string
+          created_at?: string | null
+          estimated_hours?: number | null
+          id?: string
+          professional_id: string
+          project_id: string
+          proposed_rate: number
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          availability_start?: string | null
+          cover_letter?: string
+          created_at?: string | null
+          estimated_hours?: number | null
+          id?: string
+          professional_id?: string
+          project_id?: string
+          proposed_rate?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_proposals_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professional_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_proposals_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_reviews: {
+        Row: {
+          communication_rating: number | null
+          contract_id: string
+          created_at: string | null
+          id: string
+          quality_rating: number | null
+          rating: number
+          review_text: string | null
+          reviewee_id: string
+          reviewer_id: string
+          timeliness_rating: number | null
+        }
+        Insert: {
+          communication_rating?: number | null
+          contract_id: string
+          created_at?: string | null
+          id?: string
+          quality_rating?: number | null
+          rating: number
+          review_text?: string | null
+          reviewee_id: string
+          reviewer_id: string
+          timeliness_rating?: number | null
+        }
+        Update: {
+          communication_rating?: number | null
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+          quality_rating?: number | null
+          rating?: number
+          review_text?: string | null
+          reviewee_id?: string
+          reviewer_id?: string
+          timeliness_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_reviews_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "project_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_skills: {
+        Row: {
+          created_at: string | null
+          id: string
+          minimum_proficiency: string
+          project_id: string
+          skill_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          minimum_proficiency: string
+          project_id: string
+          skill_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          minimum_proficiency?: string
+          project_id?: string
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_skills_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          client_id: string
+          created_at: string | null
+          description: string
+          duration_estimate: string | null
+          id: string
+          requirements: string[] | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          client_id: string
+          created_at?: string | null
+          description: string
+          duration_estimate?: string | null
+          id?: string
+          requirements?: string[] | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          client_id?: string
+          created_at?: string | null
+          description?: string
+          duration_estimate?: string | null
+          id?: string
+          requirements?: string[] | null
+          status?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2811,6 +3194,33 @@ export type Database = {
         }
         Relationships: []
       }
+      skills: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       supply_chain_news: {
         Row: {
           content: string
@@ -2903,6 +3313,80 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      training_events: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          current_attendees: number | null
+          description: string
+          end_date: string
+          event_type: string
+          id: string
+          image_url: string | null
+          is_online: boolean | null
+          location: string | null
+          max_attendees: number | null
+          meeting_url: string | null
+          organizer_id: string | null
+          price: number | null
+          registration_deadline: string | null
+          start_date: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          current_attendees?: number | null
+          description: string
+          end_date: string
+          event_type: string
+          id?: string
+          image_url?: string | null
+          is_online?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          meeting_url?: string | null
+          organizer_id?: string | null
+          price?: number | null
+          registration_deadline?: string | null
+          start_date: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          current_attendees?: number | null
+          description?: string
+          end_date?: string
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          is_online?: boolean | null
+          location?: string | null
+          max_attendees?: number | null
+          meeting_url?: string | null
+          organizer_id?: string | null
+          price?: number | null
+          registration_deadline?: string | null
+          start_date?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "course_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
@@ -3008,10 +3492,7 @@ export type Database = {
         }
         Returns: Json
       }
-      has_role: {
-        Args: { _role: string; _user_id: string }
-        Returns: boolean
-      }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_vote_count: {
         Args: { application_id: string }
         Returns: undefined
