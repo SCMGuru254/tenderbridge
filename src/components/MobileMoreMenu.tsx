@@ -26,6 +26,12 @@ interface MobileMoreMenuProps {
 export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
   const menuItems = [
     {
+      href: '/hire-my-skill',
+      label: 'Hire My Skill',
+      icon: Star,
+      description: 'Find or offer skills'
+    },
+    {
       href: '/ai-agents',
       label: 'AI Agents',
       icon: Bot,

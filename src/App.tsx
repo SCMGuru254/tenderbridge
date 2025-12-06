@@ -80,6 +80,7 @@ const PayPalPortal = lazy(() => import("./pages/PayPalPortal"));
 const FeaturedClients = lazy(() => import("./pages/FeaturedClients"));
 const Documents = lazy(() => import("./pages/Documents"));
 const HireMySkill = lazy(() => import("./pages/HireMySkill"));
+const HireMySkillProfile = lazy(() => import("./pages/HireMySkillProfile"));
 const TrainingEvents = lazy(() => import("./pages/TrainingEvents"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
@@ -204,6 +205,11 @@ const App = () => {
                   <Route path="privacy" element={<Privacy />} />
                   <Route path="terms" element={<Terms />} />
                   <Route path="hire-my-skill" element={<HireMySkill />} />
+                  <Route path="hire-my-skill/profile" element={
+                    <ProtectedRoute>
+                      <HireMySkillProfile />
+                    </ProtectedRoute>
+                  } />
                   <Route path="courses" element={<Courses />} />
                   <Route path="training-events" element={<TrainingEvents />} />
                   <Route path="security" element={<Security />} />
