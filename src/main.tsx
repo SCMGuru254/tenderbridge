@@ -3,18 +3,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      })
-      .catch(error => {
-        console.error('ServiceWorker registration failed: ', error);
-      });
-  });
-}
+// Service worker registration disabled to prevent caching issues
+// The app will still work fine without it
+// TODO: Re-enable once caching strategy is properly configured
 
 console.log("[DEBUG] main.tsx - Starting app initialization");
 

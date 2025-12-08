@@ -9,6 +9,26 @@ import { Layout } from "@/components/Layout";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { AuthProviderFull } from "@/contexts/AuthContextFull";
 import { NavigationProvider } from "@/contexts/NavigationContext";
+import { Toaster } from "sonner";
+
+// Unregister all service workers on app load to fix blank screen issues
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(registration => {
+      registration.unregister();
+      console.log('Service worker unregistered to fix caching issues');
+    });
+  });
+  // Also clear caches
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => {
+        caches.delete(name);
+        console.log('Cache deleted:', name);
+      });
+    });
+  }
+}
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -106,18 +126,9 @@ const featureFlags = {
   enableHRDirectory: import.meta.env.VITE_ENABLE_HR_DIRECTORY === 'true',
 };
 
-// Register PWA service worker (disabled on preview domains to prevent chunk-loading issues)
-if ('serviceWorker' in navigator && !window.location.hostname.startsWith('preview--')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('PWA: Service worker registered successfully', registration.scope);
-      })
-      .catch((error) => {
-        console.log('PWA: Service worker registration failed', error);
-      });
-  });
-}
+// Service worker registration DISABLED to fix blank screen issue
+// The service workers were aggressively caching pages causing stale content
+// TODO: Re-enable with proper network-first caching strategy
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -233,6 +244,7 @@ const App = () => {
               </Routes>
             </Suspense>
           </BrowserRouter>
+          <Toaster position="top-right" richColors />
         </TooltipProvider>
         </NavigationProvider>
         </AuthProviderFull>
