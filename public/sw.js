@@ -1,14 +1,10 @@
 // Service Worker for SupplyChain_KE PWA
-const CACHE_NAME = 'supplychain-ke-v1.0.0';
-const DYNAMIC_CACHE = 'supplychain-ke-dynamic-v1.0.0';
+// UPDATED: v2 to bust cache after blank screen fix
+const CACHE_NAME = 'supplychain-ke-v2.0.0';
+const DYNAMIC_CACHE = 'supplychain-ke-dynamic-v2.0.0';
 
-// Static assets to cache immediately
+// Static assets to cache - REMOVED page routes to prevent caching issues
 const STATIC_ASSETS = [
-  '/',
-  '/jobs',
-  '/companies',
-  '/discussions',
-  '/auth',
   '/manifest.json',
   '/logo192.png',
   '/logo512.png',
@@ -100,12 +96,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first strategy for static assets
+  // Cache-first ONLY for actual static assets (images, fonts) - not scripts/styles
   if (STATIC_ASSETS.includes(url.pathname) || 
       request.destination === 'image' ||
-      request.destination === 'style' ||
-      request.destination === 'script') {
+      request.destination === 'font') {
     event.respondWith(cacheFirst(request));
+    return;
+  }
+
+  // Network-first for scripts and styles to prevent stale code
+  if (request.destination === 'script' || request.destination === 'style') {
+    event.respondWith(networkFirst(request));
     return;
   }
 
