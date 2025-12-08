@@ -30,11 +30,14 @@ export const AuthProviderFull = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener');
+    let mounted = true;
     
-    // Set up auth state listener
+    // Set up auth state listener FIRST (synchronous)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -49,15 +52,34 @@ export const AuthProviderFull = ({ children }: { children: React.ReactNode }) =>
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      console.log('Initial session check:', session?.user?.email, error);
       setSession(session);
       setUser(session?.user ?? null);
+      // Always set loading to false, even on error
       setLoading(false);
+    }).catch((error) => {
+      console.error('Session check error:', error);
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout: force loading to false after 3 seconds
+    const timeout = setTimeout(() => {
+      if (mounted) {
+        console.log('Auth loading timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 3000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const ensureUserProfile = async (user: User) => {
