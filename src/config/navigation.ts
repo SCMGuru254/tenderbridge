@@ -154,7 +154,6 @@ export const navigationCategories: NavigationCategory[] = [
         icon: Building2,
         href: '/hr-directory',
         featureFlag: 'enableHRDirectory',
-        requiredRole: ['user', 'pro'],
         category: 'network'
       },
       {
@@ -162,7 +161,6 @@ export const navigationCategories: NavigationCategory[] = [
         description: 'Job insights',
         icon: LineChart,
         href: '/analytics',
-        requiredRole: ['user', 'pro'],
         category: 'network'
       },
       {
@@ -244,7 +242,7 @@ export const getVisibleMenuItems = (
       if (item.featureFlag && !featureFlags[item.featureFlag]) {
         return false;
       }
-      
+
       // Check required roles
       if (item.requiredRole && !item.requiredRole.some(role => userRoles.includes(role))) {
         return false;

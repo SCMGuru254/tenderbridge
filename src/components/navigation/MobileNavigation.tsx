@@ -1,22 +1,22 @@
 import { NavLink } from 'react-router-dom';
 import { Menu, Star, StarOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { 
-  Sheet, 
-  SheetContent, 
+import {
+  Sheet,
+  SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger 
+  SheetTrigger
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { 
-  navigationCategories, 
+import {
+  navigationCategories,
   MenuItem,
   NavigationCategory,
-  getBottomNavigationItems 
+  getBottomNavigationItems
 } from '@/config/navigation';
 
 interface MobileNavigationProps {
@@ -26,7 +26,7 @@ interface MobileNavigationProps {
 const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
   const { user } = useAuth();
   const featureFlags = useFeatureFlags();
-  const { 
+  const {
     state,
     toggleDrawer,
     addFavorite,
@@ -54,7 +54,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
         "fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border md:hidden",
         className
       )}>
-        <div className="flex items-center justify-around py-2 px-1">
+        <div className="flex items-center justify-around pb-6 pt-2 px-1">
           {bottomNavItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
             return (
@@ -78,7 +78,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
               </NavLink>
             );
           })}
-          
+
           {/* Side Drawer Menu */}
           <Sheet open={state.isDrawerOpen} onOpenChange={toggleDrawer}>
             <SheetTrigger asChild>
@@ -103,44 +103,44 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({ className }) => {
                         {category.items
                           .filter(isItemVisible)
                           .map((item: MenuItem) => (
-                          <div key={item.href} className="flex items-center">
-                            <NavLink
-                              to={item.href}
-                              className={({ isActive }) =>
-                                cn(
-                                  "flex-1 flex items-center space-x-3 rounded-lg px-3 py-2",
-                                  "text-sm font-medium transition-colors",
-                                  "hover:bg-accent hover:text-accent-foreground",
-                                  isActive ? "bg-accent text-accent-foreground" : "text-foreground"
-                                )
-                              }
-                            >
-                              <item.icon className="h-4 w-4" />
-                              <span>{item.title}</span>
-                            </NavLink>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ml-2"
-                              onClick={() => {
-                                if (isFavorite(item.href)) {
-                                  removeFavorite(item.href);
-                                } else {
-                                  addFavorite(item.href);
+                            <div key={item.href} className="flex items-center">
+                              <NavLink
+                                to={item.href}
+                                className={({ isActive }) =>
+                                  cn(
+                                    "flex-1 flex items-center space-x-3 rounded-lg px-3 py-2",
+                                    "text-sm font-medium transition-colors",
+                                    "hover:bg-accent hover:text-accent-foreground",
+                                    isActive ? "bg-accent text-accent-foreground" : "text-foreground"
+                                  )
                                 }
-                              }}
-                            >
-                              {isFavorite(item.href) ? (
-                                <Star className="h-4 w-4 text-yellow-400" />
-                              ) : (
-                                <StarOff className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </Button>
-                          </div>
-                        ))}
+                              >
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.title}</span>
+                              </NavLink>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="ml-2"
+                                onClick={() => {
+                                  if (isFavorite(item.href)) {
+                                    removeFavorite(item.href);
+                                  } else {
+                                    addFavorite(item.href);
+                                  }
+                                }}
+                              >
+                                {isFavorite(item.href) ? (
+                                  <Star className="h-4 w-4 text-yellow-400" />
+                                ) : (
+                                  <StarOff className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </Button>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </nav>
             </SheetContent>
           </Sheet>
