@@ -925,6 +925,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "discussions_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       document_uploads: {
@@ -1107,10 +1114,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "follows_following_id_fkey"
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1149,10 +1170,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "hiring_decisions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "hiring_decisions_employer_id_fkey"
             columns: ["employer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_decisions_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2072,6 +2107,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       polls: {
@@ -2105,6 +2147,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2279,10 +2328,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profile_views_viewer_id_fkey"
             columns: ["viewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3043,6 +3106,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "saved_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       scraped_jobs: {
@@ -3440,7 +3510,58 @@ export type Database = {
     Views: {
       visible_profiles: {
         Row: {
-          profile_data: Json | null
+          avatar_url: string | null
+          bio: string | null
+          career_goals: string | null
+          company: string | null
+          created_at: string | null
+          email: string | null
+          experience_level: string | null
+          full_name: string | null
+          id: string | null
+          linkedin_url: string | null
+          location: string | null
+          position: string | null
+          role: string | null
+          skills: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          career_goals?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          experience_level?: string | null
+          full_name?: string | null
+          id?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          position?: string | null
+          role?: string | null
+          skills?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          career_goals?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string | null
+          experience_level?: string | null
+          full_name?: string | null
+          id?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          position?: string | null
+          role?: string | null
+          skills?: string | null
+          updated_at?: string | null
+          visibility?: string | null
         }
         Relationships: []
       }
