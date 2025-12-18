@@ -4,11 +4,24 @@ import { RATE_LIMIT_CONFIG } from './securityConstants.ts'
 
 type RateLimitKey = keyof typeof RATE_LIMIT_CONFIG;
 
-interface RateLimitResult {
+type UpstashDurationUnit = 'ms' | 's' | 'm' | 'h' | 'd';
+
+type RateLimitResult = {
   success: boolean;
   limit: number;
   remaining: number;
   reset: number;
+};
+
+function parseUpstashDuration(input: string): `${number} ${UpstashDurationUnit}` {
+  const parts = input.trim().split(/\s+/);
+  const value = Number(parts[0]);
+  const unit = parts[1] as UpstashDurationUnit | undefined;
+
+  const safeValue = Number.isFinite(value) && value > 0 ? value : 60;
+  const safeUnit: UpstashDurationUnit = unit && ['ms', 's', 'm', 'h', 'd'].includes(unit) ? unit : 's';
+
+  return `${safeValue} ${safeUnit}`;
 }
 
 export class EnhancedRateLimiter {
@@ -22,43 +35,23 @@ export class EnhancedRateLimiter {
 
   private initializeLimiters() {
     Object.entries(RATE_LIMIT_CONFIG).forEach(([key, config]) => {
-      const duration = config.duration.split(' ');
-      const timeValue = parseInt(duration[0]);
-      const timeUnit = duration[1] as 'ms' | 's' | 'm' | 'h' | 'd';
-      
-      this.limiters.set(key as RateLimitKey, new Ratelimit({
-        redis: this.redis,
-        limiter: Ratelimit.slidingWindow(config.points, timeValue * this.getTimeUnitInMs(timeUnit)),
-        analytics: true,
-        prefix: `ratelimit:${key.toLowerCase()}`,
-      }));
+      const duration = parseUpstashDuration(config.duration);
+
+      this.limiters.set(
+        key as RateLimitKey,
+        new Ratelimit({
+          redis: this.redis,
+          limiter: Ratelimit.slidingWindow(config.points, duration),
+          analytics: true,
+          prefix: `ratelimit:${key.toLowerCase()}`,
+        })
+      );
     });
   }
 
-  private getTimeUnitInMs(unit: 'ms' | 's' | 'm' | 'h' | 'd'): number {
-    switch (unit) {
-      case 's':
-        return 1000;
-      case 'm':
-        return 60 * 1000;
-      case 'h':
-        return 60 * 60 * 1000;
-      case 'd':
-        return 24 * 60 * 60 * 1000;
-      default:
-        return 1;
-    }
-  }
-
   async checkLimit(key: RateLimitKey, identifier: string): Promise<RateLimitResult> {
-    const limiter = this.limiters.get(key);
-    if (!limiter) {
-      const defaultLimiter = this.limiters.get('DEFAULT');
-      if (!defaultLimiter) {
-        return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
-      }
-      return this.processLimit(defaultLimiter, identifier);
-    }
+    const limiter = this.limiters.get(key) ?? this.limiters.get('DEFAULT');
+    if (!limiter) return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
     return this.processLimit(limiter, identifier);
   }
 
@@ -79,3 +72,4 @@ export class EnhancedRateLimiter {
 }
 
 export const rateLimiter = new EnhancedRateLimiter();
+

@@ -32,7 +32,7 @@ serve(async (req) => {
     const { data: jobs, error } = await supabaseClient
       .from('jobs')
       .select('*')
-      .filter('status', 'eq', 'active')
+      .eq('status', 'active')
       .textSearch('search_vector', keywords.join(' | '))
       .limit(100);
 

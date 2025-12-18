@@ -110,11 +110,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error in news-api-integration:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: message,
         message: 'Failed to fetch news. Please check your API configuration.'
       }),
       {

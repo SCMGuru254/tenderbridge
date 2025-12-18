@@ -68,7 +68,7 @@ serve(async (req) => {
     
     // Prepare response data with source results
     let totalJobsScraped = 0;
-    let sourceResults = {};
+    let sourceResults: Record<string, any> = {};
     let allSuccessfulJobs: any[] = [];
     
     // Scrape each site and process the results
@@ -126,11 +126,12 @@ serve(async (req) => {
           message: `Successfully scraped ${scrapedJobs.length} jobs` 
         };
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error(`Error scraping from ${site.source}:`, error);
-        sourceResults[site.source] = { 
+        sourceResults[site.source] = {
           success: false,
-          error: error.message,
-          message: `Failed to scrape: ${error.message}`
+          error: message,
+          message: `Failed to scrape: ${message}`
         };
       }
     }
