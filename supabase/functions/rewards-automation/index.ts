@@ -51,8 +51,9 @@ serve(async (req) => {
     })
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     console.error('Rewards automation error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })

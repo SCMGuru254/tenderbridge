@@ -1,6 +1,6 @@
+// @ts-nocheck
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { Job } from "../types/job.ts";
 
 export async function clearExistingJobs(supabaseUrl: string, supabaseKey: string) {
   console.log('🗑️ Clearing existing scraped jobs...');

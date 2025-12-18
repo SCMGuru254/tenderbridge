@@ -77,9 +77,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error in scheduled jobs function:', error);
     return new Response(JSON.stringify({
-      error: error.message,
+      error: message,
       success: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

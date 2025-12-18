@@ -43,7 +43,6 @@ serve(async (req: Request) => {
         max_new_tokens: 200, // Reduced from 220 to ensure we stay within limits
         temperature: 0.6, // Reduced for more focused responses
         do_sample: true,
-        early_stopping: true, // Add early stopping
         repetition_penalty: 1.1,
         return_full_text: false,
       }

@@ -288,7 +288,7 @@ serve(async (req) => {
           .order('created_at', { ascending: false })
           .limit(10);
         
-        result.recentTransactions = dbData || [];
+        (result as any).recentTransactions = dbData || [];
         break;
 
       default:
@@ -300,9 +300,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('PayPal Integration Error:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500

@@ -1,11 +1,4 @@
-/// <reference types="https://deno.land/x/deno/cli/dts/lib.deno.ns.d.ts" />
-
-declare global {
-  const Deno: {
-    env: {
-      get(key: string): string | undefined;
-    };
-  };
-}
-
+// Deno global types are already provided in Supabase Edge Functions.
+// Keep this file empty to avoid duplicate Deno declarations.
 export {};
+

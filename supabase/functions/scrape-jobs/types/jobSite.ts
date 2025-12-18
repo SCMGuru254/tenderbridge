@@ -10,6 +10,7 @@ export interface JobSite {
     jobLink: string;
     jobType?: string | null;
     deadline?: string | null;
+    postedAt?: string | null;
     salary?: string | null;
     experience?: string | null;
     skills?: string | null;
