@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { newsService, SupplyChainNews } from '@/services/newsService';
 import { formatDistanceToNow } from 'date-fns';
 import { RefreshCw, AlertCircle } from 'lucide-react';
+
+// Sanitize HTML content to prevent XSS attacks
+const sanitizeHtml = (html: string): string => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'b', 'i', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    ALLOW_DATA_ATTR: false,
+  });
+};
 
 export default function SupplyChainInsights() {
   const [news, setNews] = useState<SupplyChainNews[]>([]);
@@ -176,7 +186,7 @@ export default function SupplyChainInsights() {
                     <ScrollArea className="h-[150px]">
                       <div 
                         className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: item.content }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content || '') }}
                       />
                     </ScrollArea>
                     
