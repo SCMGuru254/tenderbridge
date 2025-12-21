@@ -3,9 +3,20 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Service worker registration disabled to prevent caching issues
-// The app will still work fine without it
-// TODO: Re-enable once caching strategy is properly configured
+// Prevent third-party injected scripts (extensions / OEM WebViews) from crashing the app.
+window.addEventListener('unhandledrejection', (event) => {
+  const reason: any = (event as any).reason;
+  const message = String(reason?.message ?? reason ?? '');
+  const stack = String(reason?.stack ?? '');
+
+  // Common MetaMask-injected error signature
+  if (
+    message.toLowerCase().includes('metamask') ||
+    stack.includes('chrome-extension://')
+  ) {
+    event.preventDefault();
+  }
+});
 
 console.log("[DEBUG] main.tsx - Starting app initialization");
 

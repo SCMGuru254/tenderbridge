@@ -48,11 +48,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error("Error setting up cron jobs:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: message
       }),
       {
         headers: { "Content-Type": "application/json" },

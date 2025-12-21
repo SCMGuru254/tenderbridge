@@ -71,7 +71,7 @@ serve(async (req) => {
       requestBody = await req.json();
     }
     
-    let result;
+    let result: { data: any; error: any } | undefined;
     
     // Handle different actions based on the URL path and HTTP method
     switch (action) {
@@ -117,6 +117,16 @@ serve(async (req) => {
         });
     }
     
+    if (!result) {
+      return new Response(JSON.stringify({
+        error: 'Invalid action',
+        success: false
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       data: result.data,
@@ -125,9 +135,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error in user preferences function:', error);
     return new Response(JSON.stringify({
-      error: error.message,
+      error: message,
       success: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
