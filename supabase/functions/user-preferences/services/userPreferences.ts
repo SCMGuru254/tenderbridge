@@ -27,8 +27,9 @@ export async function toggleFavorite(
 
     return { data: { success: true }, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error toggling favorite:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -61,8 +62,9 @@ export async function setJobReminder(
 
     return { data: { success: true }, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error setting job reminder:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -86,8 +88,9 @@ export async function getFavoriteJobs(
     const data = await response.json();
     return { data, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error getting favorite jobs:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -111,8 +114,9 @@ export async function getJobReminders(
     const data = await response.json();
     return { data, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error getting job reminders:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -142,8 +146,9 @@ export async function getUserNotifications(
     const data = await response.json();
     return { data, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error getting notifications:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -173,8 +178,9 @@ export async function markNotificationAsRead(
 
     return { data: { success: true }, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error marking notification as read:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }
 
@@ -210,7 +216,8 @@ export async function createNotification(
     const data = await response.json();
     return { data, error: null };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error creating notification:', error);
-    return { data: null, error: error.message };
+    return { data: null, error: message };
   }
 }

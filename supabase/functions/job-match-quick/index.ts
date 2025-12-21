@@ -28,19 +28,24 @@ serve(async (req) => {
       ...userProfile.preferredJobTypes.map((t: string) => t.toLowerCase())
     ].filter((k: string) => k.length > 3);
 
-    // Quick search using keywords
+    // Quick search using keywords (avoid full-text helpers that aren't available in Deno typings)
+    const orFilters = keywords
+      .flatMap((k: string) => [`title.ilike.%${k}%`, `description.ilike.%${k}%`])
+      .join(',');
+
     const { data: jobs, error } = await supabaseClient
       .from('jobs')
       .select('*')
       .eq('status', 'active')
-      .textSearch('search_vector', keywords.join(' | '))
+      .or(orFilters)
       .limit(100);
 
     if (error) throw error;
 
     // Basic scoring based on keyword matches
-    const scoredJobs = jobs.map((job: any) => {
-      const jobText = `${job.title} ${job.description} ${job.skills.join(' ')}`.toLowerCase();
+    const scoredJobs = (jobs ?? []).map((job: any) => {
+      const jobSkills = Array.isArray(job.skills) ? job.skills.join(' ') : '';
+      const jobText = `${job.title ?? ''} ${job.description ?? ''} ${jobSkills}`.toLowerCase();
       const score = keywords.reduce((acc: number, keyword: string) => {
         return acc + (jobText.includes(keyword) ? 1 : 0);
       }, 0) / keywords.length;

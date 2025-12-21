@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts';
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -38,24 +39,26 @@ async function parseRSS(url: string, sourceName: string) {
     const xmlText = await response.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-    
-    const items = Array.from(xmlDoc.querySelectorAll("item"));
-    
-    return items.map(item => {
-      const title = item.querySelector("title")?.textContent || "No title";
-      const link = item.querySelector("link")?.textContent || "";
-      const pubDate = new Date(item.querySelector("pubDate")?.textContent || new Date()).toISOString();
-      
+
+    if (!xmlDoc) return [];
+
+    const items = Array.from((xmlDoc as any).querySelectorAll("item")) as any[];
+
+    return items.map((item: any) => {
+      const title = item.querySelector?.("title")?.textContent || "No title";
+      const link = item.querySelector?.("link")?.textContent || "";
+      const pubDate = new Date(item.querySelector?.("pubDate")?.textContent || new Date()).toISOString();
+
       // Get content from different possible tags
-      const contentEncoded = item.querySelector("content\\:encoded")?.textContent;
-      const description = item.querySelector("description")?.textContent;
+      const contentEncoded = item.querySelector?.("content\\:encoded")?.textContent;
+      const description = item.querySelector?.("description")?.textContent;
       const content = contentEncoded || description || "";
-      
+
       // Extract categories/tags
-      const categories = Array.from(item.querySelectorAll("category"))
-        .map(cat => cat.textContent)
+      const categories = Array.from(item.querySelectorAll?.("category") ?? [])
+        .map((cat: any) => cat?.textContent)
         .filter(Boolean) as string[];
-      
+
       return {
         title,
         content,
@@ -145,11 +148,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error("Error in scrape-news function:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: message
       }),
       {
         headers: { "Content-Type": "application/json" },

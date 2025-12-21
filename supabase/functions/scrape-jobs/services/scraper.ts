@@ -257,8 +257,8 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
           company: company || 'Company Name Available on Site',
           location: location || 'Kenya',
           source: jobSite.source,
-          job_url: jobUrl || undefined,
-          application_url: jobUrl || undefined,
+          job_url: jobUrl || null,
+          application_url: jobUrl || null,
           description: description,
           job_type: 'full_time',
           created_at: new Date().toISOString(),
@@ -280,7 +280,7 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
             try {
               const parsedDate = new Date(deadline);
               if (!isNaN(parsedDate.getTime())) {
-                job.application_deadline = parsedDate.toISOString();
+                job.deadline = parsedDate.toISOString();
               }
             } catch (e) {
               // Invalid date format, skip
@@ -386,7 +386,7 @@ function extractJobUrl($element: any, linkSelectors: string, baseUrl: string): s
     try {
       const links = $element.find(selector);
       for (let i = 0; i < links.length; i++) {
-        const href = $(links[i]).attr('href');
+        const href = links.eq(i).attr('href');
         if (href && isValidJobUrl(href)) {
           if (!href.startsWith('http')) {
             try {

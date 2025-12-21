@@ -1,5 +1,5 @@
-import { checkRateLimit, authRateLimit } from '../../utils/rateLimit'
-import { addSecurityHeaders } from '../../utils/security'
+import { checkRateLimit, authRateLimit } from '../../utils/rateLimit.ts'
+import { addSecurityHeaders } from '../../utils/security.ts'
 import { createClient } from '@supabase/supabase-js'
 
 export async function withSecurity(req: Request, handler: (req: Request) => Promise<Response>) {
