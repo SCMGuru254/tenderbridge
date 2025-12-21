@@ -41,7 +41,7 @@
     "webContentsDebuggingEnabled": true,
     "backgroundColor": "#ffffff",
     "minSdkVersion": 22,
-    "targetSdkVersion": 33
+    "targetSdkVersion": 35
   },
   "ios": {
     "contentInset": "always",
