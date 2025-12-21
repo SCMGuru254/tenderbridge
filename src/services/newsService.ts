@@ -59,19 +59,13 @@ export class NewsService {
     try {
       performanceMonitor.startMeasure('fetch-real-news');
       
-      // Call the news-api-integration edge function for real news data with RSS feeds
+      // Call the news-api-integration edge function for real news data
       const { data, error } = await supabase.functions.invoke('news-api-integration', {
-        body: { 
-          searchTerm: '', 
+        body: {
+          searchTerm: '',
           limit: 100,
-          rssFeeds: [
-            'https://www.allthingssupplychain.com/feed/',
-            'https://www.supplychainbrain.com/rss/articles',
-            'https://www.scmdojo.com/feed/',
-            'https://www.supplychaintoday.com/feed/',
-            'https://www.supplychainshaman.com/feed/'
-          ]
-        }
+          replaceExisting: true,
+        },
       });
 
       if (error) throw error;

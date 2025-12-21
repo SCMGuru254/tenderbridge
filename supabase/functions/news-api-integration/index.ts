@@ -25,7 +25,21 @@ serve(async (req) => {
       throw new Error('News API token not configured');
     }
 
-    const { searchTerm = '', limit = 50 } = await req.json().catch(() => ({}));
+    const { searchTerm = '', limit = 50, replaceExisting = true } = await req.json().catch(() => ({}));
+
+    // Optional: replace existing items so users always see fresh news
+    if (replaceExisting) {
+      const { error: deleteError } = await supabase
+        .from('supply_chain_news')
+        .delete()
+        .gte('created_at', '1970-01-01T00:00:00Z');
+
+      if (deleteError) {
+        console.error('Error clearing existing news:', deleteError);
+      } else {
+        console.log('Cleared existing supply_chain_news records');
+      }
+    }
 
     // Build the News API URL with supply chain focused parameters
     const url = new URL('https://api.thenewsapi.com/v1/news/all');
@@ -45,7 +59,7 @@ serve(async (req) => {
         'User-Agent': 'SupplyChainPortal/1.0'
       }
     });
-    
+
     if (!response.ok) {
       console.error(`News API error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
@@ -55,19 +69,19 @@ serve(async (req) => {
 
     const newsData = await response.json();
     console.log(`Received ${newsData.data?.length || 0} articles from News API`);
-    
+
     // Filter and process the news for supply chain relevance
     const supplyChainNews = newsData.data?.filter((article: any) => {
       const title = article.title?.toLowerCase() || '';
       const description = article.description?.toLowerCase() || '';
       const content = title + ' ' + description;
-      
+
       const supplyChainKeywords = [
         'supply chain', 'logistics', 'procurement', 'warehousing', 'transportation',
         'freight', 'shipping', 'distribution', 'inventory', 'manufacturing',
         'port', 'cargo', 'trade', 'import', 'export', 'customs', 'warehouse'
       ];
-      
+
       return supplyChainKeywords.some(keyword => content.includes(keyword));
     }) || [];
 
@@ -75,20 +89,29 @@ serve(async (req) => {
 
     // Store filtered news in database
     if (supplyChainNews.length > 0) {
+      const nowIso = new Date().toISOString();
+
       const newsToStore = supplyChainNews.map((article: any) => ({
         title: article.title || 'No title',
         content: article.description || article.snippet || '',
         source_name: article.source || 'The News API',
         source_url: article.url || '',
-        published_at: article.published_at || new Date().toISOString(),
+        published_date: article.published_at || null,
         tags: ['Supply Chain', 'News API', ...(article.categories || [])],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: nowIso,
+        updated_at: nowIso,
       }));
 
       const { error: insertError } = await supabase
         .from('supply_chain_news')
         .upsert(newsToStore, { onConflict: 'source_url' });
+
+      if (insertError) {
+        console.error('Error storing news:', insertError);
+      } else {
+        console.log(`Successfully stored ${newsToStore.length} articles`);
+      }
+    }
 
       if (insertError) {
         console.error('Error storing news:', insertError);
