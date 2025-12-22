@@ -50,14 +50,54 @@
 
 ## 📋 REMAINING TASKS (PRIORITIZED)
 
+### Database Schema (NOT STARTED)
+- [ ] Create `project_reviews` table
+- [ ] Fix foreign key relationship for courses.instructor_id
+- [ ] Add more course categories (20+ total)
+- [ ] Create `training_events` table
+
+### UI/UX Fixes (NOT STARTED)
+- [ ] Fix Hire My Skill tabs overflow/smudging
+- [ ] Fix Profile tabs CSS
+- [ ] Adjust bottom navigation positioning for mobile visibility
+- [ ] Add safe-area-inset-bottom for iOS devices
+
+### Data Integration (NOT STARTED)
+- [ ] Connect Hire My Skill to real database tables
+- [ ] Add seed data for mentors (5-10 sample profiles)
+- [ ] Add seed data for HR profiles (5-10 sample profiles)
+- [ ] Add seed data for skills (50+ supply chain skills)
+- [ ] Add seed data for courses (10+ initial courses)
+- [ ] Trigger RSS feed refresh for Supply Chain Insights
+
+### Feature Completion (NOT STARTED)
+- [ ] Enable AI Gateway for Chat Assistant
+- [ ] Add AI_CHAT edge function
+- [ ] Verify all Document Generator sub-components
+- [ ] Add Training Events feature to Courses page
+- [ ] Add event calendar integration
+
+### Navigation & Accessibility (NOT STARTED)
+- [ ] Add footer links (Join Team, Privacy, Terms)
+- [ ] Create dedicated "More" section in navigation
+- [ ] Add breadcrumb navigation
+
+### Documentation (NOT STARTED)
+- [ ] Update PRD with all new features
+- [ ] Create API documentation
+- [ ] Add deployment checklist
+
 | Task | Priority | ETA | Blocker? |
 |------|----------|-----|----------|
 | Applicant Notification System | HIGH | 5-6h | ⚠️ Yes |
 | TypeScript Config Fix | CRITICAL | TBD | ⚠️ Yes |
-| Advanced Filtering | MEDIUM | 1w | ❌ No |
-| Performance Monitoring | MEDIUM | 3d | ❌ No |
-| SiteNavigation Refactoring | MEDIUM | 3h | ❌ No |
-| Push Notifications | LOW | 2w | ❌ No |
+| Bottom Navigation Fix | MEDIUM | 2h | ❌ No |
+| UI/CSS Fixes (tabs) | MEDIUM | 3h | ❌ No |
+| Database Schema Additions | MEDIUM | 2h | ❌ No |
+| Seed Data Population | MEDIUM | 4h | ❌ No |
+| AI Gateway Integration | MEDIUM | 3h | ❌ No |
+| Navigation Improvements | LOW | 2h | ❌ No |
+| Documentation Updates | LOW | 1h | ❌ No |
 
 ---
 
