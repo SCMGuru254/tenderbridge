@@ -113,13 +113,6 @@ serve(async (req) => {
       }
     }
 
-      if (insertError) {
-        console.error('Error storing news:', insertError);
-      } else {
-        console.log(`Successfully stored ${newsToStore.length} articles`);
-      }
-    }
-
     return new Response(
       JSON.stringify({
         success: true,
