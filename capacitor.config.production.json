@@ -5,16 +5,16 @@
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 2000,
+      "launchShowDuration": 3000,
       "launchAutoHide": true,
-      "backgroundColor": "#ffffff",
+      "backgroundColor": "#FF9500",
       "androidSplashResourceName": "splash",
       "androidScaleType": "CENTER_CROP",
-      "showSpinner": true,
+      "showSpinner": false,
       "splashFullScreen": true,
       "splashImmersive": true,
       "iosSpinnerStyle": "small",
-      "spinnerColor": "#4338CA"
+      "spinnerColor": "#ffffff"
     },
     "StatusBar": {
       "backgroundColor": "#ffffff",

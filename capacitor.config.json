@@ -7,17 +7,14 @@
     "SplashScreen": {
       "launchShowDuration": 3000,
       "launchAutoHide": true,
-      "backgroundColor": "#1a1a1a",
+      "backgroundColor": "#FF9500",
       "androidSplashResourceName": "splash",
-      "androidScaleType": "FIT_CENTER",
-      "showSpinner": true,
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
       "splashFullScreen": true,
       "splashImmersive": true,
-      "iosSpinnerStyle": "large",
-      "spinnerColor": "#4338CA",
-      "androidSpinnerStyle": "large",
-      "fadeInDuration": 1000,
-      "fadeOutDuration": 500
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#ffffff"
     },
     "StatusBar": {
       "backgroundColor": "#ffffff",
@@ -31,17 +28,13 @@
       ]
     }
   },
-  "server": {
-    "androidScheme": "capacitor",
-    "iosScheme": "capacitor"
-  },
   "android": {
     "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": true,
+    "webContentsDebuggingEnabled": false,
     "backgroundColor": "#ffffff",
     "minSdkVersion": 22,
-    "targetSdkVersion": 35
+    "targetSdkVersion": 33
   },
   "ios": {
     "contentInset": "always",
