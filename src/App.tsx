@@ -104,6 +104,8 @@ const HireMySkillProfile = lazy(() => import("./pages/HireMySkillProfile"));
 const TrainingEvents = lazy(() => import("./pages/TrainingEvents"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const EmployerDashboard = lazy(() => import("./components/Employer/EmployerDashboard").then(m => ({ default: m.EmployerDashboard })));
+const EmployerApplicationsList = lazy(() => import("./components/Employer/EmployerApplicationsList").then(m => ({ default: m.EmployerApplicationsList })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -204,6 +206,16 @@ const App = () => {
                   )}
                   <Route path="supply-chain-insights" element={<SupplyChainInsights />} />
                   <Route path="post-job" element={<PostJob />} />
+                  <Route path="employer/dashboard" element={
+                    <ProtectedRoute>
+                      <EmployerDashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="employer/applicants/:jobId" element={
+                    <ProtectedRoute>
+                      <EmployerApplicationsList />
+                    </ProtectedRoute>
+                  } />
                   <Route path="jobs/alerts" element={<JobsAlerts />} />
                   <Route path="jobs/analytics" element={<JobsAnalytics />} />
                   <Route path="jobs/applications" element={<JobsApplications />} />

@@ -1,0 +1,16 @@
+{
+  "logoPath": "resources/icon.svg",
+  "splashScreenPath": "resources/splash.svg",
+  "platforms": {
+    "ios": {
+      "splashScreen": true,
+      "icon": true
+    },
+    "android": {
+      "splashScreen": true,
+      "icon": true,
+      "iconBackgroundColor": "#FFFFFF",
+      "splashScreenBackgroundColor": "#FFFFFF"
+    }
+  }
+}

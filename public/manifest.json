@@ -1,25 +1,49 @@
-
 {
   "short_name": "SupplyChain_KE",
   "name": "SupplyChain_KE - Job Portal",
   "description": "Connect with professionals, find jobs, and access career resources",
   "icons": [
     {
-      "src": "/logo192.png",
+      "src": "../icons/icon-48.webp",
+      "type": "image/png",
+      "sizes": "48x48",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-72.webp",
+      "type": "image/png",
+      "sizes": "72x72",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-96.webp",
+      "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-128.webp",
+      "type": "image/png",
+      "sizes": "128x128",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-192.webp",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo512.png",
+      "src": "../icons/icon-256.webp",
       "type": "image/png",
-      "sizes": "512x512",
+      "sizes": "256x256",
       "purpose": "any maskable"
     },
     {
-      "src": "/apple-touch-icon.png",
+      "src": "../icons/icon-512.webp",
       "type": "image/png",
-      "sizes": "180x180"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
@@ -27,21 +51,35 @@
   "theme_color": "#E65D03",
   "background_color": "#ffffff",
   "orientation": "portrait",
-  "categories": ["business", "productivity", "social"],
+  "categories": [
+    "business",
+    "productivity",
+    "social"
+  ],
   "shortcuts": [
     {
       "name": "Find Jobs",
       "short_name": "Jobs",
       "description": "View the latest supply chain jobs",
       "url": "/jobs",
-      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "logo.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "My Profile",
-      "short_name": "Profile", 
+      "short_name": "Profile",
       "description": "View your profile",
       "url": "/profile",
-      "icons": [{ "src": "logo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "logo.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "related_applications": [],
