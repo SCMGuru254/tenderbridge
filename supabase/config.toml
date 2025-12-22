@@ -42,3 +42,57 @@ verify_jwt = false
 
 [functions.news-api-integration]
 verify_jwt = false
+
+[functions.google-news-scraper]
+verify_jwt = false
+
+[functions.document-generator]
+verify_jwt = false
+
+[functions.ats-checker]
+verify_jwt = false
+
+[functions.interview-ai]
+verify_jwt = false
+
+[functions.job-match]
+verify_jwt = false
+
+[functions.job-match-quick]
+verify_jwt = false
+
+[functions.job-match-chat]
+verify_jwt = false
+
+[functions.rewards-automation]
+verify_jwt = false
+
+[functions.paypal-integration]
+verify_jwt = false
+
+[functions.fetch-rss-feeds]
+verify_jwt = false
+
+[functions.scrape-jobs]
+verify_jwt = false
+
+[functions.cleanup-old-news]
+verify_jwt = false
+
+[functions.share-job]
+verify_jwt = false
+
+[functions.handle-report]
+verify_jwt = false
+
+[functions.scheduled-jobs]
+verify_jwt = false
+
+[functions.user-preferences]
+verify_jwt = false
+
+[functions.document-cleaner]
+verify_jwt = false
+
+[functions.auth]
+verify_jwt = false

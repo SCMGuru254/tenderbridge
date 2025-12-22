@@ -32,11 +32,36 @@ export class NewsService {
         return cachedNews;
       }
 
-      const { data, error } = await supabase
+      // First try supply_chain_news table, then news_items
+      let { data, error } = await supabase
         .from('supply_chain_news')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100); // Limit to 100 most recent items
+        .limit(100);
+
+      // If no data from supply_chain_news, try news_items table
+      if (!data || data.length === 0) {
+        const result = await supabase
+          .from('news_items')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100);
+        
+        if (result.data && result.data.length > 0) {
+          // Map news_items to SupplyChainNews format
+          data = result.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            content: item.content,
+            source_name: item.source || 'Unknown',
+            source_url: item.source_url || '',
+            published_date: item.published_at || item.created_at,
+            created_at: item.created_at,
+            tags: item.tags || []
+          }));
+        }
+        error = result.error;
+      }
 
       if (error) throw error;
 
@@ -59,8 +84,15 @@ export class NewsService {
     try {
       performanceMonitor.startMeasure('fetch-real-news');
       
-      // Call the news-api-integration edge function for real news data
-      const { data, error } = await supabase.functions.invoke('news-api-integration', {
+      // Try Google News scraper first (free)
+      const googleResult = await supabase.functions.invoke('google-news-scraper');
+      
+      if (googleResult.error) {
+        console.error('Google News scraper error:', googleResult.error);
+      }
+      
+      // Also try the news-api-integration as backup
+      const apiResult = await supabase.functions.invoke('news-api-integration', {
         body: {
           searchTerm: '',
           limit: 100,
@@ -68,15 +100,15 @@ export class NewsService {
         },
       });
 
-      if (error) throw error;
-
       cache.delete('news'); // Invalidate cache
-      analytics.trackUserAction('news-fetch-success', `count:${data?.count || 0}`);
+      
+      const totalCount = (googleResult.data?.count || 0) + (apiResult.data?.count || 0);
+      analytics.trackUserAction('news-fetch-success', `count:${totalCount}`);
 
       return { 
         success: true, 
-        count: data?.count || 0,
-        message: data?.message || 'Successfully fetched real news data'
+        count: totalCount,
+        message: `Fetched ${totalCount} articles from multiple sources`
       };
 
     } catch (error) {
