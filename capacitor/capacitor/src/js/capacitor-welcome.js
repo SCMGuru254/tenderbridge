@@ -1,13 +1,8 @@
-import { SplashScreen } from '@capacitor/splash-screen';
-import { Camera } from '@capacitor/camera';
-
 window.customElements.define(
   'capacitor-welcome',
   class extends HTMLElement {
     constructor() {
       super();
-
-      SplashScreen.hide();
 
       const root = this.attachShadow({ mode: 'open' });
 
@@ -94,16 +89,18 @@ window.customElements.define(
 
       self.shadowRoot.querySelector('#take-photo').addEventListener('click', async function (e) {
         try {
-          const photo = await Camera.getPhoto({
-            resultType: 'uri',
-          });
-
-          const image = self.shadowRoot.querySelector('#image');
-          if (!image) {
-            return;
-          }
-
-          image.src = photo.webPath;
+          // Camera functionality disabled - requires @capacitor/camera
+          // const photo = await Camera.getPhoto({
+          //   resultType: 'uri',
+          // });
+          //
+          // const image = self.shadowRoot.querySelector('#image');
+          // if (!image) {
+          //   return;
+          // }
+          //
+          // image.src = photo.webPath;
+          console.warn('Camera functionality not available in this version');
         } catch (e) {
           console.warn('User cancelled', e);
         }

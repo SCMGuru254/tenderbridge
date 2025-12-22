@@ -12,6 +12,16 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Force show children if loading takes too long (8 seconds total)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn('[AuthRedirect] Loading timeout exceeded - forcing content display');
+      setLoadingTimeout(true);
+    }, 8000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -48,7 +58,7 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
   }, [user, loading, navigate]);
 
   // Show loading spinner while auth is loading
-  if (loading) {
+  if (loading && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -57,6 +67,12 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
         </div>
       </div>
     );
+  }
+
+  // Force display children if loading timeout exceeded
+  if (loadingTimeout && loading) {
+    console.log('[AuthRedirect] Timeout fallback - displaying content');
+    return <>{children}</>;
   }
 
   // Show landing page for non-authenticated users immediately

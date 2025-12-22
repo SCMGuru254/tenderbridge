@@ -1,5 +1,15 @@
 # Welcome to your Lovable project
 
+## ⚠️ IMPORTANT: Mobile App Architecture
+
+**This is a hybrid mobile application** built with React + Vite and wrapped for iOS/Android using **Capacitor**. It uses native plugins like `@capacitor/camera` and `@capacitor/splash-screen` for mobile functionality.
+
+When modifying code:
+- Do NOT remove Capacitor plugin imports without understanding their mobile use case
+- Always check if dependencies are for mobile features (camera, push notifications, native UI, etc.)
+- Ensure Capacitor plugins match the core version (currently v6.2.1)
+- Test both web and mobile builds
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/58a11674-f67e-4727-b58a-1c6e2834f792
