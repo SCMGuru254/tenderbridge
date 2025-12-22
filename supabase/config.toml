@@ -39,3 +39,6 @@ verify_jwt = false
 
 [functions.hf-chat]
 verify_jwt = false
+
+[functions.news-api-integration]
+verify_jwt = false
