@@ -83,8 +83,8 @@ export default function SupplyChainInsights() {
     : news;
 
   return (
-    <div className="container mx-auto px-4 py-12 mt-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+    <div className="container mx-auto px-4 py-4 mt-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Supply Chain Insights</h1>
           <p className="text-muted-foreground">
