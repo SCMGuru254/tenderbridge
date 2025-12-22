@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthRedirect } from "@/components/AuthRedirect";
 import { Suspense, lazy } from "react";
@@ -45,8 +45,8 @@ const Auth = lazy(() => import("./pages/Auth").catch(error => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Unable to load authentication</h2>
           <p className="text-gray-600 mb-4">Please try refreshing the page</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
           >
             Retry
@@ -149,116 +149,116 @@ const App = () => {
           <NavigationProvider>
             <TooltipProvider delayDuration={300}>
               {/* Splash screen disabled to prevent mobile blocking */}
-              <BrowserRouter>
-              <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={
-                    <AuthRedirect>
-                      <Landing />
-                    </AuthRedirect>
-                  } />
-                  <Route path="landing" element={
-                    <AuthRedirect>
-                      <Landing />
-                    </AuthRedirect>
-                  } />
-                  <Route path="index" element={<Index />} />
-                  <Route path="jobs" element={<Jobs />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="onboarding" element={<Onboarding />} />
-                  <Route path="welcome" element={<WelcomeDashboard />} />
-                  <Route path="auth" element={<Auth />} />
-                  <Route path="job/:id" element={<JobDetails />} />
-                  <Route path="company-signup" element={<CompanySignup />} />
-                  {featureFlags.enableMentorship && (
-                    <Route path="mentorship" element={
-                      <ProtectedRoute>
-                        <Mentorship />
-                      </ProtectedRoute>
-                    } />
-                  )}
-                  <Route path="salary-analyzer" element={<SalaryAnalyzer />} />
-                  <Route path="discussions" element={<DiscussionList />} />
-                  <Route path="careers" element={<JoinOurTeam />} />
-                  <Route path="interview-prep" element={<InterviewPrep />} />
-                  <Route path="company-reviews" element={<CompanyReviews />} />
-                  {featureFlags.enableHRDirectory && (
-                    <Route path="hr-directory" element={
-                      <ProtectedRoute>
-                        <HRDirectory />
-                      </ProtectedRoute>
-                    } />
-                  )}
-                  <Route path="join-team" element={<Careers />} />
-                  <Route path="companies" element={<Companies />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="rewards" element={<Rewards />} />
-                  <Route path="payment-success" element={<PaymentSuccess />} />
-                  <Route path="payment-cancel" element={<PaymentCancel />} />
-                  {featureFlags.enableAI && (
-                    <>
-                      <Route path="ai-agents" element={<AIAgents />} />
-                      <Route path="document-generator" element={<DocumentGenerator />} />
-                      <Route path="ats-checker" element={<ATSChecker />} />
-                      <Route path="chat-assistant" element={<ChatAssistant />} />
-                    </>
-                  )}
-                  <Route path="supply-chain-insights" element={<SupplyChainInsights />} />
-                  <Route path="post-job" element={<PostJob />} />
-                  <Route path="employer/dashboard" element={
-                    <ProtectedRoute>
-                      <EmployerDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="employer/applicants/:jobId" element={
-                    <ProtectedRoute>
-                      <EmployerApplicationsList />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="jobs/alerts" element={<JobsAlerts />} />
-                  <Route path="jobs/analytics" element={<JobsAnalytics />} />
-                  <Route path="jobs/applications" element={<JobsApplications />} />
-                  <Route path="jobs/recommendations" element={<JobsRecommendations />} />
-                  {/* Additional pages */}
-                  <Route path="blog" element={<Blog />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="networking" element={<Networking />} />
-                  <Route path="affiliate" element={<Affiliate />} />
-                  <Route path="privacy" element={<Privacy />} />
-                  <Route path="terms" element={<Terms />} />
-                  <Route path="hire-my-skill" element={<HireMySkill />} />
-                  <Route path="hire-my-skill/profile" element={
-                    <ProtectedRoute>
-                      <HireMySkillProfile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="courses" element={<Courses />} />
-                  <Route path="training-events" element={<TrainingEvents />} />
-                  <Route path="security" element={<Security />} />
-                  <Route path="rls-test" element={<RLSTest />} />
-                  <Route path="forms" element={<Forms />} />
-                  <Route path="free-services" element={<FreeServices />} />
-                  <Route path="faq" element={<Faq />} />
-                  <Route path="social-hub" element={<SocialHub />} />
-                  <Route path="paypal-portal" element={<PayPalPortal />} />
-                  <Route path="featured-clients" element={<FeaturedClients />} />
-                  {featureFlags.enableDocuments && (
-                    <Route path="documents" element={<Documents />} />
-                  )}
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="admin" element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                </Route>
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-          <Toaster position="top-right" richColors />
-        </TooltipProvider>
-        </NavigationProvider>
+              <HashRouter>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                    <Route path="/" element={<Layout />}>
+                      <Route index element={
+                        <AuthRedirect>
+                          <Landing />
+                        </AuthRedirect>
+                      } />
+                      <Route path="landing" element={
+                        <AuthRedirect>
+                          <Landing />
+                        </AuthRedirect>
+                      } />
+                      <Route path="index" element={<Index />} />
+                      <Route path="jobs" element={<Jobs />} />
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="onboarding" element={<Onboarding />} />
+                      <Route path="welcome" element={<WelcomeDashboard />} />
+                      <Route path="auth" element={<Auth />} />
+                      <Route path="job/:id" element={<JobDetails />} />
+                      <Route path="company-signup" element={<CompanySignup />} />
+                      {featureFlags.enableMentorship && (
+                        <Route path="mentorship" element={
+                          <ProtectedRoute>
+                            <Mentorship />
+                          </ProtectedRoute>
+                        } />
+                      )}
+                      <Route path="salary-analyzer" element={<SalaryAnalyzer />} />
+                      <Route path="discussions" element={<DiscussionList />} />
+                      <Route path="careers" element={<JoinOurTeam />} />
+                      <Route path="interview-prep" element={<InterviewPrep />} />
+                      <Route path="company-reviews" element={<CompanyReviews />} />
+                      {featureFlags.enableHRDirectory && (
+                        <Route path="hr-directory" element={
+                          <ProtectedRoute>
+                            <HRDirectory />
+                          </ProtectedRoute>
+                        } />
+                      )}
+                      <Route path="join-team" element={<Careers />} />
+                      <Route path="companies" element={<Companies />} />
+                      <Route path="profile" element={<Profile />} />
+                      <Route path="rewards" element={<Rewards />} />
+                      <Route path="payment-success" element={<PaymentSuccess />} />
+                      <Route path="payment-cancel" element={<PaymentCancel />} />
+                      {featureFlags.enableAI && (
+                        <>
+                          <Route path="ai-agents" element={<AIAgents />} />
+                          <Route path="document-generator" element={<DocumentGenerator />} />
+                          <Route path="ats-checker" element={<ATSChecker />} />
+                          <Route path="chat-assistant" element={<ChatAssistant />} />
+                        </>
+                      )}
+                      <Route path="supply-chain-insights" element={<SupplyChainInsights />} />
+                      <Route path="post-job" element={<PostJob />} />
+                      <Route path="employer/dashboard" element={
+                        <ProtectedRoute>
+                          <EmployerDashboard />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="employer/applicants/:jobId" element={
+                        <ProtectedRoute>
+                          <EmployerApplicationsList />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="jobs/alerts" element={<JobsAlerts />} />
+                      <Route path="jobs/analytics" element={<JobsAnalytics />} />
+                      <Route path="jobs/applications" element={<JobsApplications />} />
+                      <Route path="jobs/recommendations" element={<JobsRecommendations />} />
+                      {/* Additional pages */}
+                      <Route path="blog" element={<Blog />} />
+                      <Route path="analytics" element={<Analytics />} />
+                      <Route path="networking" element={<Networking />} />
+                      <Route path="affiliate" element={<Affiliate />} />
+                      <Route path="privacy" element={<Privacy />} />
+                      <Route path="terms" element={<Terms />} />
+                      <Route path="hire-my-skill" element={<HireMySkill />} />
+                      <Route path="hire-my-skill/profile" element={
+                        <ProtectedRoute>
+                          <HireMySkillProfile />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="courses" element={<Courses />} />
+                      <Route path="training-events" element={<TrainingEvents />} />
+                      <Route path="security" element={<Security />} />
+                      <Route path="rls-test" element={<RLSTest />} />
+                      <Route path="forms" element={<Forms />} />
+                      <Route path="free-services" element={<FreeServices />} />
+                      <Route path="faq" element={<Faq />} />
+                      <Route path="social-hub" element={<SocialHub />} />
+                      <Route path="paypal-portal" element={<PayPalPortal />} />
+                      <Route path="featured-clients" element={<FeaturedClients />} />
+                      {featureFlags.enableDocuments && (
+                        <Route path="documents" element={<Documents />} />
+                      )}
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="admin" element={
+                        <ProtectedRoute>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      } />
+                    </Route>
+                  </Routes>
+                </Suspense>
+              </HashRouter>
+              <Toaster position="top-right" richColors />
+            </TooltipProvider>
+          </NavigationProvider>
         </AuthProviderFull>
       </QueryClientProvider>
     </ErrorBoundary>
