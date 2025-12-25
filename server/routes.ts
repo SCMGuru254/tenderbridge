@@ -9,7 +9,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/jobs/:id", async (req, res) => {
-    const job = await storage.getJob(parseInt(req.params.id));
+    const id = parseInt(req.params.id as string);
+    const job = await storage.getJob(id);
     if (!job) return res.status(404).json({ message: "Job not found" });
     res.json(job);
   });
