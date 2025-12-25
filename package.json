@@ -10,7 +10,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:ai": "ts-node src/tests/aiAgentTest.ts",
+    "db:push": "drizzle-kit push",
     "generate:splash": "node scripts/generate-splash.js",
     "generate:assets": "@capacitor/assets generate --input resources --output android/app/src/main/res"
   },
