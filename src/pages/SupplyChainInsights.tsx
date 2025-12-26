@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { newsService, SupplyChainNews } from '@/services/newsService';
 import { formatDistanceToNow } from 'date-fns';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle, ExternalLink, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // Sanitize HTML content to prevent XSS attacks
 const sanitizeHtml = (html: string): string => {
@@ -27,6 +28,8 @@ export default function SupplyChainInsights() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSource, setActiveSource] = useState<string | null>(null);
+
+  const [selectedArticle, setSelectedArticle] = useState<SupplyChainNews | null>(null);
 
   useEffect(() => {
     fetchNews();
@@ -188,7 +191,7 @@ export default function SupplyChainInsights() {
               </div>
             ) : (
               filteredNews.map((item) => (
-                <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+                <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer" onClick={() => setSelectedArticle(item)}>
                   <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                       <div className="space-y-1">
@@ -232,6 +235,50 @@ export default function SupplyChainInsights() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!selectedArticle} onOpenChange={(open) => !open && setSelectedArticle(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          {selectedArticle && (
+            <>
+              <DialogHeader>
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-1">
+                    <DialogTitle className="text-2xl">{selectedArticle.title}</DialogTitle>
+                    <DialogDescription>
+                      {selectedArticle.published_date ? formatDistanceToNow(new Date(selectedArticle.published_date), { addSuffix: true }) : 'Recently'} • {selectedArticle.source_name}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="mt-6 space-y-4">
+                <div 
+                  className="prose prose-sm md:prose-base max-w-none text-foreground"
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedArticle.content || '') }}
+                />
+                
+                <div className="flex flex-wrap gap-2 pt-4">
+                  {selectedArticle.tags && selectedArticle.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+              <DialogFooter className="mt-8 flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setSelectedArticle(null)}>
+                  Close
+                </Button>
+                {selectedArticle.source_url && selectedArticle.source_url !== '#' && (
+                  <Button asChild>
+                    <a href={selectedArticle.source_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Read Original Article
+                    </a>
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
