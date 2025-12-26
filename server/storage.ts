@@ -1,4 +1,4 @@
-import { jobs, profiles, companies, type Job, type InsertJob, type Profile, type InsertProfile, type Company, type InsertCompany } from "@shared/schema";
+import { jobs, profiles, companies, type Job, type InsertJob, type Profile, type InsertProfile, type Company, type InsertCompany } from "../shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 

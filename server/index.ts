@@ -6,16 +6,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
+app.use("/api", (req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let resSent = false;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path && path.startsWith("/api")) {
-      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
-    }
+    log(`${req.method} /api${path} ${res.statusCode} in ${duration}ms`);
   });
 
   next();
