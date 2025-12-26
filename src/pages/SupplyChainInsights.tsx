@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { newsService, SupplyChainNews } from '@/services/newsService';
 import { formatDistanceToNow } from 'date-fns';
-import { RefreshCw, AlertCircle, ExternalLink, X } from 'lucide-react';
+import { RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // Sanitize HTML content to prevent XSS attacks
