@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     watch: {
       usePolling: true,
       interval: 1000,
+      ignored: ['**/node_modules/**', '**/.cache/**'],
     },
     hmr: {
       clientPort: 443,
