@@ -165,6 +165,7 @@ const App = () => {
                       } />
                       <Route path="index" element={<Index />} />
                       <Route path="jobs" element={<Jobs />} />
+                      <Route path="chat-assistant" element={<ChatAssistant />} />
                       <Route path="dashboard" element={<Dashboard />} />
                       <Route path="onboarding" element={<Onboarding />} />
                       <Route path="welcome" element={<WelcomeDashboard />} />

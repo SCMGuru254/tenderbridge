@@ -20,27 +20,33 @@ const JobDetails = () => {
   const [applying, setApplying] = useState(false);
 
   useEffect(() => {
-    if (id && type) {
+    if (id) {
       fetchJob();
     }
-  }, [id, type]);
+  }, [id]);
 
   const fetchJob = async () => {
     try {
       setLoading(true);
-      const table = type === 'posted' ? 'jobs' : 'scraped_jobs';
-      
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
+      const response = await fetch(`/api/jobs/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch job');
+      const data = await response.json();
       setJob(data);
     } catch (error) {
       console.error('Error fetching job:', error);
-      toast.error("Failed to load job details");
+      // Fallback to Supabase if local API fails
+      try {
+        const { data, error: sbError } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (sbError) throw sbError;
+        setJob(data);
+      } catch (sbErr) {
+        console.error('Supabase fallback error:', sbErr);
+        toast.error("Failed to load job details");
+      }
     } finally {
       setLoading(false);
     }
