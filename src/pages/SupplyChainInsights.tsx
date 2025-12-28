@@ -254,8 +254,9 @@ export default function SupplyChainInsights() {
               <div className="mt-4 space-y-4">
                 <div 
                   className="prose prose-sm md:prose-base max-w-none text-foreground leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedArticle.content || '') }}
-                />
+                >
+                  <p className="whitespace-pre-wrap">{selectedArticle.content}</p>
+                </div>
                 
                 <div className="flex flex-wrap gap-2 pt-6">
                   {selectedArticle.tags && selectedArticle.tags.map((tag, index) => (
