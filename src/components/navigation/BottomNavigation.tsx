@@ -16,8 +16,8 @@ const BottomNavigation: React.FC<Props> = ({ className }) => {
   const bottomNavItems = getBottomNavigationItems();
   
   return (
-    <nav className={cn("fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border md:hidden", className)}>
-      <div className="flex items-center justify-between py-1 px-1">
+    <nav className={cn("fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-t border-border md:hidden px-2", className)}>
+      <div className="flex items-center justify-between py-1 max-w-lg mx-auto">
         {bottomNavItems.map((item: MenuItem) => {
           const Icon = item.icon;
           return (
@@ -26,7 +26,7 @@ const BottomNavigation: React.FC<Props> = ({ className }) => {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  "flex flex-col items-center justify-center min-w-0 flex-1 px-1 py-1.5",
+                  "flex flex-col items-center justify-center min-w-[60px] flex-1 py-1",
                   "text-[10px] font-medium transition-colors",
                   "touch-manipulation",
                   "relative",
@@ -37,13 +37,13 @@ const BottomNavigation: React.FC<Props> = ({ className }) => {
               }
             >
               <Icon className="h-5 w-5 mb-0.5" />
-              <span className="truncate w-full text-center px-0.5">{item.title}</span>
+              <span className="truncate w-full text-center">{item.title}</span>
             </NavLink>
           );
         })}
         
         <Sheet>
-          <SheetTrigger className="flex flex-col items-center justify-center min-w-0 flex-1 px-1 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
+          <SheetTrigger className="flex flex-col items-center justify-center min-w-[60px] flex-1 py-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
             <Menu className="h-5 w-5 mb-0.5" />
             <span>More</span>
           </SheetTrigger>
