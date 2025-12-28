@@ -1567,8 +1567,10 @@ export type Database = {
           company_id: string | null
           created_at: string
           description: string
+          document_url: string | null
           hiring_timeline: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
@@ -1584,8 +1586,10 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           description: string
+          document_url?: string | null
           hiring_timeline?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
@@ -1601,8 +1605,10 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           description?: string
+          document_url?: string | null
           hiring_timeline?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           job_type?: Database["public"]["Enums"]["job_type"]
           location?: string
@@ -3063,6 +3069,69 @@ export type Database = {
           title?: string
           updated_at?: string | null
           url?: string
+        }
+        Relationships: []
+      }
+      salary_submissions: {
+        Row: {
+          benefits: string[] | null
+          bonus_amount: number | null
+          company_name: string | null
+          created_at: string | null
+          department: string | null
+          employment_type: string | null
+          experience_level: string | null
+          id: string
+          industry: string | null
+          is_anonymous: boolean | null
+          job_title: string
+          location: string | null
+          salary_amount: number
+          salary_currency: string | null
+          salary_period: string | null
+          updated_at: string | null
+          user_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          bonus_amount?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          department?: string | null
+          employment_type?: string | null
+          experience_level?: string | null
+          id?: string
+          industry?: string | null
+          is_anonymous?: boolean | null
+          job_title: string
+          location?: string | null
+          salary_amount: number
+          salary_currency?: string | null
+          salary_period?: string | null
+          updated_at?: string | null
+          user_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          benefits?: string[] | null
+          bonus_amount?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          department?: string | null
+          employment_type?: string | null
+          experience_level?: string | null
+          id?: string
+          industry?: string | null
+          is_anonymous?: boolean | null
+          job_title?: string
+          location?: string | null
+          salary_amount?: number
+          salary_currency?: string | null
+          salary_period?: string | null
+          updated_at?: string | null
+          user_id?: string
+          years_experience?: number | null
         }
         Relationships: []
       }
