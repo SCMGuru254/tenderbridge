@@ -213,12 +213,13 @@ export default function SupplyChainInsights() {
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1">
-                    <ScrollArea className="h-[150px]">
+                    <div className="h-[150px] overflow-hidden relative">
                       <div 
-                        className="prose prose-sm max-w-none"
+                        className="prose prose-sm max-w-none line-clamp-[6]"
                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content || '') }}
                       />
-                    </ScrollArea>
+                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                    </div>
                     
                     <div className="flex flex-wrap gap-2 mt-4">
                       {item.tags && item.tags.slice(0, 3).map((tag, index) => (
@@ -242,23 +243,23 @@ export default function SupplyChainInsights() {
             <>
               <DialogHeader>
                 <div className="flex justify-between items-start gap-4">
-                  <div className="space-y-1">
-                    <DialogTitle className="text-2xl">{selectedArticle.title}</DialogTitle>
-                    <DialogDescription>
+                  <div className="space-y-1 pr-6">
+                    <DialogTitle className="text-2xl leading-tight">{selectedArticle.title}</DialogTitle>
+                    <DialogDescription className="text-sm font-medium">
                       {selectedArticle.published_date ? formatDistanceToNow(new Date(selectedArticle.published_date), { addSuffix: true }) : 'Recently'} • {selectedArticle.source_name}
                     </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 space-y-4">
                 <div 
-                  className="prose prose-sm md:prose-base max-w-none text-foreground"
+                  className="prose prose-sm md:prose-base max-w-none text-foreground leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(selectedArticle.content || '') }}
                 />
                 
-                <div className="flex flex-wrap gap-2 pt-4">
+                <div className="flex flex-wrap gap-2 pt-6">
                   {selectedArticle.tags && selectedArticle.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline">{tag}</Badge>
+                    <Badge key={index} variant="outline" className="text-xs uppercase tracking-wider">{tag}</Badge>
                   ))}
                 </div>
               </div>
