@@ -17,15 +17,16 @@ export default async function parseXmlJobs(xmlContent: string, jobSite: JobSite)
     
     const items = doc.querySelectorAll('item');
     console.log(`Found ${items.length} job items in XML`);
-    
+
     const jobs: Job[] = [];
-    
-    items.forEach((item, index) => {
+
+    // deno_dom types sometimes expose Node instead of Element; cast for querySelector usage.
+    (Array.from(items as unknown as any[]) as any[]).forEach((item: any, index: number) => {
       try {
-        const title = item.querySelector('title')?.textContent?.trim() || '';
-        const link = item.querySelector('link')?.textContent?.trim() || '';
-        const description = item.querySelector('description')?.textContent?.trim() || '';
-        const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
+        const title = item.querySelector?.('title')?.textContent?.trim() || '';
+        const link = item.querySelector?.('link')?.textContent?.trim() || '';
+        const description = item.querySelector?.('description')?.textContent?.trim() || '';
+        const pubDate = item.querySelector?.('pubDate')?.textContent?.trim() || '';
         
         // Extract company from description or use a default
         let company = 'Company not specified';

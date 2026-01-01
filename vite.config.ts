@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
   base: './',
   server: {
     host: "0.0.0.0",
-    port: 5000,
+    port: 8080,
     allowedHosts: true,
     watch: {
       usePolling: true,

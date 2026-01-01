@@ -114,7 +114,7 @@ async function sendNewJobNotifications(supabaseUrl: string, supabaseKey: string)
     const { data: users, error: usersError } = await supabase
       .from('user_job_preferences')
       .select('user_id')
-      .distinct();
+      .isDistinct();
     
     if (usersError || !users || users.length === 0) {
       console.log('No users with preferences found or error fetching users:', usersError);

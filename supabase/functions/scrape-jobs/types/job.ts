@@ -7,6 +7,7 @@ export interface Job {
   job_url: string | null;
   application_url?: string | null;
   source: string;
+  source_posted_at?: string | null;
   deadline?: string | null;
   salary?: string | null;
   tags?: string[] | null;
