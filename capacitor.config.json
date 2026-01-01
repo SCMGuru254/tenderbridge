@@ -2,9 +2,6 @@
   "appId": "com.supplychainke.app",
   "appName": "Supply_chain_Ke",
   "webDir": "dist",
-  "server": {
-    "androidScheme": "https"
-  },
   "bundledWebRuntime": false,
   "plugins": {
     "SplashScreen": {
