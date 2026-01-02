@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Edit2, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { ReferralCard } from './ReferralCard';
+import { JobBoostModal } from './JobBoostModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,6 +135,13 @@ export function EmployerDashboard() {
           </Button>
         </div>
 
+        {/* Referral Program Card */}
+        {user?.id && (
+          <div className="mb-6">
+            <ReferralCard userId={user.id} />
+          </div>
+        )}
+
         {jobs.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
@@ -181,15 +190,20 @@ export function EmployerDashboard() {
                     {job.description}
                   </p>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <Button
                       onClick={() => handleViewApplicants(job.id)}
                       variant="default"
-                      className="flex-1"
+                      className="flex-1 min-w-[150px]"
                     >
                       <Users className="w-4 h-4 mr-2" />
                       View Applicants ({job.applications_count || 0})
                     </Button>
+                    <JobBoostModal 
+                      jobId={job.id} 
+                      jobTitle={job.title}
+                      onBoostComplete={loadEmployerJobs}
+                    />
                     <Button
                       onClick={() => handleEditJob(job.id)}
                       variant="outline"

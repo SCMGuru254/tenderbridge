@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import InfluencerDashboard from '@/components/affiliates/InfluencerDashboard';
+import { EmployerDashboard } from '@/components/Employer/EmployerDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, Briefcase, MessageSquare, TrendingUp, Clock, Eye, Heart, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RewardsRedemption } from '@/components/rewards/RewardsRedemption';
 
 interface DashboardStats {
   jobsApplied: number;
@@ -33,14 +36,37 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  const [userType, setUserType] = useState<string | null>(null);
+
   useEffect(() => {
     if (user) {
+      checkUserType();
+      // Award daily login points
+      awardDailyLogin();
       // Add a small delay to show immediate UI, then load data
       setTimeout(() => {
         fetchDashboardStats();
       }, 100);
     }
   }, [user]);
+
+  const awardDailyLogin = async () => {
+    try {
+      const { data } = await supabase.rpc('award_daily_login');
+      // Silent success - points awarded in background
+      if (data?.success) {
+        console.log('Daily login bonus awarded');
+      }
+    } catch (error) {
+      // Silent fail - don't interrupt user experience
+      console.error('Daily login error:', error);
+    }
+  };
+
+  const checkUserType = async () => {
+      const { data } = await supabase.from('profiles').select('user_type').eq('id', user?.id).single();
+      if (data) setUserType(data.user_type);
+  };
 
   const fetchDashboardStats = async () => {
     if (!user) return;
@@ -54,10 +80,17 @@ const Dashboard = () => {
         supabase.from('profile_views').select('id', { count: 'exact' }).eq('profile_id', user.id),
         supabase.from('interview_sessions').select('id', { count: 'exact' }).eq('user_id', user.id),
         supabase.from('career_applications').select('id', { count: 'exact' }).eq('user_id', user.id),
-        supabase.from('discussions').select('id', { count: 'exact' }).eq('author_id', user.id)
+        supabase.from('discussions').select('id', { count: 'exact' }).eq('author_id', user.id),
+        supabase.from('user_rewards').select('current_points').eq('user_id', user.id).single()
       ]);
 
       console.log('Dashboard query results:', results);
+
+      // Extract points safely
+      let points = 0;
+      if (results[5].status === 'fulfilled' && results[5].value.data) {
+          points = results[5].value.data.current_points || 0;
+      }
 
       setStats({
         jobsApplied: results[0].status === 'fulfilled' ? (results[0].value.count || 0) : 0,
@@ -65,7 +98,7 @@ const Dashboard = () => {
         profileViews: results[1].status === 'fulfilled' ? (results[1].value.count || 0) : 0,
         interviewSessions: results[2].status === 'fulfilled' ? (results[2].value.count || 0) : 0,
         mentorshipSessions: 0, // This would need the mentorship_sessions table
-        rewardPoints: 0, // This would need a rewards system
+        rewardPoints: points, 
         careerApplications: results[3].status === 'fulfilled' ? (results[3].value.count || 0) : 0,
         discussionsParticipated: results[4].status === 'fulfilled' ? (results[4].value.count || 0) : 0
       });
@@ -89,6 +122,31 @@ const Dashboard = () => {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
+
+  // --- ROLE BASED DASHBOARDS ---
+  if (userType === 'affiliate') {
+      return (
+          <div className="container mx-auto p-6 space-y-8">
+               <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">Growth Partner Dashboard</h1>
+                        <p className="text-muted-foreground">Manage your partnerships and earnings.</p>
+                    </div>
+               </div>
+               {/* Lazy load to avoid circular deps if needed, but direct import is fine for now */}
+               <InfluencerDashboard />
+          </div>
+      );
+  }
+
+  if (userType === 'employer') {
+       return (
+           <div className="container mx-auto p-6 space-y-8">
+                <EmployerDashboard />
+           </div>
+       );
+  }
+  // -----------------------------
 
   const statCards = [
     {
@@ -238,6 +296,12 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Rewards Redemption */}
+      <RewardsRedemption 
+        currentPoints={stats.rewardPoints} 
+        onRedeemComplete={fetchDashboardStats}
+      />
 
       {/* Recent Activity */}
       <Card>

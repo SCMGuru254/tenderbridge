@@ -18,8 +18,9 @@
 ## 🔥 High Priority (Non-AI)
 
 - [ ] **Mobile App (APK)**
-  - Rebuild APK with latest config fixes (Next Step).
-  - Test on physical device.
+  - [x] CLI Build & Sync (Completed).
+  - [x] Build APK (Verified ~27MB file generated).
+  - [ ] **Action Required**: Install `app-debug.apk` on physical device.
 - [ ] **Notifications System**
   - Implement system notifications.
   - Email verification flow.

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { CoursePaymentModal } from '@/components/payments/CoursePaymentModal';
 
 const eventSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -38,6 +39,9 @@ interface TrainingEventFormProps {
 export function TrainingEventForm({ onSuccess }: TrainingEventFormProps) {
   const { user } = useAuth();
   const [isOnline, setIsOnline] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState<string | null>(null);
+  const [eventDetails, setEventDetails] = useState<{ title: string; price: number } | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ['course-categories'],
@@ -73,7 +77,8 @@ export function TrainingEventForm({ onSuccess }: TrainingEventFormProps) {
     }
 
     try {
-      const { error } = await supabase
+      // 1. Create the event first (Status: Pending Payment/Approval)
+      const { data: eventData, error } = await supabase
         .from('training_events')
         .insert({
           organizer_id: user.id,
@@ -90,14 +95,26 @@ export function TrainingEventForm({ onSuccess }: TrainingEventFormProps) {
           registration_deadline: data.registration_deadline || null,
           price: data.price,
           image_url: data.image_url || null,
-          status: 'upcoming',
+          status: 'upcoming', // Ideally 'pending_payment' if schema allowed
           current_attendees: 0
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast.success('Training event created successfully!');
-      onSuccess();
+      // 2. If Paid Event, Trigger Payment Flow
+      if (data.price > 0) {
+          setCreatedEventId(eventData.id);
+          setEventDetails({ title: data.title, price: data.price });
+          setPaymentModalOpen(true);
+          // Don't call onSuccess() yet
+      } else {
+          // Free event logic
+          toast.success('Training event created successfully!');
+          onSuccess();
+      }
+
     } catch (error: any) {
       console.error('Error creating event:', error);
       toast.error(error.message || 'Failed to create event');
@@ -105,6 +122,7 @@ export function TrainingEventForm({ onSuccess }: TrainingEventFormProps) {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <Label htmlFor="title">Event Title *</Label>
@@ -284,8 +302,20 @@ export function TrainingEventForm({ onSuccess }: TrainingEventFormProps) {
       </div>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Creating...' : 'Create Training Event'}
+        {isSubmitting ? 'Processing...' : 'Create Training Event'}
       </Button>
     </form>
+
+    <CoursePaymentModal 
+        open={paymentModalOpen} 
+        onOpenChange={setPaymentModalOpen}
+        eventTitle={eventDetails?.title || ''}
+        ticketPrice={eventDetails?.price || 0}
+        eventId={createdEventId}
+        onSuccess={() => {
+            onSuccess();
+        }}
+    />
+    </>
   );
 }

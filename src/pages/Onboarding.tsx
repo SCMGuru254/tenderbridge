@@ -25,7 +25,8 @@ const Onboarding = () => {
     experience_level: '',
     career_goals: '',
     skills: '',
-    location: ''
+    location: '',
+    user_type: 'candidate' // Default
   });
 
   const handleNext = () => {
@@ -73,6 +74,7 @@ const Onboarding = () => {
         career_goals: profile.career_goals || '',
         skills: profile.skills || '',
         location: profile.location || 'Kenya',
+        user_type: profile.user_type,
         updated_at: new Date().toISOString()
       };
 
@@ -117,6 +119,45 @@ const Onboarding = () => {
   };
 
   const steps = [
+    {
+      title: 'Choose Your Path',
+      content: (
+        <div className="grid md:grid-cols-2 gap-4 py-4">
+          <div 
+            className={`p-6 border-2 rounded-xl cursor-pointer transition-all hover:border-primary ${profile.user_type === 'candidate' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
+            onClick={() => setProfile({ ...profile, user_type: 'candidate' })}
+          >
+            <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Job Seeker</h3>
+            <p className="text-sm text-gray-500">I am looking for jobs, mentorship, and career growth opportunities.</p>
+          </div>
+
+          <div 
+            className={`p-6 border-2 rounded-xl cursor-pointer transition-all hover:border-primary ${profile.user_type === 'employer' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
+            onClick={() => setProfile({ ...profile, user_type: 'employer' })}
+          >
+            <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 text-purple-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Employer / Recruiter</h3>
+            <p className="text-sm text-gray-500">I want to post jobs, manage applications, and find top talent.</p>
+          </div>
+
+          <div 
+            className={`p-6 border-2 rounded-xl cursor-pointer transition-all hover:border-primary ${profile.user_type === 'affiliate' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
+            onClick={() => setProfile({ ...profile, user_type: 'affiliate' })}
+          >
+            <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center mb-4 text-yellow-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2">Growth Partner</h3>
+            <p className="text-sm text-gray-500">I want to earn commissions by promoting courses and jobs.</p>
+          </div>
+        </div>
+      )
+    },
     {
       title: 'Personal Information',
       content: (
