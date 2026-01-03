@@ -68,7 +68,7 @@ export function ReferralCard({ userId }: { userId: string }) {
 
   const createAffiliateProgram = async () => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('affiliate_programs')
         .insert({
           user_id: userId,

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { JobCard } from "@/components/JobCard";
 import { Loader2, BookMarked, Briefcase } from "lucide-react";
@@ -43,13 +43,15 @@ export default function MyApplications() {
 
       // Transform response to match JobCard format
       const savedList = savedData
-        ?.filter(item => item.scraped_jobs)
-        .map(item => ({
-          ...item.scraped_jobs,
-          // specific fields check for JobCard
-          job_url: item.scraped_jobs.job_url,
-          id: item.scraped_jobs.id
-        })) || [];
+        ?.filter(item => item.scraped_jobs && !Array.isArray(item.scraped_jobs))
+        .map(item => {
+          const scrapedJob = item.scraped_jobs as Record<string, any>;
+          return {
+            ...scrapedJob,
+            job_url: scrapedJob.job_url,
+            id: scrapedJob.id
+          };
+        }) || [];
         
       setSavedJobs(savedList);
 
