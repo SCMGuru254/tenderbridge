@@ -9,13 +9,15 @@ import { toast } from "sonner";
 import { 
     CheckCircle2,
     Loader2,
-    Banknote // More neutral for KES
+    Banknote,
+    Settings
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdManager } from "./AdManager";
 import { VideoManager } from "./VideoManager";
 import { CompanyClaims } from "./CompanyClaims";
+import { PlatformSettingsManager } from "./PlatformSettingsManager";
 
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -170,13 +172,17 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="inbox" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
               <TabsTrigger value="inbox">Inbox ({tasks.length})</TabsTrigger>
               <TabsTrigger value="partners">Growth Partners</TabsTrigger>
               <TabsTrigger value="ads">Ad Management</TabsTrigger>
               <TabsTrigger value="videos">Video Library</TabsTrigger>
               <TabsTrigger value="claims">Business Claims</TabsTrigger>
-              <TabsTrigger value="reports">Content Reports ({tasks.filter(t => t.task_type === 'CONTENT_REPORT').length})</TabsTrigger>
+              <TabsTrigger value="reports">Reports ({tasks.filter(t => t.task_type === 'CONTENT_REPORT').length})</TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-1">
+                <Settings className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
           </TabsList>
 
           {/* INBOX TAB */}
@@ -312,6 +318,11 @@ export default function AdminDashboard() {
                     </div>
                 </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* PLATFORM SETTINGS TAB */}
+          <TabsContent value="settings">
+            <PlatformSettingsManager />
           </TabsContent>
       </Tabs>
     </div>
