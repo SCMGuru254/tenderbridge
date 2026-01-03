@@ -84,6 +84,35 @@ export const useRewards = () => {
     return await awardPoints(5, 'Daily login bonus', 'daily_login');
   };
 
+  const awardSocialFollowPoints = async (platform: string) => {
+    if (!user) return false;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('award_social_follow_points', {
+        p_user_id: user.id,
+        p_platform: platform
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        await fetchUserPoints();
+        toast.success(`Earned ${data.points_earned} points! Following us on ${platform}`);
+        return true;
+      } else {
+        toast.info(data?.error || 'Already earned points for this platform');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error awarding social points:', error);
+      toast.error('Failed to award points');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     points,
     loading,
@@ -93,6 +122,7 @@ export const useRewards = () => {
     awardFirstJobPlacementPoints,
     awardReferralPoints,
     awardDailyLoginPoints,
+    awardSocialFollowPoints,
     fetchUserPoints
   };
 };

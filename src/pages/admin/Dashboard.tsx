@@ -19,6 +19,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { ContentReports } from '@/components/admin/ContentReports';
+import { CompanyClaims } from '@/components/admin/CompanyClaims';
 
 interface AdminStats {
   total_users: number;
@@ -303,12 +305,22 @@ export default function AdminDashboard() {
       </div>
 
       {/* Management Tools */}
-      <Tabs defaultValue="automation" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="moderation" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="moderation">Moderation</TabsTrigger>
+          <TabsTrigger value="claims">Claims</TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
           <TabsTrigger value="rls-tests">RLS Tests</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="moderation" className="space-y-6">
+          <ContentReports />
+        </TabsContent>
+
+        <TabsContent value="claims" className="space-y-6">
+          <CompanyClaims />
+        </TabsContent>
 
         <TabsContent value="automation" className="space-y-6">
           <Card>

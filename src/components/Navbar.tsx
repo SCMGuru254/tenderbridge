@@ -21,6 +21,7 @@ export default function Navbar() {
             <Link to="/chat-assistant"><Button variant="ghost">Assistant</Button></Link>
             <Link to="/hire-my-skill"><Button variant="ghost">Hire My Skill</Button></Link>
             <Link to="/post-job"><Button variant="ghost">Post Job</Button></Link>
+            <Link to="/my-applications"><Button variant="ghost">My Apps</Button></Link>
           </div>
 
           <div className="flex items-center space-x-4">

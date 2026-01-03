@@ -215,6 +215,13 @@ export const navigationCategories: NavigationCategory[] = [
         href: '/dashboard',
         showInBottomNav: true,
         category: 'account'
+      },
+      {
+        title: 'My Applications',
+        description: 'Track your jobs',
+        icon: Briefcase,
+        href: '/my-applications',
+        category: 'account'
       }
     ]
   }

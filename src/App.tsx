@@ -10,6 +10,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { AuthProviderFull } from "@/contexts/AuthContextFull";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import { Toaster } from "sonner";
+import { ReferralListener } from "@/components/ReferralListener";
 
 // Unregister all service workers on app load to fix blank screen issues
 if ('serviceWorker' in navigator) {
@@ -83,6 +84,7 @@ const JobsAlerts = lazy(() => import("./pages/jobs/alerts"));
 const JobsAnalytics = lazy(() => import("./pages/jobs/analytics"));
 const JobsApplications = lazy(() => import("./pages/jobs/applications"));
 const JobsRecommendations = lazy(() => import("./pages/jobs/recommendations"));
+const MyApplications = lazy(() => import("./pages/MyApplications"));
 // Additional pages
 const Blog = lazy(() => import("./pages/Blog"));
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -148,8 +150,8 @@ const App = () => {
         <AuthProviderFull>
           <NavigationProvider>
             <TooltipProvider delayDuration={300}>
-              {/* Splash screen disabled to prevent mobile blocking */}
               <HashRouter>
+                <ReferralListener />
                 <Suspense fallback={<LoadingSpinner />}>
                   <Routes>
                     <Route path="/" element={<Layout />}>
@@ -222,6 +224,11 @@ const App = () => {
                       <Route path="jobs/analytics" element={<JobsAnalytics />} />
                       <Route path="jobs/applications" element={<JobsApplications />} />
                       <Route path="jobs/recommendations" element={<JobsRecommendations />} />
+                      <Route path="my-applications" element={
+                        <ProtectedRoute>
+                          <MyApplications />
+                        </ProtectedRoute>
+                      } />
                       {/* Additional pages */}
                       <Route path="blog" element={<Blog />} />
                       <Route path="analytics" element={<Analytics />} />

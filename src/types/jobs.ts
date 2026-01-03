@@ -22,6 +22,9 @@ export interface PostedJob extends BaseJob {
   is_active?: boolean;
   updated_at: string;
   hiring_timeline?: string;
+  is_featured?: boolean;
+  boosted_until?: string;
+  priority_score?: number;
 }
 
 export interface AggregatedJob extends BaseJob {

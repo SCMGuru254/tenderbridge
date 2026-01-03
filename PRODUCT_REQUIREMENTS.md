@@ -61,6 +61,29 @@ professional development services.
 - ✅ Document generator (CV/Cover letters)
 - ✅ File management (upload, view, delete)
 
+### 🛡️ Admin Moderation & Content Safety
+
+- ✅ Content reporting system (jobs, reviews, discussions, profiles)
+- ✅ Admin moderation dashboard with pending reports
+- ✅ Manual content deletion for reported items
+- ✅ Scheduled content reviews (72-hour deletion window)
+- ✅ Automatic spam detection (3+ reports trigger moderation)
+- ✅ Report status tracking (pending, approved, rejected)
+- ✅ Admin-only tabs for moderation and business claims
+- ⚠️ **INCOMPLETE**: Job "Share" button only tracks count, no real social
+  sharing
+- ❌ **MISSING**: Bulk spam management tools
+- ❌ **MISSING**: Report analytics and trends
+
+### 👤 User Job Tracking
+
+- ✅ Saved jobs feature with database persistence
+- ✅ Application tracker (applied, interviewing, offer, rejected)
+- ✅ "My Applications" dashboard page
+- ✅ Job status badges and filtering
+- ❌ **MISSING**: Job alerts/notifications UI
+- ❌ **MISSING**: Application deadline reminders
+
 ### 🎯 Interview Preparation
 
 - ✅ AI-powered interview practice

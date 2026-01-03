@@ -59,6 +59,19 @@ export class NewsService {
             created_at: item.created_at,
             tags: item.tags || []
           }));
+        } else {
+           // If BOTH tables are empty, trigger real fetch
+           console.log("No news found in DB. Triggering fresh fetch...");
+           await this.fetchRealNews();
+           
+           // Retry fetching from supply_chain_news
+           const retryResult = await supabase
+            .from('supply_chain_news')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100);
+            
+           data = retryResult.data;
         }
         error = result.error;
       }

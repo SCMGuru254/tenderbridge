@@ -21,9 +21,10 @@ export const getJobSites = (): JobSite[] => {
       timeout: 30000
     },
 
-    // LinkedIn Jobs - Enhanced selectors
+    // LinkedIn Jobs - Enhanced selectors (Updated filter to 24 hours)
     {
-      url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain%20logistics%20procurement&location=Kenya&f_TPR=r604800&f_JT=F%2CC",
+      // f_TPR=r86400 is Past 24 hours. r3600 is 1 hour. Using 24h as a practical default for fresh jobs.
+      url: "https://www.linkedin.com/jobs/search/?keywords=supply%20chain%20logistics%20procurement%20store%20purchasing&location=Kenya&f_TPR=r86400&f_JT=F%2CC",
       source: "LinkedIn",
       selectors: {
         jobContainer: ".job-search-card, .jobs-search__results-list li, [data-job-id], .job-card-container",
@@ -34,7 +35,8 @@ export const getJobSites = (): JobSite[] => {
         description: ".job-search-card__snippet, .job-description",
         postedAt: ".job-search-card__listdate, .job-card-container__listed-time"
       },
-      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'distribution'],
+      // Added 'store', 'purchasing'
+      keywords: ['supply chain', 'logistics', 'procurement', 'warehouse', 'inventory', 'distribution', 'store', 'purchasing'],
       retryAttempts: 3,
       timeout: 30000
     },

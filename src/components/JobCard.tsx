@@ -1,14 +1,14 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Building2, MapPin, BriefcaseIcon, Share2, Clock, ExternalLink } from "lucide-react";
+import { Building2, MapPin, BriefcaseIcon, Clock, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "../integrations/supabase/client";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { cleanJobTitle } from "../utils/cleanJobTitle";
+import { ReportSystem } from "./ReportSystem";
+import { SocialShare } from "./SocialShare";
 
 interface JobCardProps {
   job: {
@@ -28,8 +28,11 @@ interface JobCardProps {
 
 export function JobCard({ job }: JobCardProps) {
   const navigate = useNavigate();
-  const [isSharing, setIsSharing] = useState(false);
-  const [jobStatus, setJobStatus] = useState({ saved: false, applied: false, remindLater: false });
+  const [jobStatus, setJobStatus] = useState({
+    saved: false,
+    applied: false,
+    remindLater: false,
+  });
   
   const {
     title,
@@ -98,43 +101,104 @@ export function JobCard({ job }: JobCardProps) {
     }
   };
 
-  // Share job handler
-  const handleShare = async () => {
-    setIsSharing(true);
+  // Handle persistent state
+  useEffect(() => {
+    const checkStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check Saved status
+      const { data: savedData } = await supabase
+        .from('saved_jobs')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('scraped_job_id', job.id)
+        .maybeSingle(); // Use maybeSingle to avoid error if not found
+      
+      // Check Applied status
+      const { data: appliedData } = await supabase
+        .from('job_application_tracker')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('scraped_job_id', job.id)
+        .maybeSingle();
+
+      setJobStatus({
+        saved: !!savedData,
+        applied: !!appliedData,
+        remindLater: false // Reminder logic usually implies local or separate table, keeping local for now
+      });
+    };
+    
+    checkStatus();
+  }, [job.id]);
+
+  const handleSaveJob = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in to save jobs");
+      return;
+    }
+
     try {
-      // Increment share count
-      const { error } = await supabase
-        .from('scraped_jobs')
-        .update({ 
-          social_shares: { 
-            ...job.social_shares,
-            count: ((job.social_shares as any)?.count || 0) + 1 
-          }
-        })
-        .eq('id', job.id);
-      
-      if (error) throw error;
-      
-      toast.success("Job shared successfully!");
+      if (jobStatus.saved) {
+        // Unsave
+        const { error } = await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('scraped_job_id', job.id);
+        if (error) throw error;
+        toast.success("Job removed from saved list");
+      } else {
+        // Save
+        const { error } = await supabase
+          .from('saved_jobs')
+          .insert({ user_id: user.id, scraped_job_id: job.id });
+        if (error) throw error;
+        toast.success("Job saved successfully!");
+      }
+      setJobStatus(prev => ({ ...prev, saved: !prev.saved }));
     } catch (error) {
-      console.error("Error sharing job:", error);
-      toast.error("Failed to share job");
-    } finally {
-      setIsSharing(false);
+      console.error("Error saving job:", error);
+      toast.error("Failed to update job status");
     }
   };
 
-  const handleSaveJob = () => {
-    setJobStatus((prev) => ({ ...prev, saved: !prev.saved }));
-    toast.success(jobStatus.saved ? "Job removed from saved list" : "Job saved successfully!");
-  };
+  const handleMarkAsApplied = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error("Please sign in to track applications");
+      return;
+    }
 
-  const handleMarkAsApplied = () => {
-    setJobStatus((prev) => ({ ...prev, applied: !prev.applied }));
-    toast.success(jobStatus.applied ? "Marked as not applied" : "Marked as applied!");
+    try {
+      if (jobStatus.applied) {
+        // Remove from tracker
+        const { error } = await supabase
+          .from('job_application_tracker')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('scraped_job_id', job.id);
+        if (error) throw error;
+        toast.success("Marked as not applied");
+      } else {
+        // Add to tracker
+        const { error } = await supabase
+          .from('job_application_tracker')
+          .insert({ user_id: user.id, scraped_job_id: job.id, status: 'applied' });
+        if (error) throw error;
+        toast.success("Marked as applied!");
+      }
+      setJobStatus(prev => ({ ...prev, applied: !prev.applied }));
+    } catch (error) {
+      console.error("Error tracking application:", error);
+      toast.error("Failed to update application status");
+    }
   };
 
   const handleRemindLater = () => {
+    // Keep local for now as no schema defined
     setJobStatus((prev) => ({ ...prev, remindLater: !prev.remindLater }));
     toast.success(jobStatus.remindLater ? "Reminder removed" : "Reminder set successfully!");
   };
@@ -195,25 +259,19 @@ export function JobCard({ job }: JobCardProps) {
               "View Details"
             )}
           </Button>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={handleShare} 
-                  disabled={isSharing} 
-                  className="w-12 h-12 sm:w-10 sm:h-10 touch-manipulation"
-                >
-                  <Share2 className="h-5 w-5 sm:h-4 sm:w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Share job</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
+          <SocialShare
+            jobId={job.id}
+            jobTitle={cleanJobTitle(title)}
+            company={company || "Company"}
+            className="w-12 h-12 sm:w-10 sm:h-10 touch-manipulation"
+          />
+
+          <ReportSystem 
+            contentId={job.id} 
+            contentType="job" 
+            className="w-12 h-12 sm:w-10 sm:h-10 text-muted-foreground hover:text-red-500" 
+          />
         </div>
 
         {/* Action buttons - stack on mobile */}

@@ -143,7 +143,7 @@ DROP POLICY IF EXISTS "Jobs are viewable by everyone" ON public.jobs;
 CREATE POLICY "Jobs are viewable by everyone" ON public.jobs 
     FOR SELECT 
     USING (
-        status = 'published' 
+        is_active = true 
         AND (
             early_access_until IS NULL 
             OR early_access_until <= timezone('utc'::text, now())
@@ -167,7 +167,7 @@ SELECT
 FROM public.jobs j
 LEFT JOIN public.companies c ON j.company_id = c.id
 WHERE j.early_access_until IS NOT NULL
-AND j.status = 'published';
+AND j.is_active = true;
 
 ALTER VIEW public.early_access_jobs OWNER TO postgres;
 GRANT SELECT ON public.early_access_jobs TO authenticated;

@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AdBanner } from "@/components/ads/AdBanner";
+import { AdManager } from "./AdManager";
+import { VideoManager } from "./VideoManager";
+import { CompanyClaims } from "./CompanyClaims";
 
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -170,7 +173,10 @@ export default function AdminDashboard() {
           <TabsList>
               <TabsTrigger value="inbox">Inbox ({tasks.length})</TabsTrigger>
               <TabsTrigger value="partners">Growth Partners</TabsTrigger>
-              <TabsTrigger value="reports">Content Reports</TabsTrigger>
+              <TabsTrigger value="ads">Ad Management</TabsTrigger>
+              <TabsTrigger value="videos">Video Library</TabsTrigger>
+              <TabsTrigger value="claims">Business Claims</TabsTrigger>
+              <TabsTrigger value="reports">Content Reports ({tasks.filter(t => t.task_type === 'CONTENT_REPORT').length})</TabsTrigger>
           </TabsList>
 
           {/* INBOX TAB */}
@@ -260,6 +266,52 @@ export default function AdminDashboard() {
                       </ScrollArea>
                   </CardContent>
               </Card>
+          </TabsContent>
+
+          {/* ADS MANAGEMENT TAB */}
+          <TabsContent value="ads">
+            <AdManager />
+          </TabsContent>
+          {/* VIDEO MANAGEMENT TAB */}
+          <TabsContent value="videos">
+            <VideoManager />
+          </TabsContent>
+          <TabsContent value="claims">
+            <CompanyClaims />
+          </TabsContent>
+          {/* REPORTS TAB */}
+          <TabsContent value="reports">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Content Reports</CardTitle>
+                    <CardDescription>User reported content requiring moderation</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {tasks.filter(t => t.task_type === 'CONTENT_REPORT').length === 0 ? (
+                            <div className="text-center p-8 text-muted-foreground">
+                                No reports pending review.
+                            </div>
+                        ) : (
+                            tasks.filter(t => t.task_type === 'CONTENT_REPORT').map((task, idx) => (
+                                <Card key={idx}>
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div>
+                                            <Badge variant="destructive" className="mb-2">REPORTED</Badge>
+                                            <p className="font-semibold">{task.description}</p>
+                                            <p className="text-sm text-muted-foreground">Reported {formatDistanceToNow(new Date(task.urgency_timestamp))} ago</p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" variant="outline" onClick={() => handleApprove(task)}>Ignore</Button>
+                                            <Button size="sm" variant="destructive" onClick={() => handleReject(task)}>Delete Content</Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
           </TabsContent>
       </Tabs>
     </div>

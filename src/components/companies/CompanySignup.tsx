@@ -83,7 +83,7 @@ const CompanySignup = () => {
         description: "Your company is now registered and pending verification. You can now post jobs.",
       });
       
-      navigate("/companies");
+      navigate("/employer/dashboard");
     } catch (error: any) {
       console.error("Company registration error:", error);
       toast({

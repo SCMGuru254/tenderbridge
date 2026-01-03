@@ -162,7 +162,12 @@ const JobDetails = () => {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-2xl mb-2">{job.title}</CardTitle>
+                  <CardTitle className="text-2xl mb-2 flex items-center gap-2">
+                    {job.title}
+                    {(job as PostedJob).is_featured && (
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 border-0">Featured</Badge>
+                    )}
+                  </CardTitle>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {company && (
                       <Badge variant="secondary">

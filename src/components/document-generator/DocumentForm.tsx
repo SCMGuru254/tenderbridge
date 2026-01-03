@@ -26,12 +26,13 @@ const DocumentForm = ({
   const [education, setEducation] = useState("");
   const [skills, setSkills] = useState("");
   const [documentType, setDocumentType] = useState<"cv" | "cover-letter">("cv");
+  const [jobTitle, setJobTitle] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !experience) {
+    if (!name || !experience || !jobTitle) {
       toast({
         title: "Missing information",
         description: "Please fill in the required fields.",
@@ -49,6 +50,7 @@ const DocumentForm = ({
       const { data, error } = await supabase.functions.invoke("document-generator", {
         body: {
           name,
+          jobTitle,
           experience,
           education,
           skills,
@@ -135,6 +137,18 @@ const DocumentForm = ({
         />
       </div>
       
+      <div>
+        <Label htmlFor="jobTitle">Target Job Title <span className="text-red-500">*</span></Label>
+        <Input
+          id="jobTitle"
+          value={jobTitle}
+          onChange={(e) => setJobTitle(e.target.value)}
+          required
+          placeholder="e.g. Supply Chain Manager"
+          className="mt-1"
+        />
+      </div>
+
       <div>
         <Label htmlFor="skills">Skills</Label>
         <Textarea

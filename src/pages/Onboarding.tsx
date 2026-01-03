@@ -98,7 +98,15 @@ const Onboarding = () => {
       }
 
       toast.success('Profile completed successfully! Welcome to SupplyChain Jobs!');
-      navigate('/dashboard');
+      
+      // Route based on role
+       if (profile.user_type === 'employer') {
+        navigate('/company-signup');
+      } else if (profile.user_type === 'affiliate') {
+        navigate('/affiliate'); 
+      } else {
+        navigate('/dashboard');
+      }
       
     } catch (error: any) {
       console.error('Error completing onboarding:', error);

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
 import { useRewards } from '@/hooks/useRewards';
-import { Trophy, Star, Calendar, CreditCard } from 'lucide-react';
+import { Trophy, Star, Calendar, CreditCard, Twitter, Linkedin, Link2, Share2, UserCheck, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CatalogItem {
@@ -40,7 +40,7 @@ interface Achievement {
 
 const RewardsSystem = () => {
   const { user } = useUser();
-  const { points, awardDailyLoginPoints, fetchUserPoints } = useRewards();
+  const { points, awardDailyLoginPoints, fetchUserPoints, awardSocialFollowPoints } = useRewards();
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -185,8 +185,9 @@ const RewardsSystem = () => {
       </Card>
 
       <Tabs defaultValue="catalog" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="catalog">Rewards Catalog</TabsTrigger>
+          <TabsTrigger value="earn">Ways to Earn</TabsTrigger>
           <TabsTrigger value="history">Transaction History</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
         </TabsList>
@@ -217,6 +218,112 @@ const RewardsSystem = () => {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="earn" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ways to Earn Points</CardTitle>
+              <CardDescription>Complete activities to boost your balance</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4">
+                {/* Fixed Earnings */}
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                      <Calendar className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Daily Login Bonus</p>
+                      <p className="text-sm text-muted-foreground">Sign in every day to collect points</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">+5 pts</Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-green-100 text-green-600">
+                      <Briefcase className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Apply for Jobs</p>
+                      <p className="text-sm text-muted-foreground">Earn points for every application you track</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">+10 pts</Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                      <Share2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Share Jobs</p>
+                      <p className="text-sm text-muted-foreground">Share job opportunities with your network</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">+10 pts</Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-orange-100 text-orange-600">
+                      <UserCheck className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Complete Profile</p>
+                      <p className="text-sm text-muted-foreground">Fill out your professional profile</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">+50 pts</Badge>
+                </div>
+              </div>
+
+              {/* Social Follow Actions */}
+              <div className="mt-8 space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Link2 className="h-5 w-5" />
+                  Follow Our Social Media
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">Earn points for following us on social media (One-time reward)</p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-between h-auto p-4 border-blue-200 hover:bg-blue-50"
+                    onClick={() => {
+                      window.open('https://linkedin.com/company/supply-chain-ke', '_blank');
+                      awardSocialFollowPoints('LinkedIn');
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Linkedin className="h-5 w-5 text-[#0077b5]" />
+                      <span className="font-medium text-[#0077b5]">Follow LinkedIn</span>
+                    </div>
+                    <Badge className="bg-[#0077b5]">+5 pts</Badge>
+                  </Button>
+
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-between h-auto p-4 border-sky-200 hover:bg-sky-50"
+                    onClick={() => {
+                      window.open('https://twitter.com/supplychain_ke', '_blank');
+                      awardSocialFollowPoints('Twitter');
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Twitter className="h-5 w-5 text-[#1DA1F2]" />
+                      <span className="font-medium text-[#1DA1F2]">Follow Twitter</span>
+                    </div>
+                    <Badge className="bg-[#1DA1F2]">+5 pts</Badge>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">

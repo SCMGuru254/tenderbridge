@@ -17,21 +17,25 @@ class AIService {
   //   .from('documents')
   //   .getPublicUrl(fileName);
 
-      // Simulated AI analysis response
+      // Call Edge Function
+      const { data, error: functionError } = await supabase.functions.invoke('ats-checker', {
+        body: { filePath: fileName }
+      });
+
+      if (functionError) throw functionError;
+
+      // Map backend response to Frontend type
       const analysis: ResumeAnalysis = {
-        skills: [
-          'Supply Chain Management',
-          'Inventory Management',
-          'Process Optimization'
-        ],
-        experienceLevel: 'Senior Level',
+        skills: data.foundKeywords || [], 
+        experienceLevel: data.score?.overall > 80 ? 'Senior Level' : data.score?.overall > 50 ? 'Mid Level' : 'Entry Level',
         industryMatches: [
-          { industry: 'Supply Chain', score: 85 },
-          { industry: 'Logistics', score: 75 }
+          { industry: 'Supply Chain Compatibility', score: data.score?.overall || 0 },
+          { industry: 'ATS Parseability', score: data.score?.readability || 0 }
         ],
         recommendations: [
-          'Consider pursuing APICS certification',
-          'Add more quantitative achievements'
+          ...(data.suggestions || []),
+          ...(data.issues || []),
+          ...(data.missingKeywords ? [`Missing keywords: ${data.missingKeywords ? data.missingKeywords.join(', ') : ''}`] : [])
         ]
       };
 

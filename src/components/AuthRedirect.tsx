@@ -28,22 +28,50 @@ export const AuthRedirect: React.FC<AuthRedirectProps> = ({ children }) => {
       if (user) {
         setIsChecking(true);
         try {
-          // Check if user has completed onboarding
+          // 1. Check for Admin Role
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+            
+          if (roles?.some(r => r.role === 'admin')) {
+             navigate('/admin');
+             return;
+          }
+
+          // 2. Check for Employer Status (Has Company)
+          const { data: company } = await supabase
+            .from('companies')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (company) {
+            navigate('/employer/dashboard');
+            return;
+          }
+
+          // 3. Check Onboarding (Candidate)
           const { data: profile } = await supabase
             .from('profiles')
-            .select('onboarding_completed')
+            .select('onboarding_completed, user_type')
             .eq('id', user.id)
             .single();
 
           if (profile?.onboarding_completed) {
-            // User has completed onboarding, go to dashboard
-            navigate('/dashboard');
+            if (profile.user_type === 'employer') {
+              // Only reachable if company check above failed (meaning no company yet)
+              navigate('/company-signup');
+            } else if (profile.user_type === 'affiliate') {
+              navigate('/affiliate');
+            } else {
+              navigate('/dashboard');
+            }
           } else {
-            // User needs to complete onboarding
             navigate('/onboarding');
           }
         } catch (error) {
-          console.error('Error checking onboarding status:', error);
+          console.error('Error checking status:', error);
           navigate('/dashboard');
         } finally {
           setIsChecking(false);
