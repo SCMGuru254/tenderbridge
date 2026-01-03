@@ -14,6 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_activity_logs: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
+      admin_videos: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          thumbnail_url: string | null
+          title: string
+          video_url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          video_url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
+      ads: {
+        Row: {
+          clicks_count: number | null
+          created_at: string
+          ends_at: string | null
+          id: string
+          image_url: string
+          position: string
+          starts_at: string | null
+          status: string | null
+          target_url: string
+          title: string
+          views_count: number | null
+        }
+        Insert: {
+          clicks_count?: number | null
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url: string
+          position: string
+          starts_at?: string | null
+          status?: string | null
+          target_url: string
+          title: string
+          views_count?: number | null
+        }
+        Update: {
+          clicks_count?: number | null
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          image_url?: string
+          position?: string
+          starts_at?: string | null
+          status?: string | null
+          target_url?: string
+          title?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       affiliate_payouts: {
         Row: {
           affiliate_id: string
@@ -67,6 +169,7 @@ export type Database = {
           pending_payouts: number
           referral_link: string
           status: string
+          tier: string | null
           total_earnings: number
           total_paid_out: number
           updated_at: string
@@ -80,6 +183,7 @@ export type Database = {
           pending_payouts?: number
           referral_link: string
           status?: string
+          tier?: string | null
           total_earnings?: number
           total_paid_out?: number
           updated_at?: string
@@ -93,6 +197,7 @@ export type Database = {
           pending_payouts?: number
           referral_link?: string
           status?: string
+          tier?: string | null
           total_earnings?: number
           total_paid_out?: number
           updated_at?: string
@@ -109,9 +214,11 @@ export type Database = {
           created_at: string
           id: string
           paid_at: string | null
+          referral_status: string | null
           referral_type: string
           referred_user_id: string | null
           status: string
+          transaction_reference: string | null
         }
         Insert: {
           affiliate_id: string
@@ -121,9 +228,11 @@ export type Database = {
           created_at?: string
           id?: string
           paid_at?: string | null
+          referral_status?: string | null
           referral_type: string
           referred_user_id?: string | null
           status?: string
+          transaction_reference?: string | null
         }
         Update: {
           affiliate_id?: string
@@ -133,9 +242,11 @@ export type Database = {
           created_at?: string
           id?: string
           paid_at?: string | null
+          referral_status?: string | null
           referral_type?: string
           referred_user_id?: string | null
           status?: string
+          transaction_reference?: string | null
         }
         Relationships: [
           {
@@ -207,7 +318,21 @@ export type Database = {
             foreignKeyName: "application_notifications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_notifications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
             referencedColumns: ["id"]
           },
         ]
@@ -381,6 +506,44 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      company_claims: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          proof_document: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          proof_document?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          proof_document?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_claims_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_review_replies: {
         Row: {
@@ -1136,6 +1299,45 @@ export type Database = {
           },
         ]
       }
+      generated_documents: {
+        Row: {
+          content: Json | null
+          created_at: string
+          document_type: string
+          expiration_date: string | null
+          id: string
+          language: string
+          status: string | null
+          template_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          document_type: string
+          expiration_date?: string | null
+          id?: string
+          language?: string
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          document_type?: string
+          expiration_date?: string | null
+          id?: string
+          language?: string
+          status?: string | null
+          template_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hiring_decisions: {
         Row: {
           candidate_id: string
@@ -1433,6 +1635,68 @@ export type Database = {
         }
         Relationships: []
       }
+      job_application_tracker: {
+        Row: {
+          applied_at: string | null
+          id: string
+          job_id: string | null
+          notes: string | null
+          scraped_job_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          scraped_job_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          scraped_job_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_application_tracker_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_application_tracker_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_application_tracker_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_application_tracker_scraped_job_id_fkey"
+            columns: ["scraped_job_id"]
+            isOneToOne: false
+            referencedRelation: "scraped_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_id: string | null
@@ -1469,7 +1733,21 @@ export type Database = {
             foreignKeyName: "job_applications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
             referencedColumns: ["id"]
           },
         ]
@@ -1495,31 +1773,202 @@ export type Database = {
         }
         Relationships: []
       }
+      job_boost_packages: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_days: number
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          price_kes: number
+          price_usd: number
+          priority_score: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_days: number
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          price_kes: number
+          price_usd: number
+          priority_score: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_days?: number
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          price_kes?: number
+          price_usd?: number
+          priority_score?: number
+        }
+        Relationships: []
+      }
+      job_boost_purchases: {
+        Row: {
+          amount_paid: number
+          boost_end_date: string
+          boost_start_date: string
+          created_at: string
+          currency: string
+          id: string
+          job_id: string
+          package_id: string
+          status: string | null
+          transaction_reference: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          boost_end_date: string
+          boost_start_date?: string
+          created_at?: string
+          currency: string
+          id?: string
+          job_id: string
+          package_id: string
+          status?: string | null
+          transaction_reference?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          boost_end_date?: string
+          boost_start_date?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          job_id?: string
+          package_id?: string
+          status?: string | null
+          transaction_reference?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_boost_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_boost_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_boost_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_boost_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "job_boost_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_early_access_purchases: {
+        Row: {
+          access_expires_at: string
+          access_granted_at: string
+          id: string
+          job_id: string
+          points_spent: number
+          user_id: string
+        }
+        Insert: {
+          access_expires_at: string
+          access_granted_at?: string
+          id?: string
+          job_id: string
+          points_spent: number
+          user_id: string
+        }
+        Update: {
+          access_expires_at?: string
+          access_granted_at?: string
+          id?: string
+          job_id?: string
+          points_spent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_early_access_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_early_access_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_early_access_purchases_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reports: {
         Row: {
+          admin_notes: string | null
           created_at: string
           id: string
           job_id: string
           reason: string
+          report_reason: string | null
           reported_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string
           id?: string
           job_id: string
           reason: string
+          report_reason?: string | null
           reported_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string
           id?: string
           job_id?: string
           reason?: string
+          report_reason?: string | null
           reported_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -1528,7 +1977,21 @@ export type Database = {
             foreignKeyName: "job_reports_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
             referencedColumns: ["id"]
           },
         ]
@@ -1557,70 +2020,118 @@ export type Database = {
             foreignKeyName: "job_skills_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_skills_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_skills_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
             referencedColumns: ["id"]
           },
         ]
       }
       jobs: {
         Row: {
+          boost_expires_at: string | null
+          boost_package_id: string | null
+          boosted_until: string | null
           company_id: string | null
           created_at: string
           description: string
           document_url: string | null
+          early_access_points_required: number | null
+          early_access_until: string | null
           hiring_timeline: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_featured: boolean | null
+          is_premium: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
           notify_applicants: boolean | null
           posted_by: string
+          priority_score: number | null
           requirements: string[] | null
           responsibilities: string[] | null
           salary_range: string | null
           title: string
           updated_at: string
+          views_count: number | null
         }
         Insert: {
+          boost_expires_at?: string | null
+          boost_package_id?: string | null
+          boosted_until?: string | null
           company_id?: string | null
           created_at?: string
           description: string
           document_url?: string | null
+          early_access_points_required?: number | null
+          early_access_until?: string | null
           hiring_timeline?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_featured?: boolean | null
+          is_premium?: boolean | null
           job_type: Database["public"]["Enums"]["job_type"]
           location: string
           notify_applicants?: boolean | null
           posted_by: string
+          priority_score?: number | null
           requirements?: string[] | null
           responsibilities?: string[] | null
           salary_range?: string | null
           title: string
           updated_at?: string
+          views_count?: number | null
         }
         Update: {
+          boost_expires_at?: string | null
+          boost_package_id?: string | null
+          boosted_until?: string | null
           company_id?: string | null
           created_at?: string
           description?: string
           document_url?: string | null
+          early_access_points_required?: number | null
+          early_access_until?: string | null
           hiring_timeline?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_featured?: boolean | null
+          is_premium?: boolean | null
           job_type?: Database["public"]["Enums"]["job_type"]
           location?: string
           notify_applicants?: boolean | null
           posted_by?: string
+          priority_score?: number | null
           requirements?: string[] | null
           responsibilities?: string[] | null
           salary_range?: string | null
           title?: string
           updated_at?: string
+          views_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_boost_package_id_fkey"
+            columns: ["boost_package_id"]
+            isOneToOne: false
+            referencedRelation: "job_boost_packages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_company_id_fkey"
             columns: ["company_id"]
@@ -1629,6 +2140,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      manual_payment_claims: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          mpesa_code: string
+          payment_purpose: string
+          sender_name: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mpesa_code: string
+          payment_purpose: string
+          sender_name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          mpesa_code?: string
+          payment_purpose?: string
+          sender_name?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      manual_payment_methods: {
+        Row: {
+          account_name: string | null
+          account_number: string
+          created_at: string
+          id: string
+          instructions: string | null
+          is_active: boolean | null
+          name: string
+          type: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          name: string
+          type: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          name?: string
+          type?: string
+        }
+        Relationships: []
       }
       mentees: {
         Row: {
@@ -2034,6 +2620,93 @@ export type Database = {
           subscription_id?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      paypal_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          metadata: Json | null
+          order_id: string
+          payer_email: string | null
+          payment_purpose: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id: string
+          payer_email?: string | null
+          payment_purpose: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+          payer_email?: string | null
+          payment_purpose?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      paystack_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          email: string
+          id: string
+          last_verified_at: string | null
+          metadata: Json | null
+          payment_purpose: string
+          paystack_response: Json | null
+          reference: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          email: string
+          id?: string
+          last_verified_at?: string | null
+          metadata?: Json | null
+          payment_purpose: string
+          paystack_response?: Json | null
+          reference: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          email?: string
+          id?: string
+          last_verified_at?: string | null
+          metadata?: Json | null
+          payment_purpose?: string
+          paystack_response?: Json | null
+          reference?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2696,36 +3369,42 @@ export type Database = {
         Row: {
           admin_notes: string | null
           catalog_item_id: string
+          created_at: string
           expires_at: string
           id: string
           points_spent: number
           processed_at: string | null
           request_data: Json
           requested_at: string
+          reward_type: string
           status: string
           user_id: string
         }
         Insert: {
           admin_notes?: string | null
           catalog_item_id: string
+          created_at?: string
           expires_at?: string
           id?: string
           points_spent: number
           processed_at?: string | null
           request_data?: Json
           requested_at?: string
+          reward_type: string
           status?: string
           user_id: string
         }
         Update: {
           admin_notes?: string | null
           catalog_item_id?: string
+          created_at?: string
           expires_at?: string
           id?: string
           points_spent?: number
           processed_at?: string | null
           request_data?: Json
           requested_at?: string
+          reward_type?: string
           status?: string
           user_id?: string
         }
@@ -2925,6 +3604,68 @@ export type Database = {
           provider_id?: string
           response_text?: string
           review_id?: string
+        }
+        Relationships: []
+      }
+      reward_admin_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          redemption_id: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          redemption_id: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          redemption_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_admin_logs_redemption_id_fkey"
+            columns: ["redemption_id"]
+            isOneToOne: false
+            referencedRelation: "redemption_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          transaction_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -3557,6 +4298,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_rewards: {
+        Row: {
+          current_points: number | null
+          lifetime_earned: number | null
+          tier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_points?: number | null
+          lifetime_earned?: number | null
+          tier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_points?: number | null
+          lifetime_earned?: number | null
+          tier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -3577,6 +4342,70 @@ export type Database = {
       }
     }
     Views: {
+      admin_affiliate_stats: {
+        Row: {
+          affiliate_code: string | null
+          tier: string | null
+          total_commission_owed: number | null
+          total_sales: number | null
+          total_signups: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      admin_pending_tasks: {
+        Row: {
+          description: string | null
+          priority: string | null
+          reference_id: string | null
+          task_type: string | null
+          urgency_timestamp: string | null
+        }
+        Relationships: []
+      }
+      early_access_jobs: {
+        Row: {
+          company_id: string | null
+          company_name: string | null
+          early_access_points_required: number | null
+          early_access_status: string | null
+          early_access_until: string | null
+          id: string | null
+          title: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      premium_jobs_summary: {
+        Row: {
+          boost_expires_at: string | null
+          boost_status: string | null
+          company_id: string | null
+          company_name: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_premium: boolean | null
+          priority_score: number | null
+          title: string | null
+          views_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       visible_profiles: {
         Row: {
           avatar_url: string | null
@@ -3636,6 +4465,21 @@ export type Database = {
       }
     }
     Functions: {
+      apply_job_boost:
+        | { Args: { p_job_id: string; p_package_id: string }; Returns: Json }
+        | {
+            Args: {
+              p_job_id: string
+              p_package_id: string
+              p_transaction_ref?: string
+            }
+            Returns: Json
+          }
+      approve_company_claim: {
+        Args: { p_claim_id: string }
+        Returns: undefined
+      }
+      award_daily_login: { Args: never; Returns: Json }
       award_points: {
         Args: {
           p_description: string
@@ -3655,6 +4499,38 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      create_unclaimed_company: {
+        Args: {
+          p_description: string
+          p_location: string
+          p_name: string
+          p_website?: string
+        }
+        Returns: string
+      }
+      expire_premium_jobs: { Args: never; Returns: undefined }
+      get_hiring_decisions: {
+        Args: { candidate_id_param: string }
+        Returns: {
+          candidate_id: string
+          created_at: string
+          decision_date: string
+          employer: Json
+          employer_id: string
+          id: string
+          notes: string
+        }[]
+      }
       get_paginated_jobs: {
         Args: {
           p_job_type?: string
@@ -3672,6 +4548,16 @@ export type Database = {
           location: string
           title: string
           total_count: number
+        }[]
+      }
+      get_profile_views: {
+        Args: { profile_id_param: string }
+        Returns: {
+          id: string
+          profile_id: string
+          viewed_at: string
+          viewer: Json
+          viewer_id: string
         }[]
       }
       get_visible_profile_fields: {
@@ -3695,14 +4581,40 @@ export type Database = {
         }
         Returns: string
       }
+      record_ad_view: { Args: { ad_id: string }; Returns: Json }
+      record_hiring_decision: {
+        Args: {
+          candidate_id_param: string
+          decision_date_param: string
+          employer_id_param: string
+          notes_param?: string
+        }
+        Returns: undefined
+      }
+      record_profile_view: {
+        Args: { profile_id_param: string; viewer_id_param: string }
+        Returns: undefined
+      }
+      redeem_early_job_access: {
+        Args: { p_job_id: string; p_points_to_spend?: number }
+        Returns: Json
+      }
+      redeem_reward: {
+        Args: { amount_to_spend: number; reward_type: string }
+        Returns: Json
+      }
       send_notification: {
         Args: { p_data: Json; p_type: string; p_user_id: string }
         Returns: string
       }
+      user_can_view_job: {
+        Args: { p_job_id: string; p_user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       job_type: "full_time" | "part_time" | "contract" | "internship"
-      verification_status: "pending" | "verified" | "rejected"
+      verification_status: "pending" | "verified" | "rejected" | "unclaimed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3831,7 +4743,7 @@ export const Constants = {
   public: {
     Enums: {
       job_type: ["full_time", "part_time", "contract", "internship"],
-      verification_status: ["pending", "verified", "rejected"],
+      verification_status: ["pending", "verified", "rejected", "unclaimed"],
     },
   },
 } as const

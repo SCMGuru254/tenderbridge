@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { BarChart3, TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
   Bar,
@@ -186,7 +183,7 @@ export function ReportAnalytics() {
                   fill="#8884d8"
                   dataKey="count"
                 >
-                  {analytics.reports_by_type.map((entry, index) => (
+                  {analytics.reports_by_type.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

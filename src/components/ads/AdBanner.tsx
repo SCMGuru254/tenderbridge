@@ -1,9 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
-import { toast } from "sonner";
 
 interface AdBannerProps {
   position: 'header' | 'sidebar' | 'content';
@@ -49,9 +45,8 @@ export function AdBanner({ position, className = "" }: AdBannerProps) {
   };
 
   const recordView = async (adId: string) => {
-      // Call RPC
-      const { data } = await supabase.rpc('record_ad_view', { ad_id: adId });
-      // Optional: Toast "Points Earned!" if data.points_awarded (might be spammy though)
+      // Call RPC to record ad view
+      await supabase.rpc('record_ad_view', { ad_id: adId });
   };
 
   if (loading || !ad) return null; // Collapse if no ad
