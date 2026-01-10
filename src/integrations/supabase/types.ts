@@ -155,6 +155,13 @@ export type Database = {
             foreignKeyName: "affiliate_payouts_affiliate_id_fkey"
             columns: ["affiliate_id"]
             isOneToOne: false
+            referencedRelation: "admin_affiliate_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_payouts_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
             referencedRelation: "affiliate_programs"
             referencedColumns: ["id"]
           },
@@ -166,13 +173,17 @@ export type Database = {
           commission_rate: number
           created_at: string
           id: string
+          ip_address_at_signup: string | null
           pending_payouts: number
           referral_link: string
           status: string
+          terms_accepted_at: string | null
+          terms_version: string | null
           tier: string | null
           total_earnings: number
           total_paid_out: number
           updated_at: string
+          user_agent_at_signup: string | null
           user_id: string
         }
         Insert: {
@@ -180,13 +191,17 @@ export type Database = {
           commission_rate?: number
           created_at?: string
           id?: string
+          ip_address_at_signup?: string | null
           pending_payouts?: number
           referral_link: string
           status?: string
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           tier?: string | null
           total_earnings?: number
           total_paid_out?: number
           updated_at?: string
+          user_agent_at_signup?: string | null
           user_id: string
         }
         Update: {
@@ -194,13 +209,17 @@ export type Database = {
           commission_rate?: number
           created_at?: string
           id?: string
+          ip_address_at_signup?: string | null
           pending_payouts?: number
           referral_link?: string
           status?: string
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           tier?: string | null
           total_earnings?: number
           total_paid_out?: number
           updated_at?: string
+          user_agent_at_signup?: string | null
           user_id?: string
         }
         Relationships: []
@@ -249,6 +268,13 @@ export type Database = {
           transaction_reference?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "admin_affiliate_overview"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
             columns: ["affiliate_id"]
@@ -2664,7 +2690,10 @@ export type Database = {
       }
       paystack_transactions: {
         Row: {
+          affiliate_code: string | null
+          affiliate_id: string | null
           amount: number
+          commission_status: string | null
           created_at: string
           currency: string | null
           email: string
@@ -2679,7 +2708,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          affiliate_code?: string | null
+          affiliate_id?: string | null
           amount: number
+          commission_status?: string | null
           created_at?: string
           currency?: string | null
           email: string
@@ -2694,7 +2726,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          affiliate_code?: string | null
+          affiliate_id?: string | null
           amount?: number
+          commission_status?: string | null
           created_at?: string
           currency?: string | null
           email?: string
@@ -2708,7 +2743,22 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "paystack_transactions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "admin_affiliate_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paystack_transactions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_settings: {
         Row: {
@@ -4375,6 +4425,27 @@ export type Database = {
       }
     }
     Views: {
+      admin_affiliate_overview: {
+        Row: {
+          affiliate_code: string | null
+          commission_rate: number | null
+          converted_referrals: number | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          pending_payouts: number | null
+          status: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
+          tier: string | null
+          total_earnings: number | null
+          total_paid_out: number | null
+          total_referrals: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       admin_affiliate_stats: {
         Row: {
           affiliate_code: string | null
@@ -4606,6 +4677,10 @@ export type Database = {
         Args: { application_id: string }
         Returns: undefined
       }
+      prepare_payment_with_affiliate: {
+        Args: { p_affiliate_code?: string; p_amount: number; p_purpose: string }
+        Returns: Json
+      }
       process_redemption: {
         Args: {
           p_catalog_item_id: string
@@ -4639,6 +4714,14 @@ export type Database = {
       send_notification: {
         Args: { p_data: Json; p_type: string; p_user_id: string }
         Returns: string
+      }
+      signup_affiliate_with_terms: {
+        Args: {
+          p_ip_address?: string
+          p_terms_version?: string
+          p_user_agent?: string
+        }
+        Returns: Json
       }
       user_can_view_job: {
         Args: { p_job_id: string; p_user_id?: string }
