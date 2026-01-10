@@ -4469,15 +4469,45 @@ export type Database = {
       }
       early_access_jobs: {
         Row: {
+          boost_expires_at: string | null
+          boost_package_id: string | null
+          boosted_until: string | null
+          company_description: string | null
           company_id: string | null
+          company_location: string | null
           company_name: string | null
+          company_website: string | null
+          created_at: string | null
+          description: string | null
+          document_url: string | null
           early_access_points_required: number | null
-          early_access_status: string | null
           early_access_until: string | null
+          hiring_timeline: string | null
           id: string | null
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_premium: boolean | null
+          job_type: Database["public"]["Enums"]["job_type"] | null
+          location: string | null
+          notify_applicants: boolean | null
+          posted_by: string | null
+          priority_score: number | null
+          requirements: string[] | null
+          responsibilities: string[] | null
+          salary_range: string | null
           title: string | null
+          updated_at: string | null
+          views_count: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_boost_package_id_fkey"
+            columns: ["boost_package_id"]
+            isOneToOne: false
+            referencedRelation: "job_boost_packages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_company_id_fkey"
             columns: ["company_id"]
@@ -4490,31 +4520,23 @@ export type Database = {
       premium_jobs_summary: {
         Row: {
           boost_expires_at: string | null
-          boost_status: string | null
-          company_id: string | null
           company_name: string | null
+          created_at: string | null
           id: string | null
           is_featured: boolean | null
           is_premium: boolean | null
+          job_type: Database["public"]["Enums"]["job_type"] | null
+          location: string | null
           priority_score: number | null
+          salary_range: string | null
           title: string | null
-          views_count: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "jobs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       visible_profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
-          career_goals: string | null
           company: string | null
           created_at: string | null
           email: string | null
@@ -4524,15 +4546,14 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           position: string | null
-          role: string | null
           skills: string | null
+          tagline: string | null
           updated_at: string | null
           visibility: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
-          career_goals?: string | null
           company?: string | null
           created_at?: string | null
           email?: string | null
@@ -4542,15 +4563,14 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           position?: string | null
-          role?: string | null
           skills?: string | null
+          tagline?: string | null
           updated_at?: string | null
           visibility?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
-          career_goals?: string | null
           company?: string | null
           created_at?: string | null
           email?: string | null
@@ -4560,8 +4580,8 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           position?: string | null
-          role?: string | null
           skills?: string | null
+          tagline?: string | null
           updated_at?: string | null
           visibility?: string | null
         }
