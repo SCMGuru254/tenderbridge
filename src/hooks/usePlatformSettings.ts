@@ -8,6 +8,7 @@ interface SocialLinks {
   instagram: string;
   youtube: string;
   tiktok: string;
+  telegram: string;
 }
 
 interface ContactInfo {
@@ -57,7 +58,8 @@ const defaultSettings: PlatformSettings = {
     facebook: '',
     instagram: '',
     youtube: '',
-    tiktok: ''
+    tiktok: '',
+    telegram: ''
   },
   contact_info: {
     email: 'support@supplychainke.com',
