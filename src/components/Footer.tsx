@@ -1,9 +1,11 @@
-
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Send } from "lucide-react";
+import { Facebook, Twitter, Instagram, Send, Linkedin, Youtube } from "lucide-react";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { settings } = usePlatformSettings();
+  const socialLinks = settings.social_links;
   
   return (
     <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-auto">
@@ -15,22 +17,42 @@ const Footer = () => {
               Connecting supply chain professionals in Kenya with opportunities and insights.
             </p>
             <div className="flex space-x-3">
-              <a href="https://www.facebook.com/people/SupplyChain-Ke/61575329135959/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
-                <span className="sr-only">Facebook</span>
-                <Facebook className="h-6 w-6" />
-              </a>
-              <a href="https://twitter.com/supplychainke" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
-                <span className="sr-only">Twitter</span>
-                <Twitter className="h-6 w-6" />
-              </a>
-              <a href="https://www.instagram.com/supplychainke" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
-                <span className="sr-only">Instagram</span>
-                <Instagram className="h-6 w-6" />
-              </a>
-              <a href="https://t.me/supplychainke" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
-                <span className="sr-only">Telegram</span>
-                <Send className="h-6 w-6" />
-              </a>
+              {socialLinks.facebook && (
+                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">Facebook</span>
+                  <Facebook className="h-6 w-6" />
+                </a>
+              )}
+              {socialLinks.twitter && (
+                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">Twitter</span>
+                  <Twitter className="h-6 w-6" />
+                </a>
+              )}
+              {socialLinks.instagram && (
+                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">Instagram</span>
+                  <Instagram className="h-6 w-6" />
+                </a>
+              )}
+              {socialLinks.linkedin && (
+                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">LinkedIn</span>
+                  <Linkedin className="h-6 w-6" />
+                </a>
+              )}
+              {socialLinks.youtube && (
+                <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">YouTube</span>
+                  <Youtube className="h-6 w-6" />
+                </a>
+              )}
+              {socialLinks.telegram && (
+                <a href={socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-700">
+                  <span className="sr-only">Telegram</span>
+                  <Send className="h-6 w-6" />
+                </a>
+              )}
             </div>
           </div>
           
