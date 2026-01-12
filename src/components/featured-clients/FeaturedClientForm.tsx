@@ -89,10 +89,10 @@ export const FeaturedClientForm = () => {
                 <SelectValue placeholder="Select budget range" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="$20-50/month">$20-50/month</SelectItem>
-                <SelectItem value="$100-500/month">$100-500/month</SelectItem>
-                <SelectItem value="$500-1000/month">$500-1000/month</SelectItem>
-                <SelectItem value="$1000+/month">$1000+/month</SelectItem>
+                <SelectItem value="KES 2,000-3,000/week">KES 2,000-3,000/week</SelectItem>
+                <SelectItem value="KES 4,500/year (Sponsor)">KES 4,500/year (Homepage Sponsor)</SelectItem>
+                <SelectItem value="KES 3,000/month (Ads)">KES 3,000/month (Advertisement)</SelectItem>
+                <SelectItem value="Custom">Custom Budget</SelectItem>
               </SelectContent>
             </Select>
           </div>
