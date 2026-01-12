@@ -21,7 +21,7 @@ const Faq = () => {
     },
     {
       question: "Are there any fees to use SupplyChain_KE?",
-      answer: "Job seekers can browse jobs, set up job alerts, and access basic resources completely free. For employers, posting jobs and accessing candidates is free. For premium features like ATS CV checking, advanced analytics, and priority support, we offer affordable one-time payments through PayPal. Service providers need to pay a small fee ($1) to respond to reviews. All payments are processed securely via PayPal, with M-Pesa coming soon for added convenience."
+      answer: "Job seekers can browse jobs, set up job alerts, and access basic resources completely free. For employers, posting jobs and accessing candidates is free. For premium features like ATS CV checking, advanced analytics, and priority support, we offer affordable payments through Paystack/M-Pesa. Companies can pay KES 2,000 (one-time, lifetime access) to respond to reviews about their services."
     },
     {
       question: "What premium features are available?",
@@ -57,7 +57,7 @@ const Faq = () => {
     },
     {
       question: "What are the pricing packages for service providers?",
-      answer: "Service providers can join and offer their services for free. However, they need to pay a one-time fee of $1 (processed via PayPal) to respond to reviews about their services. This helps maintain quality interactions and reduces spam."
+      answer: "Service providers can join and offer their services for free. To respond to company reviews, companies pay a one-time lifetime fee of KES 2,000. Homepage Sponsors pay KES 4,500/year or KES 2,000/week. Advertisements cost KES 3,000/month. All payments are processed securely via Paystack (M-Pesa & Card)."
     }
   ];
 
