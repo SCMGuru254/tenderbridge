@@ -1171,6 +1171,36 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_rewards: {
+        Row: {
+          created_at: string
+          description: string | null
+          earned_at: string
+          employer_id: string
+          id: string
+          points_earned: number
+          reward_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          earned_at?: string
+          employer_id: string
+          id?: string
+          points_earned?: number
+          reward_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          earned_at?: string
+          employer_id?: string
+          id?: string
+          points_earned?: number
+          reward_type?: string
+        }
+        Relationships: []
+      }
       event_registrations: {
         Row: {
           attendance_status: string | null
@@ -1321,6 +1351,70 @@ export type Database = {
             columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "visible_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      free_job_claims: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          claimed_at: string
+          created_at: string
+          id: string
+          job_id: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          claimed_at?: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "free_job_claims_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "early_access_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "free_job_claims_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "free_job_claims_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "premium_jobs_summary"
             referencedColumns: ["id"]
           },
         ]
@@ -2069,6 +2163,7 @@ export type Database = {
         Row: {
           boost_expires_at: string | null
           boost_package_id: string | null
+          boost_type: string | null
           boosted_until: string | null
           company_id: string | null
           created_at: string
@@ -2076,6 +2171,7 @@ export type Database = {
           document_url: string | null
           early_access_points_required: number | null
           early_access_until: string | null
+          free_claim_used: boolean | null
           hiring_timeline: string | null
           id: string
           image_url: string | null
@@ -2092,11 +2188,13 @@ export type Database = {
           salary_range: string | null
           title: string
           updated_at: string
+          urgent_until: string | null
           views_count: number | null
         }
         Insert: {
           boost_expires_at?: string | null
           boost_package_id?: string | null
+          boost_type?: string | null
           boosted_until?: string | null
           company_id?: string | null
           created_at?: string
@@ -2104,6 +2202,7 @@ export type Database = {
           document_url?: string | null
           early_access_points_required?: number | null
           early_access_until?: string | null
+          free_claim_used?: boolean | null
           hiring_timeline?: string | null
           id?: string
           image_url?: string | null
@@ -2120,11 +2219,13 @@ export type Database = {
           salary_range?: string | null
           title: string
           updated_at?: string
+          urgent_until?: string | null
           views_count?: number | null
         }
         Update: {
           boost_expires_at?: string | null
           boost_package_id?: string | null
+          boost_type?: string | null
           boosted_until?: string | null
           company_id?: string | null
           created_at?: string
@@ -2132,6 +2233,7 @@ export type Database = {
           document_url?: string | null
           early_access_points_required?: number | null
           early_access_until?: string | null
+          free_claim_used?: boolean | null
           hiring_timeline?: string | null
           id?: string
           image_url?: string | null
@@ -2148,6 +2250,7 @@ export type Database = {
           salary_range?: string | null
           title?: string
           updated_at?: string
+          urgent_until?: string | null
           views_count?: number | null
         }
         Relationships: [
@@ -4516,6 +4619,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      employer_rewards_summary: {
+        Row: {
+          employer_id: string | null
+          last_reward_date: string | null
+          total_points: number | null
+          total_rewards: number | null
+        }
+        Relationships: []
       }
       premium_jobs_summary: {
         Row: {
