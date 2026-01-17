@@ -57,8 +57,9 @@ const AppFooter = () => {
   const companyLinks = [
     { label: 'Affiliate Program', href: '/affiliate' },
     { label: 'Featured Services', href: '/featured-clients' },
-    { label: 'Post a Job', href: '/post-job' },
-    { label: 'For Employers', href: '/employer/dashboard' },
+    { label: 'Post a Job (Free)', href: '/post-job' },
+    { label: 'Employer Dashboard', href: '/employer/dashboard' },
+    { label: 'Pricing & Boost', href: '/employer/dashboard#pricing' },
     { label: 'Join Our Team', href: '/careers' },
   ];
 

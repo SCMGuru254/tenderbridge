@@ -13,6 +13,7 @@ import {
   MapPin,
   Clock
 } from "lucide-react";
+import { EmployerValueProposition } from "@/components/Employer/EmployerValueProposition";
 
 export default function Home() {
   return (
@@ -230,6 +231,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Employer Value Proposition Section */}
+      <EmployerValueProposition />
       
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600 text-white">
