@@ -70,20 +70,32 @@ export const JobsMainContent = ({ onRefreshComplete }: JobsMainContentProps) => 
           {aggregatedJobs.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {aggregatedJobs.map((job: any) => (
-                <Link key={job.id} to={`/job/${job.id}`} className="block h-full">
-                  <Card className="hover-elevate h-full cursor-pointer transition-colors">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base line-clamp-2">{job.title}</CardTitle>
-                      <p className="text-xs text-muted-foreground font-medium">{job.company}</p>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-muted-foreground line-clamp-3">{job.location}</p>
-                      <div className="mt-4 flex gap-2">
-                        <Button variant="outline" size="sm" className="w-full text-xs h-8">View External</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card key={job.id} className="hover-elevate h-full transition-colors">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base line-clamp-2">{job.title}</CardTitle>
+                    <p className="text-xs text-muted-foreground font-medium">{job.company}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{job.location}</p>
+                    <div className="mt-4 flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-xs h-8"
+                        onClick={() => {
+                          const url = job.job_url || job.application_url;
+                          if (url) {
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          } else {
+                            window.location.href = `/jobs/${job.id}`;
+                          }
+                        }}
+                      >
+                        View External
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
