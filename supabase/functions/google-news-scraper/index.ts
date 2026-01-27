@@ -133,32 +133,49 @@ serve(async (req) => {
       console.error('Error deleting old news:', deleteError);
     }
     
-    // Prepare news items for insertion
+    // Prepare news items for insertion into supply_chain_news table instead
     const newsToInsert = allArticles.map(article => ({
       title: article.title,
-      content: article.content,
-      source: article.source,
-      source_url: article.link,
+      summary: article.content,
+      source_name: article.source,
+      url: article.link,
+      image_url: null,
+      category: 'industry_news',
       published_at: article.published_date,
-      tags: ['supply chain', 'logistics', 'industry news'],
-      guid: article.link // Use link as unique identifier
+      is_verified: true,
+      relevance_score: 80
     }));
     
-    // Insert news items (upsert to avoid duplicates)
-    const { data, error: insertError } = await supabase
-      .from('news_items')
-      .upsert(newsToInsert, { 
-        onConflict: 'guid',
-        ignoreDuplicates: true 
-      })
-      .select();
-    
-    if (insertError) {
-      console.error('Error inserting news:', insertError);
-      throw insertError;
+    // Insert news items (simple insert, handle duplicates by url)
+    let insertedCount = 0;
+    for (const newsItem of newsToInsert) {
+      // Check if news with same URL already exists
+      const { data: existing } = await supabase
+        .from('supply_chain_news')
+        .select('id')
+        .eq('url', newsItem.url)
+        .maybeSingle();
+      
+      if (!existing) {
+        const { error: insertError } = await supabase
+          .from('supply_chain_news')
+          .insert(newsItem);
+        
+        if (!insertError) {
+          insertedCount++;
+        } else {
+          console.error('Error inserting news item:', insertError);
+        }
+      }
     }
     
-    console.log(`Successfully stored ${data?.length || 0} articles`);
+    const data = { length: insertedCount };
+    
+    if (data.length === 0) {
+      console.log('No new articles to insert');
+    }
+    
+    console.log(`Successfully stored ${data.length} articles`);
     
     return new Response(
       JSON.stringify({ 

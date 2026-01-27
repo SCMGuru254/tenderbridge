@@ -96,3 +96,9 @@ verify_jwt = false
 
 [functions.auth]
 verify_jwt = false
+
+[functions.paystack-webhook]
+verify_jwt = false
+
+[functions.paystack-integration]
+verify_jwt = false
