@@ -7,6 +7,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Separator } from "@/components/ui/separator";
+import SupplyChainSections from "./SupplyChainSections";
 
 interface DocumentFormProps {
   onDocumentGenerated: (url: string) => void;
@@ -27,6 +29,13 @@ const DocumentForm = ({
   const [skills, setSkills] = useState("");
   const [documentType, setDocumentType] = useState<"cv" | "cover-letter">("cv");
   const [jobTitle, setJobTitle] = useState("");
+  
+  // Supply chain specific fields
+  const [certifications, setCertifications] = useState<string[]>([]);
+  const [erpSystems, setErpSystems] = useState<string[]>([]);
+  const [metrics, setMetrics] = useState("");
+  const [industryExperience, setIndustryExperience] = useState<string[]>([]);
+  
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +64,12 @@ const DocumentForm = ({
           education,
           skills,
           documentType,
-          template
+          template,
+          // Supply chain specific data
+          certifications,
+          erpSystems,
+          metrics,
+          industryExperience
         }
       });
       
@@ -104,7 +118,7 @@ const DocumentForm = ({
       </div>
       
       <div>
-        <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
+        <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
         <Input
           id="name"
           value={name}
@@ -115,7 +129,19 @@ const DocumentForm = ({
       </div>
       
       <div>
-        <Label htmlFor="experience">Professional Experience <span className="text-red-500">*</span></Label>
+        <Label htmlFor="jobTitle">Target Job Title <span className="text-destructive">*</span></Label>
+        <Input
+          id="jobTitle"
+          value={jobTitle}
+          onChange={(e) => setJobTitle(e.target.value)}
+          required
+          placeholder="e.g. Supply Chain Manager"
+          className="mt-1"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="experience">Professional Experience <span className="text-destructive">*</span></Label>
         <Textarea
           id="experience"
           value={experience}
@@ -136,21 +162,9 @@ const DocumentForm = ({
           rows={2}
         />
       </div>
-      
-      <div>
-        <Label htmlFor="jobTitle">Target Job Title <span className="text-red-500">*</span></Label>
-        <Input
-          id="jobTitle"
-          value={jobTitle}
-          onChange={(e) => setJobTitle(e.target.value)}
-          required
-          placeholder="e.g. Supply Chain Manager"
-          className="mt-1"
-        />
-      </div>
 
       <div>
-        <Label htmlFor="skills">Skills</Label>
+        <Label htmlFor="skills">General Skills</Label>
         <Textarea
           id="skills"
           value={skills}
@@ -159,6 +173,28 @@ const DocumentForm = ({
           rows={2}
         />
       </div>
+
+      {documentType === "cv" && (
+        <>
+          <Separator className="my-4" />
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-primary">Supply Chain Specializations</h3>
+            <p className="text-xs text-muted-foreground">
+              Add industry-specific details to make your CV stand out
+            </p>
+          </div>
+          <SupplyChainSections
+            certifications={certifications}
+            setCertifications={setCertifications}
+            erpSystems={erpSystems}
+            setErpSystems={setErpSystems}
+            metrics={metrics}
+            setMetrics={setMetrics}
+            industryExperience={industryExperience}
+            setIndustryExperience={setIndustryExperience}
+          />
+        </>
+      )}
       
       <Button 
         type="submit" 
