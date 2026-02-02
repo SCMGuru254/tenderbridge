@@ -233,7 +233,17 @@ const Auth = () => {
   const handleLinkedInSignIn = async () => {
     setSocialLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/auth`;
+      // For Capacitor, use the web URL that will be intercepted
+      // For web, use window.location.origin
+      const isCapacitor = window.location.href.includes('localhost') || 
+                          window.location.protocol === 'capacitor:' ||
+                          window.location.protocol === 'file:';
+      
+      // Use the production/preview URL for OAuth redirect
+      const redirectUrl = isCapacitor 
+        ? 'https://id-preview--58a11674-f67e-4727-b58a-1c6e2834f792.lovable.app/auth'
+        : `${window.location.origin}/auth`;
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
