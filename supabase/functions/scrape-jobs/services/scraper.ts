@@ -68,24 +68,40 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
   let retries = 0;
   const maxRetries = jobSite.retryAttempts || 3;
   
+  // Check if this is a LinkedIn guest API URL
+  const isLinkedInGuestApi = jobSite.url.includes('linkedin.com/jobs-guest/jobs/api');
+  
   while (retries <= maxRetries) {
     try {
       console.log(`📡 Fetching HTML from: ${jobSite.url} (attempt ${retries + 1}/${maxRetries + 1})`);
       
+      const headers: Record<string, string> = {
+        'User-Agent': getRandomUserAgent(),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,sw;q=0.8',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+      };
+      
+      // LinkedIn guest API needs specific headers
+      if (isLinkedInGuestApi) {
+        headers['Accept'] = 'text/html, */*; q=0.01';
+        headers['X-Requested-With'] = 'XMLHttpRequest';
+        headers['Referer'] = 'https://www.linkedin.com/jobs/search/';
+        headers['sec-fetch-dest'] = 'empty';
+        headers['sec-fetch-mode'] = 'cors';
+        headers['sec-fetch-site'] = 'same-origin';
+      } else {
+        headers['Accept-Encoding'] = 'gzip, deflate, br';
+        headers['Referer'] = 'https://www.google.com/';
+        headers['Sec-Fetch-Dest'] = 'document';
+        headers['Sec-Fetch-Mode'] = 'navigate';
+        headers['Sec-Fetch-Site'] = 'cross-site';
+      }
+      
       const response = await fetch(jobSite.url, {
-        headers: {
-          'User-Agent': getRandomUserAgent(),
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9,sw;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Referer': 'https://www.google.com/',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'cross-site'
-        },
+        headers,
         signal: AbortSignal.timeout(jobSite.timeout || 45000)
       });
       
@@ -93,7 +109,7 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
         console.error(`❌ HTTP error for ${jobSite.source}: ${response.status} ${response.statusText}`);
         if (retries < maxRetries) {
           retries++;
-          await delay(3000 * retries); // Exponential backoff
+          await delay(3000 * retries);
           continue;
         }
         return [];
@@ -102,7 +118,9 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
       const html = await response.text();
       console.log(`📊 HTML response length for ${jobSite.source}: ${html.length} characters`);
       
-      if (html.length < 1000) {
+      // LinkedIn guest API can return smaller valid responses
+      const minLength = isLinkedInGuestApi ? 100 : 1000;
+      if (html.length < minLength) {
         console.error(`⚠️ Response too short for ${jobSite.source}, likely blocked or empty`);
         if (retries < maxRetries) {
           retries++;
@@ -113,7 +131,7 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
       }
       
       // Enhanced HTML parsing and job extraction
-      const extractedJobs = await parseHtmlJobsEnhanced(html, jobSite);
+      const extractedJobs = await parseHtmlJobsEnhanced(html, jobSite, isLinkedInGuestApi);
       console.log(`✅ Successfully extracted ${extractedJobs.length} valid jobs from ${jobSite.source}`);
       return extractedJobs;
       
@@ -131,11 +149,11 @@ async function scrapeHtmlSite(jobSite: JobSite): Promise<Job[]> {
   return jobs;
 }
 
-async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Job[]> {
+async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite, isLinkedInGuestApi: boolean = false): Promise<Job[]> {
   const jobs: Job[] = [];
   const $ = load(html);
   
-  const pageTitle = $('title').text();
+  const pageTitle = $('title').text() || 'No title found';
   console.log(`📄 Page title for ${jobSite.source}: ${pageTitle}`);
 
   // Enhanced job finding strategy with multiple selector attempts
@@ -159,6 +177,11 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
   // Enhanced fallback selectors for better job detection
   if (jobElements.length === 0) {
     const enhancedFallbackSelectors = [
+      // LinkedIn specific
+      '.base-card',
+      '.base-search-card',
+      'li.result-card',
+      // Generic job selectors
       '[class*="job"]',
       '[class*="vacancy"]', 
       '[class*="listing"]',
@@ -179,7 +202,7 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
     for (const selector of enhancedFallbackSelectors) {
       try {
         const elements = $(selector);
-        if (elements.length > 0 && elements.length < 500) { // Reasonable number
+        if (elements.length > 0 && elements.length < 500) {
           jobElements = elements;
           console.log(`🔍 Found ${elements.length} potential job containers with fallback selector: ${selector}`);
           break;
@@ -190,8 +213,26 @@ async function parseHtmlJobsEnhanced(html: string, jobSite: JobSite): Promise<Jo
     }
   }
   
+  // For LinkedIn guest API, the entire response is job cards
+  if (jobElements.length === 0 && isLinkedInGuestApi) {
+    // Try to find any list items or cards in the response
+    jobElements = $('li, div.base-card, div[class*="card"]');
+    if (jobElements.length > 0) {
+      console.log(`🔍 LinkedIn API: Found ${jobElements.length} elements as job cards`);
+    }
+  }
+  
   if (jobElements.length === 0) {
     console.log(`⚠️ No job containers found for ${jobSite.source} with any selector`);
+    
+    // Debug: Show available elements
+    const availableClasses = new Set<string>();
+    $('[class]').each((_, el) => {
+      const classes = $(el).attr('class')?.split(' ') || [];
+      classes.forEach(c => availableClasses.add(c));
+    });
+    console.log(`📋 Available classes (sample): ${Array.from(availableClasses).slice(0, 20).join(', ')}`);
+    
     return [];
   }
   
@@ -408,8 +449,8 @@ function extractJobUrl($element: any, linkSelectors: string, baseUrl: string): s
 }
 
 function isValidJobData(title: string, company: string, location: string, source: string): boolean {
-  // Title validation
-  if (!title || title.length < 3) {
+  // Title validation - be less strict
+  if (!title || title.length < 2) {
     console.log(`🚫 Invalid title from ${source}: "${title}"`);
     return false;
   }
@@ -420,28 +461,16 @@ function isValidJobData(title: string, company: string, location: string, source
     return false;
   }
   
-  // Must contain actual letters
-  if (!/[a-zA-Z]{3,}/.test(title)) {
+  // Must contain actual letters - at least 2
+  if (!/[a-zA-Z]{2,}/.test(title)) {
     console.log(`🚫 Title lacks sufficient letters from ${source}: "${title}"`);
     return false;
   }
   
-  // Company validation (allow empty but not placeholder)
-  if (company && isPlaceholderText(company)) {
-    console.log(`🚫 Placeholder company detected from ${source}: "${company}"`);
-    return false;
-  }
-  
-  // Location validation (allow empty but not placeholder)
-  if (location && isPlaceholderText(location)) {
-    console.log(`🚫 Placeholder location detected from ${source}: "${location}"`);
-    return false;
-  }
-  
   // Skip obvious non-job content
-  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all', 'register', 'login', 'sign up', 'home', 'about', 'contact'];
+  const skipWords = ['advertisement', 'sponsored', 'click here', 'see more', 'load more', 'view all', 'register', 'login', 'sign up'];
   const titleLower = title.toLowerCase();
-  if (skipWords.some(word => titleLower.includes(word))) {
+  if (skipWords.some(word => titleLower === word || (titleLower.length < 15 && titleLower.includes(word)))) {
     console.log(`🚫 Non-job content detected from ${source}: "${title}"`);
     return false;
   }
