@@ -1201,6 +1201,62 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_subscriptions: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          currency: string | null
+          expires_at: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          payment_reference: string | null
+          plan_type: string
+          price_paid: number
+          starts_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          payment_reference?: string | null
+          plan_type: string
+          price_paid: number
+          starts_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          payment_reference?: string | null
+          plan_type?: string
+          price_paid?: number
+          starts_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_registrations: {
         Row: {
           attendance_status: string | null
@@ -2269,6 +2325,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      jobseeker_pro_memberships: {
+        Row: {
+          acquired_via: string
+          created_at: string | null
+          expires_at: string
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          payment_reference: string | null
+          points_spent: number | null
+          price_paid: number | null
+          starts_at: string | null
+          user_id: string
+        }
+        Insert: {
+          acquired_via: string
+          created_at?: string | null
+          expires_at: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          payment_reference?: string | null
+          points_spent?: number | null
+          price_paid?: number | null
+          starts_at?: string | null
+          user_id: string
+        }
+        Update: {
+          acquired_via?: string
+          created_at?: string | null
+          expires_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          payment_reference?: string | null
+          points_spent?: number | null
+          price_paid?: number | null
+          starts_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       manual_payment_claims: {
         Row: {
@@ -4380,6 +4478,44 @@ export type Database = {
         }
         Relationships: []
       }
+      trainer_subscriptions: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          id: string
+          listing_fee_paid: number
+          payment_reference: string | null
+          payment_status: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_fee_paid: number
+          payment_reference?: string | null
+          payment_status?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_fee_paid?: number
+          payment_reference?: string | null
+          payment_status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_subscriptions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_events: {
         Row: {
           category_id: string | null
@@ -4510,18 +4646,30 @@ export type Database = {
       }
       user_roles: {
         Row: {
-          created_at: string | null
-          role: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          role: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string | null
-          role: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role: Database["public"]["Enums"]["platform_role"]
           user_id: string
         }
         Update: {
-          created_at?: string | null
-          role?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["platform_role"]
           user_id?: string
         }
         Relationships: []
@@ -4715,6 +4863,14 @@ export type Database = {
         Args: { p_claim_id: string }
         Returns: undefined
       }
+      assign_role_on_subscription: {
+        Args: {
+          p_expires_at?: string
+          p_role: Database["public"]["Enums"]["platform_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       award_daily_login: { Args: never; Returns: Json }
       award_points: {
         Args: {
@@ -4796,6 +4952,10 @@ export type Database = {
           viewer_id: string
         }[]
       }
+      get_user_subscription_status: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_visible_profile_fields: {
         Args: {
           connection_status?: string
@@ -4804,7 +4964,15 @@ export type Database = {
         }
         Returns: Json
       }
-      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["platform_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_vote_count: {
         Args: { application_id: string }
         Returns: undefined
@@ -4862,6 +5030,13 @@ export type Database = {
     }
     Enums: {
       job_type: "full_time" | "part_time" | "contract" | "internship"
+      platform_role:
+        | "job_seeker"
+        | "employer"
+        | "hr_professional"
+        | "trainer"
+        | "affiliate"
+        | "admin"
       verification_status: "pending" | "verified" | "rejected" | "unclaimed"
     }
     CompositeTypes: {
@@ -4991,6 +5166,14 @@ export const Constants = {
   public: {
     Enums: {
       job_type: ["full_time", "part_time", "contract", "internship"],
+      platform_role: [
+        "job_seeker",
+        "employer",
+        "hr_professional",
+        "trainer",
+        "affiliate",
+        "admin",
+      ],
       verification_status: ["pending", "verified", "rejected", "unclaimed"],
     },
   },
