@@ -143,6 +143,21 @@ async function handleChargeSuccess(data: any) {
       await handlePremiumServicePayment(userId, metadata, amount);
       break;
 
+    // NEW: B2B Employer Subscription Plans
+    case 'employer_subscription':
+      await handleEmployerSubscription(userId, metadata, amount, reference);
+      break;
+
+    // NEW: Job Seeker Pro Membership
+    case 'jobseeker_pro':
+      await handleJobseekerProMembership(userId, metadata, amount, reference);
+      break;
+
+    // NEW: Trainer Listing Fee
+    case 'trainer_listing':
+      await handleTrainerListingFee(userId, metadata, amount, reference);
+      break;
+
     default:
       console.log('General payment processed:', paymentPurpose);
   }
@@ -238,6 +253,113 @@ async function handleAdvertisementPayment(userId: string, metadata: any, amount:
 async function handlePremiumServicePayment(userId: string, metadata: any, amount: number) {
   // Track premium service purchase
   console.log('Premium service purchased:', metadata.service_type);
+}
+
+// ============================================================
+// NEW: SUBSCRIPTION PAYMENT HANDLERS
+// ============================================================
+
+async function handleEmployerSubscription(userId: string, metadata: any, amount: number, reference: string) {
+  const { plan_type, company_id } = metadata;
+  const planPrices = { standard: 2500, growth: 5000, enterprise: 8000 };
+  const features = {
+    standard: { unlimited_posts: true, basic_analytics: true },
+    growth: { unlimited_posts: true, priority_search: true, suggested_candidates: true, affiliate_program: true, gold_badge: true },
+    enterprise: { unlimited_posts: true, featured_slots: true, resume_db: true, support: true, review_responses: true }
+  };
+  
+  const expiresAt = new Date();
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Annual subscription
+  
+  // 1. Create subscription record
+  await supabase.from('employer_subscriptions').insert({
+    user_id: userId,
+    company_id: company_id || null,
+    plan_type: plan_type || 'standard',
+    price_paid: amount / 100,
+    payment_reference: reference,
+    expires_at: expiresAt.toISOString(),
+    features: features[plan_type as keyof typeof features] || features.standard
+  });
+  
+  // 2. Assign employer role
+  const roleToAssign = plan_type === 'enterprise' ? 'hr_professional' : 'employer';
+  await supabase.rpc('assign_role_on_subscription', {
+    p_user_id: userId,
+    p_role: roleToAssign,
+    p_expires_at: expiresAt.toISOString()
+  });
+  
+  // 3. Create notification
+  await supabase.rpc('create_notification', {
+    p_user_id: userId,
+    p_title: 'Subscription Activated!',
+    p_message: `Your ${plan_type?.toUpperCase()} plan is now active until ${expiresAt.toLocaleDateString()}.`,
+    p_type: 'success'
+  });
+  
+  console.log('Employer subscription activated:', { userId, plan_type, expires_at: expiresAt });
+}
+
+async function handleJobseekerProMembership(userId: string, metadata: any, amount: number, reference: string) {
+  const expiresAt = new Date();
+  expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Annual pro membership
+  
+  // 1. Create pro membership record
+  await supabase.from('jobseeker_pro_memberships').upsert({
+    user_id: userId,
+    acquired_via: 'payment',
+    price_paid: amount / 100,
+    payment_reference: reference,
+    starts_at: new Date().toISOString(),
+    expires_at: expiresAt.toISOString(),
+    is_active: true,
+    features: { early_access: true, verified_badge: true, unlimited_ai_chat: true }
+  }, { onConflict: 'user_id' });
+  
+  // 2. Assign job_seeker role (upgraded)
+  await supabase.rpc('assign_role_on_subscription', {
+    p_user_id: userId,
+    p_role: 'job_seeker',
+    p_expires_at: null // Job seeker role doesn't expire, only pro features
+  });
+  
+  // 3. Create notification
+  await supabase.rpc('create_notification', {
+    p_user_id: userId,
+    p_title: 'Pro Membership Activated!',
+    p_message: `You now have 24h early access, verified badge, and unlimited AI chat until ${expiresAt.toLocaleDateString()}.`,
+    p_type: 'success'
+  });
+  
+  console.log('Pro membership activated:', { userId, expires_at: expiresAt });
+}
+
+async function handleTrainerListingFee(userId: string, metadata: any, amount: number, reference: string) {
+  const { course_id } = metadata;
+  
+  // 1. Record trainer subscription
+  await supabase.from('trainer_subscriptions').insert({
+    user_id: userId,
+    listing_fee_paid: amount / 100,
+    course_id: course_id || null,
+    payment_reference: reference,
+    payment_status: 'verified'
+  });
+  
+  // 2. Assign trainer role
+  await supabase.rpc('assign_role_on_subscription', {
+    p_user_id: userId,
+    p_role: 'trainer',
+    p_expires_at: null // Trainer role persists
+  });
+  
+  // 3. Activate the course if course_id provided
+  if (course_id) {
+    await supabase.from('courses').update({ status: 'approved' }).eq('id', course_id);
+  }
+  
+  console.log('Trainer listing fee processed:', { userId, course_id });
 }
 
 async function recordRevenue(category: string, amount: number, reference: string, userId: string) {
