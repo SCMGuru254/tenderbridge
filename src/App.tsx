@@ -84,6 +84,7 @@ const JobsAlerts = lazy(() => import("./pages/jobs/alerts"));
 const JobsAnalytics = lazy(() => import("./pages/jobs/analytics"));
 const JobsApplications = lazy(() => import("./pages/jobs/applications"));
 const JobsRecommendations = lazy(() => import("./pages/jobs/recommendations"));
+const JobSeekerProPage = lazy(() => import("./pages/pricing/JobSeekerPro"));
 const MyApplications = lazy(() => import("./pages/MyApplications"));
 // Additional pages
 const Blog = lazy(() => import("./pages/Blog"));
@@ -224,6 +225,7 @@ const App = () => {
                       <Route path="jobs/analytics" element={<JobsAnalytics />} />
                       <Route path="jobs/applications" element={<JobsApplications />} />
                       <Route path="jobs/recommendations" element={<JobsRecommendations />} />
+                      <Route path="pricing/jobseeker-pro" element={<JobSeekerProPage />} />
                       <Route path="my-applications" element={
                         <ProtectedRoute>
                           <MyApplications />
