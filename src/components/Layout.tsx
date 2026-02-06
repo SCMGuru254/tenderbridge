@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { MobileNavigation } from "@/components/MobileNavigation";
 import Footer from "@/components/Footer";
+import { CookieConsentBanner } from "@/components/compliance/CookieConsentBanner";
 
 export const Layout = () => {
   
@@ -14,6 +15,7 @@ export const Layout = () => {
       {/* Show mobile navigation on all pages for mobile devices */}
       <MobileNavigation />
       <Footer />
+      <CookieConsentBanner />
     </div>
   );
 };

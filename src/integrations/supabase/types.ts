@@ -735,6 +735,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cookie_consents: {
+        Row: {
+          analytics_consent: boolean | null
+          consent_date: string
+          functional_consent: boolean | null
+          id: string
+          ip_address: string | null
+          marketing_consent: boolean | null
+          session_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analytics_consent?: boolean | null
+          consent_date?: string
+          functional_consent?: boolean | null
+          id?: string
+          ip_address?: string | null
+          marketing_consent?: boolean | null
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analytics_consent?: boolean | null
+          consent_date?: string
+          functional_consent?: boolean | null
+          id?: string
+          ip_address?: string | null
+          marketing_consent?: boolean | null
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       course_categories: {
         Row: {
           created_at: string | null
@@ -903,6 +942,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      data_retention_logs: {
+        Row: {
+          executed_at: string
+          id: string
+          records_deleted: number | null
+          retention_days: number
+          table_name: string
+        }
+        Insert: {
+          executed_at?: string
+          id?: string
+          records_deleted?: number | null
+          retention_days: number
+          table_name: string
+        }
+        Update: {
+          executed_at?: string
+          id?: string
+          records_deleted?: number | null
+          retention_days?: number
+          table_name?: string
+        }
+        Relationships: []
       }
       discussion_bookmarks: {
         Row: {
@@ -1647,6 +1710,44 @@ export type Database = {
           },
         ]
       }
+      interview_question_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_anonymous: boolean | null
+          question_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          question_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          question_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_question_comments_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "interview_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_questions: {
         Row: {
           company_name: string
@@ -1807,6 +1908,54 @@ export type Database = {
           session_name?: string
           status?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      job_alerts: {
+        Row: {
+          created_at: string
+          experience_level: string | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          is_remote: boolean | null
+          job_type: string | null
+          keywords: string[] | null
+          last_triggered_at: string | null
+          location: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          experience_level?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          is_remote?: boolean | null
+          job_type?: string | null
+          keywords?: string[] | null
+          last_triggered_at?: string | null
+          location?: string | null
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          experience_level?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          is_remote?: boolean | null
+          job_type?: string | null
+          keywords?: string[] | null
+          last_triggered_at?: string | null
+          location?: string | null
+          name?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -4910,6 +5059,7 @@ export type Database = {
         }
         Returns: string
       }
+      execute_data_retention: { Args: never; Returns: undefined }
       expire_premium_jobs: { Args: never; Returns: undefined }
       get_hiring_decisions: {
         Args: { candidate_id_param: string }
