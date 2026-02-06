@@ -233,15 +233,15 @@ const Auth = () => {
   const handleLinkedInSignIn = async () => {
     setSocialLoading(true);
     try {
-      // For Capacitor, use the web URL that will be intercepted
+      // For Capacitor, use the deep link URL
       // For web, use window.location.origin
       const isCapacitor = window.location.href.includes('localhost') || 
                           window.location.protocol === 'capacitor:' ||
                           window.location.protocol === 'file:';
       
-      // Use the production/preview URL for OAuth redirect
+      // Use the deep link for mobile app, web origin for browser
       const redirectUrl = isCapacitor 
-        ? 'https://id-preview--58a11674-f67e-4727-b58a-1c6e2834f792.lovable.app/auth'
+        ? 'supplychainke://app/auth/callback'
         : `${window.location.origin}/auth`;
       
       const { error } = await supabase.auth.signInWithOAuth({

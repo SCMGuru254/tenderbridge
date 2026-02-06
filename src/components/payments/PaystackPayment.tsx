@@ -94,8 +94,15 @@ export const PaystackPayment = ({
           user_id: user?.id,
           ...metadata
         },
-        callback: async (response) => {
-          // Payment successful
+        // Use deep link for mobile, normal URL for web
+        callback_url: window.location.protocol === 'file:' || window.location.protocol === 'capacitor:' 
+          ? 'supplychainke://app/payment/success' 
+          : `${window.location.origin}/payment/success`,
+        callback: async (response: { reference: string }) => {
+          // This callback is called when the popup closes or payment is successful inside iframe
+          // For mobile fallback/redirection flow, the callback_url handles it
+          
+          // Payment successful (if handled via iframe/popup)
           try {
             await supabase.from('paystack_transactions').insert({
               user_id: user?.id,
@@ -118,7 +125,7 @@ export const PaystackPayment = ({
           toast.info('Payment cancelled');
           onCancel?.();
         }
-      });
+      } as any);
 
       handler.openIframe();
     } catch (error) {
