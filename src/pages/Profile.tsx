@@ -7,14 +7,18 @@ import { HiringDecisionsTab } from '@/components/profile/HiringDecisionsTab';
 import { RecordDecisionTab } from '@/components/profile/RecordDecisionTab';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { ProfileView, HiringDecision } from '@/types/profiles';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('about');
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({
     id: user?.id || '',
     email: user?.email || '',
@@ -70,8 +74,21 @@ const Profile = () => {
     setProfile(updatedProfile);
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success('Signed out successfully');
+    navigate('/');
+  };
+
   return (
     <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">My Profile</h1>
+        <Button variant="outline" onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
+      </div>
       <ProfileHeader profile={profile} onProfileUpdate={handleProfileUpdate} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
