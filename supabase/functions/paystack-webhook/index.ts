@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
-import { createHmac } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { encode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,11 +15,15 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Verify Paystack signature
-function verifyPaystackSignature(body: string, signature: string): boolean {
+async function verifyPaystackSignature(body: string, signature: string): Promise<boolean> {
   try {
-    const hash = createHmac('sha512', PAYSTACK_SECRET_KEY)
-      .update(body)
-      .toString();
+    const key = new TextEncoder().encode(PAYSTACK_SECRET_KEY);
+    const data = new TextEncoder().encode(body);
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw", key, { name: "HMAC", hash: "SHA-512" }, false, ["sign"]
+    );
+    const sig = await crypto.subtle.sign("HMAC", cryptoKey, data);
+    const hash = new TextDecoder().decode(encode(new Uint8Array(sig)));
     return hash === signature;
   } catch (error) {
     console.error('Signature verification error:', error);
@@ -39,7 +44,7 @@ serve(async (req) => {
     console.log('Received Paystack webhook');
 
     // Verify signature in production
-    if (PAYSTACK_SECRET_KEY && !verifyPaystackSignature(body, signature)) {
+    if (PAYSTACK_SECRET_KEY && !(await verifyPaystackSignature(body, signature))) {
       console.error('Invalid Paystack signature');
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 401,
@@ -84,9 +89,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Webhook processing error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
