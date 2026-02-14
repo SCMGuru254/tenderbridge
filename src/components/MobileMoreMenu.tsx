@@ -15,7 +15,9 @@ import {
   User,
   Award,
   Building2,
-  Settings
+  Settings,
+  Users,
+  DollarSign
 } from 'lucide-react';
 
 interface MobileMoreMenuProps {
@@ -84,6 +86,18 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
       label: 'Profile',
       icon: User,
       description: 'Your profile'
+    },
+    {
+      href: '/networking',
+      label: 'Networking',
+      icon: Users,
+      description: 'Connect with peers'
+    },
+    {
+      href: '/salary-analyzer',
+      label: 'Salary Analyzer',
+      icon: DollarSign,
+      description: 'Check market rates'
     },
     {
       href: '/dashboard',

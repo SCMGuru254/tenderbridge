@@ -75,12 +75,12 @@ const Profile = () => {
       <ProfileHeader profile={profile} onProfileUpdate={handleProfileUpdate} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="about">About</TabsTrigger>
-          <TabsTrigger value="privacy">Privacy</TabsTrigger>
-          <TabsTrigger value="views">Profile Views</TabsTrigger>
-          <TabsTrigger value="decisions">Hiring Decisions</TabsTrigger>
-          <TabsTrigger value="record">Record Decision</TabsTrigger>
+        <TabsList className="w-full flex justify-start overflow-x-auto no-scrollbar">
+          <TabsTrigger value="about" className="flex-1 min-w-[100px]">About</TabsTrigger>
+          <TabsTrigger value="privacy" className="flex-1 min-w-[100px]">Privacy</TabsTrigger>
+          <TabsTrigger value="views" className="flex-1 min-w-[100px]">Profile Views</TabsTrigger>
+          <TabsTrigger value="decisions" className="flex-1 min-w-[120px]">Hiring Decisions</TabsTrigger>
+          <TabsTrigger value="record" className="flex-1 min-w-[120px]">Record Decision</TabsTrigger>
         </TabsList>
         
         <TabsContent value="about" className="mt-6">

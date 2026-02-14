@@ -69,6 +69,7 @@ const CompanyReviews = lazy(() => import("./pages/CompanyReviews"));
 const HRDirectory = lazy(() => import("./pages/HRDirectory"));
 const Careers = lazy(() => import("./pages/Careers"));
 const Companies = lazy(() => import("./pages/Companies"));
+const CompanyDetails = lazy(() => import("./pages/CompanyDetails"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Rewards = lazy(() => import("./pages/Rewards"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
@@ -197,6 +198,7 @@ const App = () => {
                       )}
                       <Route path="join-team" element={<Careers />} />
                       <Route path="companies" element={<Companies />} />
+                      <Route path="companies/:id" element={<CompanyDetails />} />
                       <Route path="profile" element={<Profile />} />
                       <Route path="rewards" element={<Rewards />} />
                       <Route path="payment-success" element={<PaymentSuccess />} />
